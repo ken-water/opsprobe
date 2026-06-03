@@ -1,4 +1,4 @@
-import { createDefaultLocalServiceConfig, type LocalServiceConfig } from "./config";
+import { createDefaultLocalServiceConfig, type LocalServiceConfig } from "./config.ts";
 
 export type LocalServiceStatus =
   | "stopped"
@@ -66,6 +66,13 @@ export class StubLocalServiceBootstrap implements LocalServiceBootstrap {
   }
 }
 
-export { createDefaultLocalServiceConfig } from "./config";
-export type { LocalServiceConfig, LocalServicePaths, ManagedPostgresConfig } from "./config";
-export type { LocalServiceRuntimeSnapshot, LocalServiceStatusResponse } from "./protocol";
+export { createDefaultLocalServiceConfig } from "./config.ts";
+export type {
+  LocalServiceConfig,
+  LocalServicePaths,
+  ManagedPostgresConfig,
+} from "./config.ts";
+export type {
+  LocalServiceRuntimeSnapshot,
+  LocalServiceStatusResponse,
+} from "./protocol.ts";

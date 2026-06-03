@@ -30,6 +30,12 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../../packages/*/src", "../../apps/local-service/src"],
+  "include": [
+    "src",
+    "../../packages/*/src",
+    "../../apps/local-service/src/index.ts",
+    "../../apps/local-service/src/config.ts",
+    "../../apps/local-service/src/protocol.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
