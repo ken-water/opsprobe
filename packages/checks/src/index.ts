@@ -100,6 +100,27 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.load.average",
+    title: "Load Average",
+    description: "Checks whether load average is within a healthy range.",
+    category: "resource",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.load.average",
+        title: "Load Average",
+        status: "pass",
+        severity: "info",
+        summary: "Load average is within the expected range.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Load", value: "0.42 0.37 0.35" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
     id: "linux.time.sync",
     title: "Time Synchronization",
     description: "Checks whether the host clock is synchronized.",
@@ -117,6 +138,90 @@ export const builtInLinuxChecks: CheckDefinition[] = [
           { label: "Offset", value: "+4.2s" },
         ],
         remediation: "Verify chronyd or ntpd configuration and re-sync the host clock.",
+      };
+    },
+  },
+  {
+    id: "linux.process.sshd",
+    title: "Key Process Status",
+    description: "Checks whether the sshd process is running.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.process.sshd",
+        title: "Key Process Status",
+        status: "pass",
+        severity: "info",
+        summary: "sshd is running.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Process", value: "sshd" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.port.22",
+    title: "Key Port Listening",
+    description: "Checks whether TCP port 22 is listening.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.port.22",
+        title: "Key Port Listening",
+        status: "pass",
+        severity: "info",
+        summary: "Port 22 is listening.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Port", value: "22/tcp" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.reboot.age",
+    title: "Last Reboot Time",
+    description: "Checks how long ago the host was rebooted.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.reboot.age",
+        title: "Last Reboot Time",
+        status: "pass",
+        severity: "info",
+        summary: "Recent reboot information was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Last Boot", value: "2026-06-01 09:12:00" },
+        ],
+        remediation: "Review reboot timing if unexpected restarts are observed.",
+      };
+    },
+  },
+  {
+    id: "linux.log.usage",
+    title: "Log Directory Usage",
+    description: "Checks whether /var/log usage is within a healthy range.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.log.usage",
+        title: "Log Directory Usage",
+        status: "warning",
+        severity: "warning",
+        summary: "/var/log usage is elevated and should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Usage", value: "76%" },
+        ],
+        remediation: "Review log rotation, retention, and oversized log files in /var/log.",
       };
     },
   },

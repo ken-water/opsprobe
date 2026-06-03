@@ -315,6 +315,66 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "Review filesystem growth, log retention, and cleanup opportunities on the root volume.",
             ))
         }
+        "linux.load.average" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"cat /proc/loadavg | awk '{printf \\\"%s %s %s\\\", $1, $2, $3}'\"",
+            )?;
+            let parts: Vec<&str> = output.split_whitespace().collect();
+            if parts.len() != 3 {
+                return Err(format!("Unexpected load output: {}", output));
+            }
+            let load1 = parts[0]
+                .parse::<f64>()
+                .map_err(|_| format!("Unable to parse load output: {}", output))?;
+            let load5 = parts[1]
+                .parse::<f64>()
+                .map_err(|_| format!("Unable to parse load output: {}", output))?;
+            let load15 = parts[2]
+                .parse::<f64>()
+                .map_err(|_| format!("Unable to parse load output: {}", output))?;
+            let (status, severity, summary) = if load1 >= 4.0 {
+                (
+                    "critical",
+                    "critical",
+                    format!("Load average is high at {:.2}.", load1),
+                )
+            } else if load1 >= 2.0 {
+                (
+                    "warning",
+                    "warning",
+                    format!("Load average is elevated at {:.2}.", load1),
+                )
+            } else {
+                (
+                    "pass",
+                    "info",
+                    format!("Load average is within range at {:.2}.", load1),
+                )
+            };
+
+            Ok(normalized_result(
+                &input,
+                status,
+                severity,
+                summary,
+                vec![
+                    CheckEvidence {
+                        label: "Load 1m".into(),
+                        value: format!("{:.2}", load1),
+                    },
+                    CheckEvidence {
+                        label: "Load 5m".into(),
+                        value: format!("{:.2}", load5),
+                    },
+                    CheckEvidence {
+                        label: "Load 15m".into(),
+                        value: format!("{:.2}", load15),
+                    },
+                ],
+                "Review CPU saturation, blocked IO, and queued work if load remains elevated.",
+            ))
+        }
         "linux.time.sync" => {
             let output = ssh_output(
                 &input,
@@ -360,6 +420,160 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                     value: output,
                 }],
                 "Verify whether timedatectl is available and confirm the host time service status.",
+            ))
+        }
+        "linux.process.sshd" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"pgrep -x sshd >/dev/null && echo running || echo stopped\"",
+            )?;
+            if output == "running" {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "sshd is running.".into(),
+                    vec![CheckEvidence {
+                        label: "Process".into(),
+                        value: "sshd".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "sshd is not running.".into(),
+                vec![CheckEvidence {
+                    label: "Process".into(),
+                    value: "sshd".into(),
+                }],
+                "Start sshd and verify the service is enabled if remote access is expected.",
+            ))
+        }
+        "linux.port.22" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"if command -v ss >/dev/null 2>&1; then ss -ltn '( sport = :22 )' | tail -n +2 | wc -l; elif command -v netstat >/dev/null 2>&1; then netstat -ltn | awk '$4 ~ /:22$/ {count++} END {print count+0}'; else echo unsupported; fi\"",
+            )?;
+
+            if output == "unsupported" {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Listening port state could not be collected because ss/netstat is unavailable.".into(),
+                    vec![CheckEvidence {
+                        label: "Collector".into(),
+                        value: "missing ss/netstat".into(),
+                    }],
+                    "Install iproute2 or net-tools to allow port inspection.",
+                ));
+            }
+
+            let listeners = output
+                .parse::<u32>()
+                .map_err(|_| format!("Unable to parse port listener output: {}", output))?;
+
+            if listeners > 0 {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "Port 22 is listening.".into(),
+                    vec![CheckEvidence {
+                        label: "Port".into(),
+                        value: "22/tcp".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "Port 22 is not listening.".into(),
+                vec![CheckEvidence {
+                    label: "Port".into(),
+                    value: "22/tcp".into(),
+                }],
+                "Verify sshd is running and listening on the expected interface and port.",
+            ))
+        }
+        "linux.reboot.age" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"if command -v who >/dev/null 2>&1; then who -b | sed 's/.*system boot  *//'; else uptime -s; fi\"",
+            )?;
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                "Recent reboot information was collected successfully.".into(),
+                vec![CheckEvidence {
+                    label: "Last Boot".into(),
+                    value: output,
+                }],
+                "Review reboot timing if unexpected restarts are observed.",
+            ))
+        }
+        "linux.log.usage" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"df -P /var/log | awk 'NR==2 {gsub(/%/, \\\"\\\", $5); printf \\\"%s %s %s\\\", $2, $3, $5}'\"",
+            )?;
+            let parts: Vec<&str> = output.split_whitespace().collect();
+            if parts.len() != 3 {
+                return Err(format!("Unexpected /var/log output: {}", output));
+            }
+            let total = parts[0];
+            let used = parts[1];
+            let usage = parts[2]
+                .parse::<f64>()
+                .map_err(|_| format!("Unable to parse /var/log usage output: {}", output))?;
+            let (status, severity, summary) = if usage >= 85.0 {
+                (
+                    "critical",
+                    "critical",
+                    format!("/var/log usage is high at {:.1}%.", usage),
+                )
+            } else if usage >= 70.0 {
+                (
+                    "warning",
+                    "warning",
+                    format!("/var/log usage is elevated at {:.1}%.", usage),
+                )
+            } else {
+                (
+                    "pass",
+                    "info",
+                    format!("/var/log usage is within range at {:.1}%.", usage),
+                )
+            };
+
+            Ok(normalized_result(
+                &input,
+                status,
+                severity,
+                summary,
+                vec![
+                    CheckEvidence {
+                        label: "Usage".into(),
+                        value: format!("{:.1}%", usage),
+                    },
+                    CheckEvidence {
+                        label: "Used Blocks".into(),
+                        value: used.into(),
+                    },
+                    CheckEvidence {
+                        label: "Total Blocks".into(),
+                        value: total.into(),
+                    },
+                ],
+                "Review log rotation, retention, and oversized log files in /var/log.",
             ))
         }
         _ => Ok(normalized_result(
