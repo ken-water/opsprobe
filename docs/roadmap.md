@@ -19,6 +19,7 @@ Target release:
 - Initial built-in host checks
 - Structured result view
 - Local HTML/PDF report export
+- PostgreSQL-first local service direction confirmed
 
 Target releases:
 
@@ -35,6 +36,7 @@ Target releases:
 - Export and import local configuration
 - Credential rebind flow after machine migration
 - First-run setup and environment validation for a better out-of-box experience
+- Managed local PostgreSQL bootstrap and health checks
 
 Target releases:
 
@@ -47,6 +49,7 @@ Target releases:
 - Database inspection support
 - Configurable templates
 - Better remediation knowledge base
+- External PostgreSQL mode for advanced deployments
 
 Candidate release range:
 

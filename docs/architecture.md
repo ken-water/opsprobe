@@ -6,6 +6,7 @@
 - Reusable core: inspection logic should not be tightly coupled to the desktop UI
 - Simple deployment: the open source edition should be easy to run and demo
 - Structured outputs: every inspection result should be machine-readable and report-friendly
+- PostgreSQL-first storage: the product should standardize on a dedicated PostgreSQL runtime instead of splitting storage behavior across SQLite and PostgreSQL
 
 ## Product Split
 
@@ -16,10 +17,22 @@ The desktop application is the primary open source delivery form.
 Responsibilities:
 
 - Local asset management
-- Local scheduling and execution
 - Result viewing
 - Report generation and export
-- Local settings and logs
+- First-run setup and local service status
+- Delegating inspection and storage operations to the local service
+
+### Local Service
+
+The desktop edition should run with an OpsProbe-managed local service.
+
+Responsibilities:
+
+- Manage the dedicated local PostgreSQL instance
+- Own task scheduling and inspection execution
+- Provide a stable local API for the desktop UI
+- Handle schema initialization and migrations
+- Own persistence, caching, and backup hooks
 
 ### Web
 
@@ -36,13 +49,15 @@ Future responsibilities:
 
 ```text
 apps/
-  desktop/   -> Tauri application shell and UI
+  desktop/        -> Tauri application shell and UI
+  local-service/  -> local background service and PostgreSQL lifecycle management
 
 packages/
   core/      -> domain models, rules, result schema
   runner/    -> task scheduling and execution orchestration
   checks/    -> built-in inspection checks
   report/    -> report rendering and export
+  storage/   -> storage contracts and PostgreSQL adapters
   shared/    -> shared types, constants, utilities
 ```
 
@@ -52,10 +67,21 @@ packages/
 
 - Tauri shell
 - Frontend views
-- Local data persistence wiring
-- Invokes reusable core services
+- First-run guidance
+- Local service health display
+- Invokes reusable core services over a local boundary
 
-The desktop layer should avoid embedding business logic directly in UI commands wherever possible.
+The desktop layer should avoid embedding business logic and direct persistence concerns wherever possible.
+
+### `apps/local-service`
+
+- Lifecycle management for the local PostgreSQL runtime
+- Inspection scheduling and execution
+- Data access orchestration
+- Migration and bootstrap workflow
+- Backup/export hooks
+
+This service should be the single owner of durable local state.
 
 ### `packages/core`
 
@@ -92,6 +118,15 @@ Checks should be implemented with a stable interface so new protocols and device
 
 Report generation should consume structured results instead of raw command output.
 
+### `packages/storage`
+
+- Storage contracts
+- PostgreSQL repository implementations
+- Migration definitions
+- Backup/export helpers
+
+The storage layer should assume PostgreSQL as the primary durable store from the start.
+
 ### `packages/shared`
 
 - Utility helpers
@@ -100,13 +135,15 @@ Report generation should consume structured results instead of raw command outpu
 
 ## Execution Flow
 
-1. User selects one or more assets in the desktop app
-2. Desktop invokes the runner with a chosen template
-3. Runner executes the relevant checks over SSH
-4. Checks return normalized results
-5. Core evaluates status and severity
-6. Report module transforms results into exportable output
-7. Desktop stores results locally and displays them to the user
+1. User configures assets in the desktop app
+2. Desktop sends requests to the local service
+3. Local service persists and loads state through PostgreSQL-backed storage
+4. Local service invokes the runner with a chosen template
+5. Runner executes the relevant checks over SSH
+6. Checks return normalized results
+7. Core evaluates status and severity
+8. Report module transforms results into exportable output
+9. Desktop reads the resulting state and displays it to the user
 
 ## Data Model Outline
 
@@ -123,19 +160,40 @@ Core entities:
 
 ## Persistence
 
-For the first open source release, persistence should remain simple and local.
+OpsProbe should use a dedicated PostgreSQL instance managed specifically for OpsProbe.
 
-Suggested options:
+Default mode:
 
-- SQLite for structured local data
-- Local filesystem for exported reports
-- Local config files for lightweight settings
+- `Managed PostgreSQL`
+- Installed and controlled by OpsProbe
+- Separate data directory, port, logs, and lifecycle from any system PostgreSQL
 
-Persistence should be split by migration behavior:
+Optional future mode:
+
+- `External PostgreSQL`
+- Advanced configuration only
+- Intended for enterprise or controlled environments
+
+Persistence should still be split by migration behavior:
 
 - `config`: assets, templates, schedules, and settings that should be exportable
 - `runtime`: temporary state and caches that can be rebuilt
 - `secrets`: local credential bindings that should be re-linked rather than exported in plain form
+
+Managed PostgreSQL isolation requirements:
+
+- Dedicated OpsProbe data directory
+- Dedicated local port, not assumed to be `5432`
+- Dedicated logs and service lifecycle
+- No default reuse of a user-managed PostgreSQL instance
+
+User experience requirements:
+
+- One installer
+- First-run automatic bootstrap
+- Automatic schema initialization
+- Automatic health checks and recovery guidance
+- No need for the user to manually manage the database
 
 ## Extension Strategy
 

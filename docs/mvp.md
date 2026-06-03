@@ -12,7 +12,7 @@ Build a local-first desktop inspection tool that enables SMB operators and MSP t
 
 ## MVP Product Shape
 
-The open source MVP is a Tauri desktop application that runs inspections locally and stores results on the client side.
+The open source MVP is a Tauri desktop application backed by an OpsProbe-managed local service and a dedicated PostgreSQL instance.
 
 It is designed to:
 
@@ -21,6 +21,7 @@ It is designed to:
 - Detect risks with clear evidence
 - Generate detailed local reports
 - Present remediation suggestions for common issues
+- Hide database operations behind an integrated local runtime
 
 ## Core Modules
 
@@ -108,6 +109,7 @@ Capabilities:
 - Configure report output path
 - Configure basic application settings
 - View basic local logs
+- View local service and managed PostgreSQL health
 
 ## Non-Goals For MVP
 
@@ -117,6 +119,7 @@ Capabilities:
 - Notification center
 - Multi-tenant support
 - SSO and enterprise audit controls
+- Requiring users to install or manually manage PostgreSQL
 
 ## Success Criteria
 
