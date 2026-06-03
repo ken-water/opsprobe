@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@opsprobe/checks";
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
-import type { LocalServiceStatusResponse } from "@opsprobe/local-service";
+import type {
+  LocalServiceCommandResponse,
+  LocalServiceStatusResponse,
+} from "@opsprobe/local-service";
 import {
   runInspection,
   type SshConnectionTestInput,
@@ -74,6 +77,7 @@ function App() {
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
+  const [serviceMessage, setServiceMessage] = useState<string | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
   const [isTestingSsh, setIsTestingSsh] = useState(false);
   const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
@@ -125,6 +129,30 @@ function App() {
     try {
       const response = await invoke<LocalServiceStatusResponse>("get_local_service_status");
       setServiceResponse(response);
+    } finally {
+      setIsRefreshingService(false);
+    }
+  }
+
+  async function handleStartLocalService() {
+    setIsRefreshingService(true);
+    setServiceMessage(null);
+    try {
+      const message = await invoke<string>("start_local_service");
+      setServiceMessage(message);
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsRefreshingService(false);
+    }
+  }
+
+  async function handleStopLocalService() {
+    setIsRefreshingService(true);
+    setServiceMessage(null);
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("stop_local_service");
+      setServiceMessage(response.message);
+      await refreshLocalServiceHealth();
     } finally {
       setIsRefreshingService(false);
     }
@@ -224,13 +252,29 @@ function App() {
             <p className="eyebrow">0.3.0 Preview</p>
             <h2>Local Service Status</h2>
           </div>
-          <button
-            className="secondary-button"
-            onClick={() => void refreshLocalServiceHealth()}
-            type="button"
-          >
-            {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
-          </button>
+          <div className="service-actions">
+            <button
+              className="secondary-button"
+              onClick={() => void refreshLocalServiceHealth()}
+              type="button"
+            >
+              {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
+            </button>
+            <button
+              className="primary-button"
+              onClick={() => void handleStartLocalService()}
+              type="button"
+            >
+              Start Service
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => void handleStopLocalService()}
+              type="button"
+            >
+              Stop Service
+            </button>
+          </div>
         </div>
 
         {serviceResponse ? (
@@ -265,6 +309,8 @@ function App() {
         ) : (
           <p className="helper-text">Local service bootstrap has not been queried yet.</p>
         )}
+
+        {serviceMessage ? <p className="helper-text">{serviceMessage}</p> : null}
       </section>
 
       <section className="run-panel">

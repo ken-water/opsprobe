@@ -6,6 +6,8 @@ export interface LocalServicePaths {
   runtimeDir: string;
   postgresDataDir: string;
   postgresLogDir: string;
+  servicePidFile: string;
+  serviceStatusFile: string;
 }
 
 export interface ManagedPostgresConfig {
@@ -19,7 +21,13 @@ export interface LocalServiceConfig {
 }
 
 export function createDefaultLocalServiceConfig(): LocalServiceConfig {
-  const rootDir = "~/.opsprobe";
+  const globalProcess =
+    typeof globalThis === "object" && "process" in globalThis
+      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
+      : undefined;
+  const rootDir = globalProcess?.env?.HOME
+    ? `${globalProcess.env.HOME}/.opsprobe`
+    : "~/.opsprobe";
 
   return {
     paths: {
@@ -30,6 +38,8 @@ export function createDefaultLocalServiceConfig(): LocalServiceConfig {
       runtimeDir: `${rootDir}/runtime`,
       postgresDataDir: `${rootDir}/data/postgres`,
       postgresLogDir: `${rootDir}/logs/postgres`,
+      servicePidFile: `${rootDir}/runtime/local-service.pid`,
+      serviceStatusFile: `${rootDir}/runtime/local-service-status.json`,
     },
     postgres: {
       port: 15432,

@@ -56,6 +56,12 @@ export class StubLocalServiceBootstrap implements LocalServiceBootstrap {
           status: "warning",
           detail: "Local service bootstrap is stubbed in the 0.3.0 skeleton.",
         },
+        {
+          id: "service.process",
+          label: "Managed Service Process",
+          status: "warning",
+          detail: "The service entrypoint exists, but the managed runtime is still a minimal skeleton.",
+        },
       ],
       updatedAt: new Date().toISOString(),
     };
@@ -74,5 +80,6 @@ export type {
 } from "./config.ts";
 export type {
   LocalServiceRuntimeSnapshot,
+  LocalServiceCommandResponse,
   LocalServiceStatusResponse,
 } from "./protocol.ts";

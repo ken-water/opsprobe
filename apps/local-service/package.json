@@ -4,7 +4,9 @@
   "version": "0.3.0-dev",
   "type": "module",
   "scripts": {
-    "status": "node --experimental-strip-types ./src/main.ts"
+    "serve": "node --experimental-strip-types ./src/main.ts serve",
+    "status": "node --experimental-strip-types ./src/main.ts status",
+    "stop": "node --experimental-strip-types ./src/main.ts stop"
   },
   "exports": {
     ".": "./src/index.ts"

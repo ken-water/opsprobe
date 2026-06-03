@@ -11,3 +11,8 @@ export interface LocalServiceStatusResponse {
   ok: boolean;
   snapshot: LocalServiceRuntimeSnapshot;
 }
+
+export interface LocalServiceCommandResponse {
+  ok: boolean;
+  message: string;
+}

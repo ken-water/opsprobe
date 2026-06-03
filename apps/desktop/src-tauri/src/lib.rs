@@ -77,6 +77,51 @@ fn get_local_service_status() -> Result<Value, String> {
         .map_err(|error| format!("Failed to parse local service status output: {error}"))
 }
 
+#[tauri::command]
+fn start_local_service() -> Result<String, String> {
+    let local_service_entry =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+
+    let child = Command::new("node")
+        .arg("--experimental-strip-types")
+        .arg(local_service_entry)
+        .arg("serve")
+        .spawn()
+        .map_err(|error| format!("Failed to start local service: {error}"))?;
+
+    Ok(format!(
+        "Local service start requested with pid {}.",
+        child.id()
+    ))
+}
+
+#[tauri::command]
+fn stop_local_service() -> Result<Value, String> {
+    let local_service_entry =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+
+    let output = Command::new("node")
+        .arg("--experimental-strip-types")
+        .arg(local_service_entry)
+        .arg("stop")
+        .output()
+        .map_err(|error| format!("Failed to execute local service stop command: {error}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let message = stderr.trim();
+        return Err(if message.is_empty() {
+            "Local service stop command failed.".into()
+        } else {
+            message.to_string()
+        });
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    serde_json::from_str::<Value>(&stdout)
+        .map_err(|error| format!("Failed to parse local service stop output: {error}"))
+}
+
 fn validate_ssh_input(
     host: &str,
     username: &str,
@@ -721,7 +766,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             test_ssh_connection,
             run_linux_check,
-            get_local_service_status
+            get_local_service_status,
+            start_local_service,
+            stop_local_service
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
