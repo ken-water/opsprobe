@@ -4,6 +4,7 @@
   "version": "0.3.0-dev",
   "type": "module",
   "scripts": {
+    "postgres-bootstrap": "node --experimental-strip-types ./src/main.ts postgres-bootstrap",
     "inspect-run": "node --experimental-strip-types ./src/main.ts inspect-run",
     "inspect-preview": "node --experimental-strip-types ./src/main.ts inspect-preview",
     "inspection-history": "node --experimental-strip-types ./src/main.ts inspection-history",

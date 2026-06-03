@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { stdin as input } from "node:process";
-import { StubLocalServiceBootstrap } from "./index.ts";
+import { createDefaultLocalServiceConfig } from "./index.ts";
 import type {
   InspectionExecutionRequest,
   InspectionPreviewRequest,
@@ -15,9 +15,10 @@ import {
   readInspectionHistory,
 } from "./inspection.ts";
 import { LocalFileStorageAdapter } from "../../../packages/storage/src/index.ts";
+import { ManagedLocalServiceBootstrap } from "./runtime.ts";
 
-const bootstrap = new StubLocalServiceBootstrap();
-const config = bootstrap.config;
+const config = createDefaultLocalServiceConfig();
+const bootstrap = new ManagedLocalServiceBootstrap(config);
 const storage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprobe-storage.json`);
 
 async function ensureRuntimeDirs() {
@@ -74,19 +75,10 @@ async function writeStatusFile(mode: "starting" | "ready" | "stopped") {
   return response;
 }
 
-async function readStatusFile(): Promise<LocalServiceStatusResponse | null> {
-  if (!existsSync(config.paths.serviceStatusFile)) {
-    return null;
-  }
-
-  const raw = await readFile(config.paths.serviceStatusFile, "utf8");
-  return JSON.parse(raw) as LocalServiceStatusResponse;
-}
-
 async function statusCommand() {
   await ensureRuntimeDirs();
-  const existing = await readStatusFile();
-  const response = existing ?? (await buildStatusResponse("starting"));
+  const mode = existsSync(config.paths.servicePidFile) ? "ready" : "starting";
+  const response = await buildStatusResponse(mode);
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }
 
@@ -129,6 +121,17 @@ async function stopCommand() {
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }
 
+async function bootstrapPostgresCommand() {
+  await ensureRuntimeDirs();
+
+  const response: LocalServiceCommandResponse = {
+    ok: true,
+    message: await bootstrap.bootstrapPostgres(),
+  };
+
+  process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+}
+
 async function serveCommand() {
   await ensureRuntimeDirs();
   await writeFile(config.paths.servicePidFile, `${process.pid}\n`, "utf8");
@@ -162,6 +165,11 @@ async function main() {
 
   if (mode === "stop") {
     await stopCommand();
+    return;
+  }
+
+  if (mode === "postgres-bootstrap") {
+    await bootstrapPostgresCommand();
     return;
   }
 

@@ -21,9 +21,13 @@ npm run local-service:status
 It can also execute a service-owned inspection run and read back recent persisted runs:
 
 ```bash
+npm run local-service:postgres-bootstrap
 npm run local-service:inspect-run
 npm run local-service:inspection-history
 ```
 
-This is still a stepping stone toward a real managed local process that the desktop UI can probe and control.
-For now, the service persists runs through a transitional local file adapter until the managed PostgreSQL runtime in `#21` is wired in.
+Current runtime progress:
+
+- `status` now probes PostgreSQL binary availability, port availability, and whether the managed data directory has been initialized
+- `postgres-bootstrap` runs `initdb` for the dedicated OpsProbe PostgreSQL data directory and writes OpsProbe-owned port/listen overrides
+- inspection persistence is still using a transitional local file adapter until the managed PostgreSQL storage path is wired in end-to-end

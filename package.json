@@ -11,6 +11,7 @@
     "desktop:build": "npm --workspace @opsprobe/desktop run tauri build",
     "desktop:lint": "npm --workspace @opsprobe/desktop run lint",
     "desktop:typecheck": "npm --workspace @opsprobe/desktop run typecheck",
+    "local-service:postgres-bootstrap": "npm --workspace @opsprobe/local-service run postgres-bootstrap",
     "local-service:inspection-history": "npm --workspace @opsprobe/local-service run inspection-history",
     "local-service:inspect-run": "npm --workspace @opsprobe/local-service run inspect-run",
     "local-service:inspect-preview": "npm --workspace @opsprobe/local-service run inspect-preview",
