@@ -3,6 +3,8 @@ import { existsSync } from "node:fs";
 import { stdin as input } from "node:process";
 import { StubLocalServiceBootstrap } from "./index.ts";
 import type {
+  InspectionExecutionRequest,
+  InspectionPreviewRequest,
   LocalServiceCommandResponse,
   LocalServiceInspectionHistoryResponse,
   LocalServiceStatusResponse,
@@ -11,8 +13,6 @@ import {
   buildInspectionExecution,
   buildInspectionPreview,
   readInspectionHistory,
-  type InspectionExecutionRequest,
-  type InspectionPreviewRequest,
 } from "./inspection.ts";
 import { LocalFileStorageAdapter } from "../../../packages/storage/src/index.ts";
 

@@ -1,6 +1,6 @@
 import type { LocalServiceHealth, LocalServiceStatus } from "./index";
 import type { LocalServiceConfig } from "./config";
-import type { InspectionRun } from "@opsprobe/core";
+import type { Asset, InspectionRun } from "@opsprobe/core";
 
 export interface LocalServiceRuntimeSnapshot {
   status: LocalServiceStatus;
@@ -16,6 +16,26 @@ export interface LocalServiceStatusResponse {
 export interface LocalServiceCommandResponse {
   ok: boolean;
   message: string;
+}
+
+export interface InspectionPreviewRequest {
+  asset: Asset;
+}
+
+export interface InspectionPreviewResponse {
+  ok: boolean;
+  run: InspectionRun;
+  source: "local-service";
+}
+
+export interface InspectionExecutionRequest {
+  asset: Asset;
+}
+
+export interface InspectionExecutionResponse {
+  ok: boolean;
+  run: InspectionRun;
+  source: "local-service";
 }
 
 export interface LocalServiceInspectionHistoryResponse {
