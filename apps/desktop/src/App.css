@@ -1,0 +1,96 @@
+:root {
+  color: #182028;
+  background:
+    radial-gradient(circle at top left, rgba(255, 201, 92, 0.32), transparent 28%),
+    linear-gradient(135deg, #f5f1e8 0%, #e5edf3 52%, #d8e4ec 100%);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 48px 28px;
+}
+
+.hero {
+  max-width: 760px;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a4b17;
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 720px;
+  font-size: clamp(2.4rem, 4vw, 4.5rem);
+  line-height: 0.98;
+}
+
+.summary {
+  margin: 18px 0 0;
+  max-width: 680px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #3c4956;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  padding: 22px;
+  border: 1px solid rgba(24, 32, 40, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 18px 48px rgba(51, 67, 84, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.card h2 {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+}
+
+.card ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.8;
+  color: #34404c;
+}
+
+.version {
+  margin: 0 0 12px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0e4d6a;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 28px 18px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}

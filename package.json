@@ -1,0 +1,15 @@
+{
+  "name": "opsprobe",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "desktop:dev": "npm --workspace @opsprobe/desktop run tauri dev",
+    "desktop:build": "npm --workspace @opsprobe/desktop run tauri build",
+    "desktop:lint": "npm --workspace @opsprobe/desktop run lint",
+    "desktop:typecheck": "npm --workspace @opsprobe/desktop run typecheck"
+  }
+}
