@@ -80,6 +80,58 @@ struct LocalServiceInspectionPreviewInput {
     asset: AssetPayload,
 }
 
+fn run_local_service_json_command(
+    mode: &str,
+    payload: Option<String>,
+    error_prefix: &str,
+) -> Result<Value, String> {
+    let local_service_entry =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+
+    let mut command = Command::new("node");
+    command
+        .arg("--experimental-strip-types")
+        .arg(local_service_entry)
+        .arg(mode)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+
+    if payload.is_some() {
+        command.stdin(std::process::Stdio::piped());
+    }
+
+    let mut child = command
+        .spawn()
+        .map_err(|error| format!("Failed to start {error_prefix}: {error}"))?;
+
+    if let Some(payload) = payload {
+        if let Some(mut stdin) = child.stdin.take() {
+            use std::io::Write;
+            stdin
+                .write_all(payload.as_bytes())
+                .map_err(|error| format!("Failed to write payload to {error_prefix}: {error}"))?;
+        }
+    }
+
+    let output = child
+        .wait_with_output()
+        .map_err(|error| format!("Failed to read {error_prefix} output: {error}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let message = stderr.trim();
+        return Err(if message.is_empty() {
+            format!("{error_prefix} failed.")
+        } else {
+            message.to_string()
+        });
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    serde_json::from_str::<Value>(&stdout)
+        .map_err(|error| format!("Failed to parse {error_prefix} output: {error}"))
+}
+
 #[tauri::command]
 fn get_local_service_status() -> Result<Value, String> {
     let local_service_entry =
@@ -155,46 +207,20 @@ fn stop_local_service() -> Result<Value, String> {
 fn get_local_service_inspection_preview(
     input: LocalServiceInspectionPreviewInput,
 ) -> Result<Value, String> {
-    let local_service_entry =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
-
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service preview input: {error}"))?;
 
-    let mut child = Command::new("node")
-        .arg("--experimental-strip-types")
-        .arg(local_service_entry)
-        .arg("inspect-preview")
-        .stdin(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|error| format!("Failed to start local service preview command: {error}"))?;
+    run_local_service_json_command("inspect-preview", Some(payload), "local service preview command")
+}
 
-    if let Some(mut stdin) = child.stdin.take() {
-        use std::io::Write;
-        stdin.write_all(payload.as_bytes()).map_err(|error| {
-            format!("Failed to write preview payload to local service: {error}")
-        })?;
-    }
+#[tauri::command]
+fn run_local_service_inspection(
+    input: LocalServiceInspectionPreviewInput,
+) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service run input: {error}"))?;
 
-    let output = child
-        .wait_with_output()
-        .map_err(|error| format!("Failed to read local service preview output: {error}"))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let message = stderr.trim();
-        return Err(if message.is_empty() {
-            "Local service preview command failed.".into()
-        } else {
-            message.to_string()
-        });
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    serde_json::from_str::<Value>(&stdout)
-        .map_err(|error| format!("Failed to parse local service preview output: {error}"))
+    run_local_service_json_command("inspect-run", Some(payload), "local service inspection command")
 }
 
 fn validate_ssh_input(
@@ -844,7 +870,8 @@ pub fn run() {
             get_local_service_status,
             start_local_service,
             stop_local_service,
-            get_local_service_inspection_preview
+            get_local_service_inspection_preview,
+            run_local_service_inspection
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

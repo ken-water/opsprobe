@@ -3,15 +3,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@opsprobe/checks";
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
 import type {
+  InspectionExecutionResponse,
   InspectionPreviewResponse,
   LocalServiceCommandResponse,
   LocalServiceStatusResponse,
 } from "@opsprobe/local-service";
-import {
-  runInspection,
-  type SshConnectionTestInput,
-  type SshConnectionTestResult,
-} from "@opsprobe/runner";
+import { runInspection, type SshConnectionTestInput, type SshConnectionTestResult } from "@opsprobe/runner";
 import "./App.css";
 
 const initialAsset: Asset = {
@@ -78,6 +75,7 @@ function App() {
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceInspectionRun, setServiceInspectionRun] = useState<InspectionRun | null>(null);
+  const [serviceExecutionRun, setServiceExecutionRun] = useState<InspectionRun | null>(null);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
   const [serviceMessage, setServiceMessage] = useState<string | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
@@ -85,6 +83,7 @@ function App() {
   const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
   const [isRefreshingService, setIsRefreshingService] = useState(false);
   const [isRefreshingServicePreview, setIsRefreshingServicePreview] = useState(false);
+  const [isRunningServiceInspection, setIsRunningServiceInspection] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -106,6 +105,7 @@ function App() {
   useEffect(() => {
     void refreshLocalServiceHealth();
     void refreshLocalServiceInspectionPreview();
+    void runLocalServiceInspection();
     void refreshInspectionPreview();
   }, []);
 
@@ -194,6 +194,21 @@ function App() {
       setServiceInspectionRun(response.run);
     } finally {
       setIsRefreshingServicePreview(false);
+    }
+  }
+
+  async function runLocalServiceInspection() {
+    setIsRunningServiceInspection(true);
+
+    try {
+      const response = await invoke<InspectionExecutionResponse>("run_local_service_inspection", {
+        input: {
+          asset,
+        },
+      });
+      setServiceExecutionRun(response.run);
+    } finally {
+      setIsRunningServiceInspection(false);
     }
   }
 
@@ -336,6 +351,70 @@ function App() {
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.3.0 Preview</p>
+            <h2>Local Service Inspection Run</h2>
+          </div>
+          <button
+            className="primary-button"
+            onClick={() => void runLocalServiceInspection()}
+            type="button"
+          >
+            {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
+          </button>
+        </div>
+
+        {serviceExecutionRun ? (
+          <>
+            <div className="summary-strip">
+              <span>Total {serviceExecutionRun.summary.total}</span>
+              <span>Pass {serviceExecutionRun.summary.passed}</span>
+              <span>Warn {serviceExecutionRun.summary.warning}</span>
+              <span>Critical {serviceExecutionRun.summary.critical}</span>
+            </div>
+
+            <div className="asset-banner">
+              <strong>{asset.name}</strong>
+              <span>
+                {asset.host}:{asset.port}
+              </span>
+              <span>service-owned execution</span>
+              <span>{template.name}</span>
+            </div>
+
+            <div className="results-list">
+              {serviceExecutionRun.results.map((result) => (
+                <article className="result-card" key={`service-run-${result.checkId}`}>
+                  <div className="result-header">
+                    <div>
+                      <h3>{result.title}</h3>
+                      <p>{result.summary}</p>
+                    </div>
+                    <span className={`badge badge-${result.status}`}>{result.status}</span>
+                  </div>
+
+                  <ul className="evidence-list">
+                    {result.evidence.map((item) => (
+                      <li key={`service-run-${result.checkId}-${item.label}`}>
+                        <strong>{item.label}:</strong> {item.value}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <p className="remediation">
+                    <strong>Remediation:</strong> {result.remediation}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="helper-text">Local service has not executed an inspection run yet.</p>
+        )}
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.3.0 Preview</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button
@@ -385,7 +464,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.2.x Runtime</p>
+            <p className="eyebrow">Legacy Comparison</p>
             <h2>Linux Host Asset</h2>
           </div>
         </div>
@@ -503,8 +582,8 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.2.x Runtime</p>
-            <h2>Inspection Runner Output</h2>
+            <p className="eyebrow">Legacy Comparison</p>
+            <h2>Desktop Runner Preview</h2>
           </div>
           {inspectionRun ? (
             <div className="summary-strip">

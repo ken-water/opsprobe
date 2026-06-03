@@ -17,6 +17,16 @@ export interface InspectionPreviewResponse {
   source: "local-service";
 }
 
+export interface InspectionExecutionRequest {
+  asset: Asset;
+}
+
+export interface InspectionExecutionResponse {
+  ok: boolean;
+  run: InspectionRun;
+  source: "local-service";
+}
+
 class LocalServicePreviewAdapter implements RunnerAdapter {
   async testConnection(asset: Asset): Promise<SshConnectionTestResult> {
     return {
@@ -26,32 +36,49 @@ class LocalServicePreviewAdapter implements RunnerAdapter {
   }
 }
 
-export async function buildInspectionPreview(
-  request: InspectionPreviewRequest,
-): Promise<InspectionPreviewResponse> {
+function createInspectionTask(asset: Asset, taskId: string): InspectionTask {
   const template = createLinuxHostTemplate(builtInLinuxChecks);
-  const task: InspectionTask = {
-    id: "task-local-service-preview",
-    assetId: request.asset.id,
+  return {
+    id: taskId,
+    assetId: asset.id,
     templateId: template.id,
     trigger: "manual",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+}
 
-  const run = await runInspection(
+async function buildRun(asset: Asset, taskId: string): Promise<InspectionRun> {
+  const template = createLinuxHostTemplate(builtInLinuxChecks);
+  const task = createInspectionTask(asset, taskId);
+
+  return runInspection(
     {
-      asset: request.asset,
+      asset,
       task,
       template,
       checks: builtInLinuxChecks,
     },
     new LocalServicePreviewAdapter(),
   );
+}
 
+export async function buildInspectionPreview(
+  request: InspectionPreviewRequest,
+): Promise<InspectionPreviewResponse> {
   return {
     ok: true,
-    run,
+    run: await buildRun(request.asset, "task-local-service-preview"),
+    source: "local-service",
+  };
+}
+
+export async function buildInspectionExecution(
+  request: InspectionExecutionRequest,
+): Promise<InspectionExecutionResponse> {
+  return {
+    ok: true,
+    run: await buildRun(request.asset, "task-local-service-run"),
     source: "local-service",
   };
 }

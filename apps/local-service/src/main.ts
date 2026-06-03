@@ -6,7 +6,12 @@ import type {
   LocalServiceCommandResponse,
   LocalServiceStatusResponse,
 } from "./index.ts";
-import { buildInspectionPreview, type InspectionPreviewRequest } from "./inspection.ts";
+import {
+  buildInspectionExecution,
+  buildInspectionPreview,
+  type InspectionExecutionRequest,
+  type InspectionPreviewRequest,
+} from "./inspection.ts";
 
 const bootstrap = new StubLocalServiceBootstrap();
 const config = bootstrap.config;
@@ -157,6 +162,13 @@ async function main() {
   if (mode === "inspect-preview") {
     const request = await readJsonStdin<InspectionPreviewRequest>();
     const response = await buildInspectionPreview(request);
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "inspect-run") {
+    const request = await readJsonStdin<InspectionExecutionRequest>();
+    const response = await buildInspectionExecution(request);
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }
