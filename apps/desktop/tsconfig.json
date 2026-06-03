@@ -13,6 +13,16 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@opsprobe/shared": ["../../packages/shared/src/index.ts"],
+      "@opsprobe/checks": ["../../packages/checks/src/index.ts"],
+      "@opsprobe/core": ["../../packages/core/src/index.ts"],
+      "@opsprobe/runner": ["../../packages/runner/src/index.ts"],
+      "@opsprobe/report": ["../../packages/report/src/index.ts"],
+      "@opsprobe/storage": ["../../packages/storage/src/index.ts"],
+      "@opsprobe/local-service": ["../../apps/local-service/src/index.ts"]
+    },
 
     /* Linting */
     "strict": true,
@@ -20,6 +30,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../../packages/*/src"],
+  "include": ["src", "../../packages/*/src", "../../apps/local-service/src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

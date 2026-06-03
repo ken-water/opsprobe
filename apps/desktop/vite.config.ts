@@ -15,6 +15,11 @@ export default defineConfig(async () => ({
       "@opsprobe/core": resolve(__dirname, "../../packages/core/src/index.ts"),
       "@opsprobe/runner": resolve(__dirname, "../../packages/runner/src/index.ts"),
       "@opsprobe/report": resolve(__dirname, "../../packages/report/src/index.ts"),
+      "@opsprobe/storage": resolve(__dirname, "../../packages/storage/src/index.ts"),
+      "@opsprobe/local-service": resolve(
+        __dirname,
+        "../../apps/local-service/src/index.ts",
+      ),
     },
   },
 

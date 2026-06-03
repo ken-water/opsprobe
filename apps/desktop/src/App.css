@@ -249,6 +249,70 @@ body {
   color: #23313f;
 }
 
+.service-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(222, 234, 225, 0.72);
+  color: #23313f;
+}
+
+.service-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.service-ready {
+  background: #dcefdc;
+  color: #2e6a34;
+}
+
+.service-starting,
+.service-degraded {
+  background: #fff0cc;
+  color: #8a5b00;
+}
+
+.service-stopped,
+.service-error {
+  background: #ffd8d8;
+  color: #8a1f1f;
+}
+
+.service-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.service-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(24, 32, 40, 0.08);
+  background: #fdfcf8;
+}
+
+.service-card-header {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-card p {
+  margin-top: 12px;
+  color: #3d4855;
+}
+
 .results-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

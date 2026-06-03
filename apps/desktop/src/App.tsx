@@ -3,6 +3,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@opsprobe/checks";
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
 import {
+  StubLocalServiceBootstrap,
+  type LocalServiceHealth,
+} from "@opsprobe/local-service";
+import {
   runInspection,
   type SshConnectionTestInput,
   type SshConnectionTestResult,
@@ -72,9 +76,11 @@ class TauriRunnerAdapter {
 function App() {
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
+  const [serviceHealth, setServiceHealth] = useState<LocalServiceHealth | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
   const [isTestingSsh, setIsTestingSsh] = useState(false);
   const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
+  const [isRefreshingService, setIsRefreshingService] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -94,6 +100,7 @@ function App() {
   };
 
   useEffect(() => {
+    void refreshLocalServiceHealth();
     void refreshInspectionPreview();
   }, []);
 
@@ -114,6 +121,18 @@ function App() {
       },
       updatedAt: new Date().toISOString(),
     }));
+  }
+
+  async function refreshLocalServiceHealth() {
+    setIsRefreshingService(true);
+    const bootstrap = new StubLocalServiceBootstrap();
+
+    try {
+      const health = await bootstrap.ensureRuntime();
+      setServiceHealth(health);
+    } finally {
+      setIsRefreshingService(false);
+    }
   }
 
   async function refreshInspectionPreview() {
@@ -162,9 +181,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.2.0` is now wired around shared inspection models, a check contract,
-          and a reusable runner skeleton. The desktop view below is consuming the
-          same packages future SSH execution will use.
+          `0.3.0` starts the shift from a single desktop shell toward a desktop UI
+          backed by a dedicated local service and managed runtime.
         </p>
       </section>
 
@@ -172,19 +190,19 @@ function App() {
         <article className="card">
           <h2>Current Focus</h2>
           <ul>
-            <li>Shared domain models in `@opsprobe/core`</li>
-            <li>Reusable check interface in `@opsprobe/checks`</li>
-            <li>Runner skeleton in `@opsprobe/runner`</li>
+            <li>Local service bootstrap boundary</li>
+            <li>Desktop-visible runtime health</li>
+            <li>PostgreSQL-first storage direction</li>
           </ul>
         </article>
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.2.0</p>
+          <p className="version">v0.3.0</p>
           <ul>
-            <li>Real SSH connection testing</li>
-            <li>Linux host check execution</li>
-            <li>Result normalization for local reports</li>
+            <li>Local service process skeleton</li>
+            <li>Runtime health in the desktop UI</li>
+            <li>Report-oriented runtime structure</li>
           </ul>
         </article>
 
@@ -208,7 +226,56 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.2.0 Preview</p>
+            <p className="eyebrow">0.3.0 Preview</p>
+            <h2>Local Service Status</h2>
+          </div>
+          <button
+            className="secondary-button"
+            onClick={() => void refreshLocalServiceHealth()}
+            type="button"
+          >
+            {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
+          </button>
+        </div>
+
+        {serviceHealth ? (
+          <>
+            <div className="service-banner">
+              <span className={`service-pill service-${serviceHealth.status}`}>
+                {serviceHealth.status}
+              </span>
+              {serviceHealth.runtime ? (
+                <>
+                  <span>port {serviceHealth.runtime.port}</span>
+                  <span>{serviceHealth.runtime.dataDir}</span>
+                  <span>{serviceHealth.runtime.logDir}</span>
+                </>
+              ) : (
+                <span>No runtime metadata available</span>
+              )}
+            </div>
+
+            <div className="service-checks">
+              {serviceHealth.checks.map((check) => (
+                <article className="service-card" key={check.id}>
+                  <div className="service-card-header">
+                    <strong>{check.label}</strong>
+                    <span className={`badge badge-${check.status}`}>{check.status}</span>
+                  </div>
+                  <p>{check.detail}</p>
+                </article>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="helper-text">Local service bootstrap has not been queried yet.</p>
+        )}
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.2.x Runtime</p>
             <h2>Linux Host Asset</h2>
           </div>
         </div>
@@ -326,7 +393,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.2.0 Preview</p>
+            <p className="eyebrow">0.2.x Runtime</p>
             <h2>Inspection Runner Output</h2>
           </div>
           {inspectionRun ? (
