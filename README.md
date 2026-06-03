@@ -54,6 +54,7 @@ See:
 - [Release Plan](./docs/releases.md)
 - [Initial Issues](./docs/issues.md)
 - [Releasing Guide](./docs/releasing.md)
+- [Development Gate](./docs/development-gate.md)
 
 ## Quick Start
 
@@ -106,6 +107,7 @@ OpsProbe uses semantic versioning with release milestones documented in:
 - [Versioning Strategy](./docs/versioning.md)
 - [Release Plan](./docs/releases.md)
 - [Releasing Guide](./docs/releasing.md)
+- [Development Gate](./docs/development-gate.md)
 
 ## License
 

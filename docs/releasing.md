@@ -8,6 +8,8 @@ OpsProbe releases should be created with all three artifacts aligned:
 
 ## Release Checklist
 
+0. Before development for a new minor or major version begins, run the development gate:
+   - `./scripts/check-version-gate.sh <target-version>`
 1. Update version references in:
    - root `package.json`
    - `apps/desktop/package.json`
