@@ -64,22 +64,83 @@ fn validate_ssh_input(
         return Err("Username is required.".into());
     }
 
-    if auth_method != "private-key" {
-        return Err(
-            "Password mode is not implemented yet. Use private-key for the first SSH workflow."
-                .into(),
-        );
-    }
-
     if secret_ref.trim().is_empty() {
-        return Err("Private key path is required for private-key authentication.".into());
+        return Err(match auth_method {
+            "private-key" => "Private key path is required for private-key authentication.".into(),
+            "password" => "Password is required for password authentication.".into(),
+            _ => "Unsupported SSH authentication method.".into(),
+        });
     }
 
-    if !Path::new(secret_ref).exists() {
-        return Err(format!("Private key file not found: {}", secret_ref));
+    match auth_method {
+        "private-key" => {
+            if !Path::new(secret_ref).exists() {
+                return Err(format!("Private key file not found: {}", secret_ref));
+            }
+        }
+        "password" => {
+            let sshpass_available = Command::new("sshpass").arg("-V").output().is_ok();
+            if !sshpass_available {
+                return Err(
+                    "Password mode requires sshpass to be installed on the local machine.".into(),
+                );
+            }
+        }
+        _ => {
+            return Err("Unsupported SSH authentication method.".into());
+        }
     }
 
     Ok(())
+}
+
+fn run_ssh_command(
+    host: &str,
+    port: u16,
+    username: &str,
+    auth_method: &str,
+    secret_ref: &str,
+    remote_command: &str,
+) -> Result<std::process::Output, String> {
+    validate_ssh_input(host, username, auth_method, secret_ref)?;
+
+    let target = format!("{}@{}", username, host);
+
+    let mut command = if auth_method == "password" {
+        let mut command = Command::new("sshpass");
+        command.arg("-p").arg(secret_ref).arg("ssh");
+        command
+    } else {
+        Command::new("ssh")
+    };
+
+    command
+        .arg("-o")
+        .arg("StrictHostKeyChecking=no")
+        .arg("-o")
+        .arg("ConnectTimeout=5")
+        .arg("-p")
+        .arg(port.to_string());
+
+    if auth_method == "private-key" {
+        command
+            .arg("-o")
+            .arg("BatchMode=yes")
+            .arg("-i")
+            .arg(secret_ref);
+    } else {
+        command
+            .arg("-o")
+            .arg("PreferredAuthentications=password")
+            .arg("-o")
+            .arg("PubkeyAuthentication=no");
+    }
+
+    command
+        .arg(target)
+        .arg(remote_command)
+        .output()
+        .map_err(|error| format!("Failed to execute ssh command: {error}"))
 }
 
 fn ssh_output(input: &RunLinuxCheckInput, remote_command: &str) -> Result<String, String> {
@@ -90,22 +151,14 @@ fn ssh_output(input: &RunLinuxCheckInput, remote_command: &str) -> Result<String
         &input.secret_ref,
     )?;
 
-    let target = format!("{}@{}", input.username, input.host);
-    let output = Command::new("ssh")
-        .arg("-o")
-        .arg("BatchMode=yes")
-        .arg("-o")
-        .arg("StrictHostKeyChecking=no")
-        .arg("-o")
-        .arg("ConnectTimeout=5")
-        .arg("-i")
-        .arg(&input.secret_ref)
-        .arg("-p")
-        .arg(input.port.to_string())
-        .arg(target)
-        .arg(remote_command)
-        .output()
-        .map_err(|error| format!("Failed to execute ssh command: {error}"))?;
+    let output = run_ssh_command(
+        &input.host,
+        input.port,
+        &input.username,
+        &input.auth_method,
+        &input.secret_ref,
+        remote_command,
+    )?;
 
     if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -602,22 +655,14 @@ fn test_ssh_connection(input: SshConnectionTestInput) -> Result<SshConnectionTes
         &input.secret_ref,
     )?;
 
-    let target = format!("{}@{}", input.username, input.host);
-    let output = Command::new("ssh")
-        .arg("-o")
-        .arg("BatchMode=yes")
-        .arg("-o")
-        .arg("StrictHostKeyChecking=no")
-        .arg("-o")
-        .arg("ConnectTimeout=5")
-        .arg("-i")
-        .arg(&input.secret_ref)
-        .arg("-p")
-        .arg(input.port.to_string())
-        .arg(target)
-        .arg("exit")
-        .output()
-        .map_err(|error| format!("Failed to execute ssh command: {error}"))?;
+    let output = run_ssh_command(
+        &input.host,
+        input.port,
+        &input.username,
+        &input.auth_method,
+        &input.secret_ref,
+        "exit",
+    )?;
 
     if output.status.success() {
         return Ok(SshConnectionTestResult {

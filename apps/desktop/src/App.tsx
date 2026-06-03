@@ -288,12 +288,13 @@ function App() {
             {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
           </span>
           <input
+            type={asset.credential.method === "password" ? "password" : "text"}
             value={asset.credential.secretRef}
             onChange={(event) => patchCredential({ secretRef: event.target.value })}
             placeholder={
               asset.credential.method === "private-key"
                 ? "/home/user/.ssh/id_rsa"
-                : "Password mode will be added after the first SSH workflow lands."
+                : "Enter the SSH password used for this host."
             }
           />
         </label>
@@ -310,7 +311,8 @@ function App() {
             {isRefreshingPreview ? "Refreshing..." : "Refresh Inspection Preview"}
           </button>
           <p className="helper-text">
-            Asset fields are shared by the SSH test and the inspection runner preview.
+            Asset fields are shared by the SSH test and the inspection runner preview. Password mode
+            requires `sshpass` on the local machine.
           </p>
         </div>
 

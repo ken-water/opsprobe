@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.2.1] - 2026-06-03
+
+### Added
+
+- Password-based SSH connection testing through `sshpass`
+- Password-based SSH execution support for Linux baseline checks
+
+### Changed
+
+- Desktop SSH credential input now switches to a password field when password authentication is selected
+- SSH validation now reports missing `sshpass` explicitly when password mode is requested
+
 ## [0.2.0] - 2026-06-03
 
 ### Added
