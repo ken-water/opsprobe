@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.2.0] - 2026-06-03
+
+### Added
+
+- Shared inspection domain models in `@opsprobe/core`
+- Reusable Linux check contracts in `@opsprobe/checks`
+- Runner adapter flow for normalized inspection execution
+- Editable Linux host asset input in the desktop UI
+- SSH connection testing through a Tauri backend command
+- SSH-backed Linux baseline checks for CPU, memory, disk, load, time sync, sshd, port 22, reboot age, and log usage
+- Development gate checks to enforce issue and milestone hygiene before new version work begins
+
+### Changed
+
+- Desktop preview now uses a unified asset model for both connection testing and inspection execution
+- Architecture direction has been updated toward a managed PostgreSQL runtime for future local service work
+
 ## [0.1.1] - 2026-06-03
 
 ### Added
