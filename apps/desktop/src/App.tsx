@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@opsprobe/checks";
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
 import type {
+  InspectionPreviewResponse,
   LocalServiceCommandResponse,
   LocalServiceStatusResponse,
 } from "@opsprobe/local-service";
@@ -76,12 +77,14 @@ class TauriRunnerAdapter {
 function App() {
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
+  const [serviceInspectionRun, setServiceInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
   const [serviceMessage, setServiceMessage] = useState<string | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
   const [isTestingSsh, setIsTestingSsh] = useState(false);
   const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
   const [isRefreshingService, setIsRefreshingService] = useState(false);
+  const [isRefreshingServicePreview, setIsRefreshingServicePreview] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -102,6 +105,7 @@ function App() {
 
   useEffect(() => {
     void refreshLocalServiceHealth();
+    void refreshLocalServiceInspectionPreview();
     void refreshInspectionPreview();
   }, []);
 
@@ -175,6 +179,21 @@ function App() {
       setInspectionRun(run);
     } finally {
       setIsRefreshingPreview(false);
+    }
+  }
+
+  async function refreshLocalServiceInspectionPreview() {
+    setIsRefreshingServicePreview(true);
+
+    try {
+      const response = await invoke<InspectionPreviewResponse>("get_local_service_inspection_preview", {
+        input: {
+          asset,
+        },
+      });
+      setServiceInspectionRun(response.run);
+    } finally {
+      setIsRefreshingServicePreview(false);
     }
   }
 
@@ -311,6 +330,56 @@ function App() {
         )}
 
         {serviceMessage ? <p className="helper-text">{serviceMessage}</p> : null}
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.3.0 Preview</p>
+            <h2>Local Service Inspection Preview</h2>
+          </div>
+          <button
+            className="secondary-button"
+            onClick={() => void refreshLocalServiceInspectionPreview()}
+            type="button"
+          >
+            {isRefreshingServicePreview ? "Refreshing..." : "Refresh Service Preview"}
+          </button>
+        </div>
+
+        {serviceInspectionRun ? (
+          <>
+            <div className="asset-banner">
+              <strong>{asset.name}</strong>
+              <span>service-owned preview</span>
+              <span>{serviceInspectionRun.summary.total} checks</span>
+            </div>
+
+            <div className="results-list">
+              {serviceInspectionRun.results.map((result) => (
+                <article className="result-card" key={`service-${result.checkId}`}>
+                  <div className="result-header">
+                    <div>
+                      <h3>{result.title}</h3>
+                      <p>{result.summary}</p>
+                    </div>
+                    <span className={`badge badge-${result.status}`}>{result.status}</span>
+                  </div>
+
+                  <ul className="evidence-list">
+                    {result.evidence.map((item) => (
+                      <li key={`service-${result.checkId}-${item.label}`}>
+                        <strong>{item.label}:</strong> {item.value}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="helper-text">Local service has not generated an inspection preview yet.</p>
+        )}
       </section>
 
       <section className="run-panel">

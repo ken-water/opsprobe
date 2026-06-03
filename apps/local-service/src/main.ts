@@ -1,10 +1,12 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { stdin as input } from "node:process";
 import { StubLocalServiceBootstrap } from "./index.ts";
 import type {
   LocalServiceCommandResponse,
   LocalServiceStatusResponse,
 } from "./index.ts";
+import { buildInspectionPreview, type InspectionPreviewRequest } from "./inspection.ts";
 
 const bootstrap = new StubLocalServiceBootstrap();
 const config = bootstrap.config;
@@ -77,6 +79,16 @@ async function statusCommand() {
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }
 
+async function readJsonStdin<T>(): Promise<T> {
+  let raw = "";
+
+  for await (const chunk of input) {
+    raw += String(chunk);
+  }
+
+  return JSON.parse(raw) as T;
+}
+
 async function stopCommand() {
   if (!existsSync(config.paths.servicePidFile)) {
     const response: LocalServiceCommandResponse = {
@@ -139,6 +151,13 @@ async function main() {
 
   if (mode === "stop") {
     await stopCommand();
+    return;
+  }
+
+  if (mode === "inspect-preview") {
+    const request = await readJsonStdin<InspectionPreviewRequest>();
+    const response = await buildInspectionPreview(request);
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }
 

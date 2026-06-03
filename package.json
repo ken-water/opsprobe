@@ -11,6 +11,7 @@
     "desktop:build": "npm --workspace @opsprobe/desktop run tauri build",
     "desktop:lint": "npm --workspace @opsprobe/desktop run lint",
     "desktop:typecheck": "npm --workspace @opsprobe/desktop run typecheck",
+    "local-service:inspect-preview": "npm --workspace @opsprobe/local-service run inspect-preview",
     "local-service:serve": "npm --workspace @opsprobe/local-service run serve",
     "local-service:status": "npm --workspace @opsprobe/local-service run status"
     ,

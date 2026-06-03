@@ -4,11 +4,17 @@
   "version": "0.3.0-dev",
   "type": "module",
   "scripts": {
+    "inspect-preview": "node --experimental-strip-types ./src/main.ts inspect-preview",
     "serve": "node --experimental-strip-types ./src/main.ts serve",
     "status": "node --experimental-strip-types ./src/main.ts status",
     "stop": "node --experimental-strip-types ./src/main.ts stop"
   },
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@opsprobe/checks": "*",
+    "@opsprobe/core": "*",
+    "@opsprobe/runner": "*"
   }
 }

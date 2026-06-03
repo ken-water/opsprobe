@@ -51,6 +51,35 @@ struct CheckResult {
     remediation: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AssetCredentialPayload {
+    method: String,
+    username: String,
+    secret_ref: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AssetPayload {
+    id: String,
+    name: String,
+    kind: String,
+    protocol: String,
+    host: String,
+    port: u16,
+    tags: Vec<String>,
+    credential: AssetCredentialPayload,
+    created_at: String,
+    updated_at: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceInspectionPreviewInput {
+    asset: AssetPayload,
+}
+
 #[tauri::command]
 fn get_local_service_status() -> Result<Value, String> {
     let local_service_entry =
@@ -120,6 +149,52 @@ fn stop_local_service() -> Result<Value, String> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     serde_json::from_str::<Value>(&stdout)
         .map_err(|error| format!("Failed to parse local service stop output: {error}"))
+}
+
+#[tauri::command]
+fn get_local_service_inspection_preview(
+    input: LocalServiceInspectionPreviewInput,
+) -> Result<Value, String> {
+    let local_service_entry =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service preview input: {error}"))?;
+
+    let mut child = Command::new("node")
+        .arg("--experimental-strip-types")
+        .arg(local_service_entry)
+        .arg("inspect-preview")
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("Failed to start local service preview command: {error}"))?;
+
+    if let Some(mut stdin) = child.stdin.take() {
+        use std::io::Write;
+        stdin.write_all(payload.as_bytes()).map_err(|error| {
+            format!("Failed to write preview payload to local service: {error}")
+        })?;
+    }
+
+    let output = child
+        .wait_with_output()
+        .map_err(|error| format!("Failed to read local service preview output: {error}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let message = stderr.trim();
+        return Err(if message.is_empty() {
+            "Local service preview command failed.".into()
+        } else {
+            message.to_string()
+        });
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    serde_json::from_str::<Value>(&stdout)
+        .map_err(|error| format!("Failed to parse local service preview output: {error}"))
 }
 
 fn validate_ssh_input(
@@ -768,7 +843,8 @@ pub fn run() {
             run_linux_check,
             get_local_service_status,
             start_local_service,
-            stop_local_service
+            stop_local_service,
+            get_local_service_inspection_preview
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

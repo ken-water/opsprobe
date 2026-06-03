@@ -74,6 +74,10 @@ export class StubLocalServiceBootstrap implements LocalServiceBootstrap {
 
 export { createDefaultLocalServiceConfig } from "./config.ts";
 export type {
+  InspectionPreviewRequest,
+  InspectionPreviewResponse,
+} from "./inspection.ts";
+export type {
   LocalServiceConfig,
   LocalServicePaths,
   ManagedPostgresConfig,
