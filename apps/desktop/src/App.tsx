@@ -42,6 +42,22 @@ function App() {
             <li>@opsprobe/report</li>
           </ul>
         </article>
+
+        <article className="card support-card">
+          <h2>Support OpsProbe</h2>
+          <p>
+            If this project saves you time, you can buy me a coffee and help fund
+            the next inspection features.
+          </p>
+          <a
+            className="support-link"
+            href="https://github.com/sponsors/ken-water"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Buy Me a Coffee
+          </a>
+        </article>
       </section>
     </main>
   );

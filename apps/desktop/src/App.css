@@ -78,11 +78,40 @@ body {
   color: #34404c;
 }
 
+.card p {
+  margin: 0;
+  line-height: 1.7;
+  color: #34404c;
+}
+
 .version {
   margin: 0 0 12px;
   font-size: 1.6rem;
   font-weight: 700;
   color: #0e4d6a;
+}
+
+.support-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.support-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #9f4b12;
+  color: #fffaf3;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.support-link:hover {
+  background: #823c0e;
 }
 
 @media (max-width: 720px) {

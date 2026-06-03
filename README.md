@@ -28,6 +28,12 @@ The initial open source edition focuses on a Tauri desktop client with local exe
 
 Web publishing, notifications, multi-user collaboration, and tenant management are planned for future commercial editions.
 
+## Support The Project
+
+If OpsProbe is useful to you and you want to buy me a coffee, you can support the project through GitHub Sponsors:
+
+- https://github.com/sponsors/ken-water
+
 ## MVP
 
 The first milestone includes:
@@ -103,4 +109,4 @@ OpsProbe uses semantic versioning with release milestones documented in:
 
 ## License
 
-TBD
+Apache-2.0. See [LICENSE](./LICENSE).
