@@ -138,3 +138,5 @@ After the open source MVP is stable, future versions can extend to:
 - Notification workflows
 - Windows, database, and network device inspections
 - Team collaboration and remediation workflows
+- Export and import flows for migrating to a new machine
+- Guided first-run setup with environment validation

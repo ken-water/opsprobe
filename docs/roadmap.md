@@ -32,6 +32,9 @@ Target releases:
 - Result comparison
 - Better report formatting
 - Improved error handling and logs
+- Export and import local configuration
+- Credential rebind flow after machine migration
+- First-run setup and environment validation for a better out-of-box experience
 
 Target releases:
 

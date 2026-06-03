@@ -131,6 +131,12 @@ Suggested options:
 - Local filesystem for exported reports
 - Local config files for lightweight settings
 
+Persistence should be split by migration behavior:
+
+- `config`: assets, templates, schedules, and settings that should be exportable
+- `runtime`: temporary state and caches that can be rebuilt
+- `secrets`: local credential bindings that should be re-linked rather than exported in plain form
+
 ## Extension Strategy
 
 Future commercial or hosted capabilities should build on the same core packages instead of forking inspection logic.
