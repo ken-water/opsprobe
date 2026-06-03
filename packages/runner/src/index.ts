@@ -17,6 +17,7 @@ export interface SshConnectionTestResult {
 
 export interface RunnerAdapter {
   testConnection(asset: Asset): Promise<SshConnectionTestResult>;
+  executeCheck?(asset: Asset, check: CheckDefinition): Promise<CheckResult>;
 }
 
 export interface RunInspectionInput {
@@ -47,14 +48,18 @@ export async function runInspection(
 
   if (connection.ok) {
     results = await Promise.all(
-      input.checks.map((check) =>
-        check.run({
+      input.checks.map((check) => {
+        if (adapter.executeCheck) {
+          return adapter.executeCheck(input.asset, check);
+        }
+
+        return check.run({
           assetId: input.asset.id,
           assetName: input.asset.name,
           protocol: input.asset.protocol,
           collectedAt: now,
-        }),
-      ),
+        });
+      }),
     );
   } else {
     status = "failed";

@@ -79,6 +79,27 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.disk.usage",
+    title: "Disk Usage",
+    description: "Checks whether root filesystem usage is within a healthy range.",
+    category: "resource",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.disk.usage",
+        title: "Disk Usage",
+        status: "warning",
+        severity: "warning",
+        summary: "Disk usage is elevated and should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Usage", value: "81%" },
+        ],
+        remediation: "Review filesystem growth, log retention, and cleanup opportunities.",
+      };
+    },
+  },
+  {
     id: "linux.time.sync",
     title: "Time Synchronization",
     description: "Checks whether the host clock is synchronized.",

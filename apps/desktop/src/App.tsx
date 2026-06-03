@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { builtInLinuxChecks } from "@opsprobe/checks";
+import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@opsprobe/checks";
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
 import {
-  MockRunnerAdapter,
   runInspection,
   type SshConnectionTestInput,
   type SshConnectionTestResult,
@@ -28,6 +27,47 @@ const initialAsset: Asset = {
 };
 
 const template = createLinuxHostTemplate(builtInLinuxChecks);
+
+class TauriRunnerAdapter {
+  async testConnection(asset: Asset): Promise<SshConnectionTestResult> {
+    return invoke<SshConnectionTestResult>("test_ssh_connection", {
+      input: {
+        host: asset.host,
+        port: asset.port,
+        username: asset.credential.username,
+        authMethod: asset.credential.method,
+        secretRef: asset.credential.secretRef,
+      } satisfies SshConnectionTestInput,
+    });
+  }
+
+  async executeCheck(asset: Asset, check: CheckDefinition): Promise<CheckResult> {
+    try {
+      return await invoke<CheckResult>("run_linux_check", {
+        input: {
+          host: asset.host,
+          port: asset.port,
+          username: asset.credential.username,
+          authMethod: asset.credential.method,
+          secretRef: asset.credential.secretRef,
+          checkId: check.id,
+          title: check.title,
+        },
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Check execution failed.";
+      return {
+        checkId: check.id,
+        title: check.title,
+        status: "unknown",
+        severity: "warning",
+        summary: message,
+        evidence: [{ label: "Execution", value: "Failed before result normalization" }],
+        remediation: "Verify SSH connectivity, command availability, and host permissions.",
+      };
+    }
+  }
+}
 
 function App() {
   const [asset, setAsset] = useState<Asset>(initialAsset);
@@ -78,7 +118,7 @@ function App() {
 
   async function refreshInspectionPreview() {
     setIsRefreshingPreview(true);
-    const adapter = new MockRunnerAdapter();
+    const adapter = new TauriRunnerAdapter();
 
     try {
       const run = await runInspection(
