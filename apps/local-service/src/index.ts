@@ -1,3 +1,5 @@
+import { createDefaultLocalServiceConfig, type LocalServiceConfig } from "./config";
+
 export type LocalServiceStatus =
   | "stopped"
   | "starting"
@@ -31,15 +33,21 @@ export interface LocalServiceBootstrap {
 }
 
 export class StubLocalServiceBootstrap implements LocalServiceBootstrap {
+  readonly config: LocalServiceConfig;
+
+  constructor(config: LocalServiceConfig = createDefaultLocalServiceConfig()) {
+    this.config = config;
+  }
+
   async ensureRuntime(): Promise<LocalServiceHealth> {
     return {
       status: "starting",
       runtime: {
         mode: "managed",
-        port: 15432,
-        dataDir: "~/.opsprobe/data/postgres",
-        logDir: "~/.opsprobe/logs/postgres",
-        version: null,
+        port: this.config.postgres.port,
+        dataDir: this.config.paths.postgresDataDir,
+        logDir: this.config.paths.postgresLogDir,
+        version: this.config.postgres.version,
       },
       checks: [
         {
@@ -57,3 +65,7 @@ export class StubLocalServiceBootstrap implements LocalServiceBootstrap {
     return;
   }
 }
+
+export { createDefaultLocalServiceConfig } from "./config";
+export type { LocalServiceConfig, LocalServicePaths, ManagedPostgresConfig } from "./config";
+export type { LocalServiceRuntimeSnapshot, LocalServiceStatusResponse } from "./protocol";

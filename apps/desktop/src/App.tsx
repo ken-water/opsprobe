@@ -4,6 +4,7 @@ import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@ops
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
 import {
   StubLocalServiceBootstrap,
+  createDefaultLocalServiceConfig,
   type LocalServiceHealth,
 } from "@opsprobe/local-service";
 import {
@@ -125,7 +126,7 @@ function App() {
 
   async function refreshLocalServiceHealth() {
     setIsRefreshingService(true);
-    const bootstrap = new StubLocalServiceBootstrap();
+    const bootstrap = new StubLocalServiceBootstrap(createDefaultLocalServiceConfig());
 
     try {
       const health = await bootstrap.ensureRuntime();

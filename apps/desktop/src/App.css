@@ -294,6 +294,10 @@ body {
   margin-top: 18px;
 }
 
+.service-checks + .service-checks {
+  margin-top: 14px;
+}
+
 .service-card {
   padding: 18px;
   border-radius: 18px;
