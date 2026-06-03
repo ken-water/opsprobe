@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::path::Path;
 use std::process::Command;
 
@@ -48,6 +49,32 @@ struct CheckResult {
     summary: String,
     evidence: Vec<CheckEvidence>,
     remediation: String,
+}
+
+#[tauri::command]
+fn get_local_service_status() -> Result<Value, String> {
+    let local_service_entry =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+
+    let output = Command::new("node")
+        .arg("--experimental-strip-types")
+        .arg(local_service_entry)
+        .output()
+        .map_err(|error| format!("Failed to execute local service status command: {error}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let message = stderr.trim();
+        return Err(if message.is_empty() {
+            "Local service status command failed.".into()
+        } else {
+            message.to_string()
+        });
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    serde_json::from_str::<Value>(&stdout)
+        .map_err(|error| format!("Failed to parse local service status output: {error}"))
 }
 
 fn validate_ssh_input(
@@ -693,7 +720,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             test_ssh_connection,
-            run_linux_check
+            run_linux_check,
+            get_local_service_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

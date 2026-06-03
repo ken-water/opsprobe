@@ -2,11 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@opsprobe/checks";
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
-import {
-  StubLocalServiceBootstrap,
-  createDefaultLocalServiceConfig,
-  type LocalServiceHealth,
-} from "@opsprobe/local-service";
+import type { LocalServiceStatusResponse } from "@opsprobe/local-service";
 import {
   runInspection,
   type SshConnectionTestInput,
@@ -77,7 +73,7 @@ class TauriRunnerAdapter {
 function App() {
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
-  const [serviceHealth, setServiceHealth] = useState<LocalServiceHealth | null>(null);
+  const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
   const [isTestingSsh, setIsTestingSsh] = useState(false);
   const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
@@ -126,11 +122,9 @@ function App() {
 
   async function refreshLocalServiceHealth() {
     setIsRefreshingService(true);
-    const bootstrap = new StubLocalServiceBootstrap(createDefaultLocalServiceConfig());
-
     try {
-      const health = await bootstrap.ensureRuntime();
-      setServiceHealth(health);
+      const response = await invoke<LocalServiceStatusResponse>("get_local_service_status");
+      setServiceResponse(response);
     } finally {
       setIsRefreshingService(false);
     }
@@ -239,17 +233,17 @@ function App() {
           </button>
         </div>
 
-        {serviceHealth ? (
+        {serviceResponse ? (
           <>
             <div className="service-banner">
-              <span className={`service-pill service-${serviceHealth.status}`}>
-                {serviceHealth.status}
+              <span className={`service-pill service-${serviceResponse.snapshot.status}`}>
+                {serviceResponse.snapshot.status}
               </span>
-              {serviceHealth.runtime ? (
+              {serviceResponse.snapshot.health.runtime ? (
                 <>
-                  <span>port {serviceHealth.runtime.port}</span>
-                  <span>{serviceHealth.runtime.dataDir}</span>
-                  <span>{serviceHealth.runtime.logDir}</span>
+                  <span>port {serviceResponse.snapshot.health.runtime.port}</span>
+                  <span>{serviceResponse.snapshot.config.paths.postgresDataDir}</span>
+                  <span>{serviceResponse.snapshot.config.paths.postgresLogDir}</span>
                 </>
               ) : (
                 <span>No runtime metadata available</span>
@@ -257,7 +251,7 @@ function App() {
             </div>
 
             <div className="service-checks">
-              {serviceHealth.checks.map((check) => (
+              {serviceResponse.snapshot.health.checks.map((check) => (
                 <article className="service-card" key={check.id}>
                   <div className="service-card-header">
                     <strong>{check.label}</strong>
