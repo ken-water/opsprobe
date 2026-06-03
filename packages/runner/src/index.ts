@@ -2,8 +2,21 @@ import type { Asset, InspectionRun, InspectionTask, InspectionTemplate } from "@
 import { summarizeResults } from "@opsprobe/core";
 import type { CheckDefinition, CheckResult } from "@opsprobe/checks";
 
+export interface SshConnectionTestInput {
+  host: string;
+  port: number;
+  username: string;
+  authMethod: "password" | "private-key";
+  secretRef: string;
+}
+
+export interface SshConnectionTestResult {
+  ok: boolean;
+  message: string;
+}
+
 export interface RunnerAdapter {
-  testConnection(asset: Asset): Promise<{ ok: boolean; message: string }>;
+  testConnection(asset: Asset): Promise<SshConnectionTestResult>;
 }
 
 export interface RunInspectionInput {

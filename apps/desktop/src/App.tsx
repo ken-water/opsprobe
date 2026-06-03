@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { builtInLinuxChecks } from "@opsprobe/checks";
 import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
-import { MockRunnerAdapter, runInspection } from "@opsprobe/runner";
+import {
+  MockRunnerAdapter,
+  runInspection,
+  type SshConnectionTestInput,
+  type SshConnectionTestResult,
+} from "@opsprobe/runner";
 import "./App.css";
 
 const sampleAsset: Asset = {
@@ -34,6 +40,15 @@ const task: InspectionTask = {
 
 function App() {
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
+  const [sshForm, setSshForm] = useState<SshConnectionTestInput>({
+    host: sampleAsset.host,
+    port: sampleAsset.port,
+    username: sampleAsset.credential.username,
+    authMethod: sampleAsset.credential.method,
+    secretRef: "",
+  });
+  const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
+  const [isTestingSsh, setIsTestingSsh] = useState(false);
 
   useEffect(() => {
     const adapter = new MockRunnerAdapter();
@@ -48,6 +63,26 @@ function App() {
       adapter,
     ).then(setInspectionRun);
   }, []);
+
+  async function handleSshTest() {
+    setIsTestingSsh(true);
+    setSshResult(null);
+
+    try {
+      const result = await invoke<SshConnectionTestResult>("test_ssh_connection", {
+        input: sshForm,
+      });
+      setSshResult(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "SSH test failed.";
+      setSshResult({
+        ok: false,
+        message,
+      });
+    } finally {
+      setIsTestingSsh(false);
+    }
+  }
 
   return (
     <main className="app-shell">
@@ -96,6 +131,102 @@ function App() {
             Buy Me a Coffee
           </a>
         </article>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.2.0 Preview</p>
+            <h2>SSH Connection Test</h2>
+          </div>
+        </div>
+
+        <div className="ssh-grid">
+          <label>
+            <span>Host</span>
+            <input
+              value={sshForm.host}
+              onChange={(event) =>
+                setSshForm((current) => ({ ...current, host: event.target.value }))
+              }
+              placeholder="10.0.0.12"
+            />
+          </label>
+
+          <label>
+            <span>Port</span>
+            <input
+              type="number"
+              value={sshForm.port}
+              onChange={(event) =>
+                setSshForm((current) => ({
+                  ...current,
+                  port: Number(event.target.value) || 22,
+                }))
+              }
+              placeholder="22"
+            />
+          </label>
+
+          <label>
+            <span>Username</span>
+            <input
+              value={sshForm.username}
+              onChange={(event) =>
+                setSshForm((current) => ({ ...current, username: event.target.value }))
+              }
+              placeholder="root"
+            />
+          </label>
+
+          <label>
+            <span>Auth Method</span>
+            <select
+              value={sshForm.authMethod}
+              onChange={(event) =>
+                setSshForm((current) => ({
+                  ...current,
+                  authMethod: event.target.value as SshConnectionTestInput["authMethod"],
+                }))
+              }
+            >
+              <option value="private-key">private-key</option>
+              <option value="password">password</option>
+            </select>
+          </label>
+        </div>
+
+        <label className="field-block">
+          <span>
+            {sshForm.authMethod === "private-key" ? "Private Key Path" : "Password Secret"}
+          </span>
+          <input
+            value={sshForm.secretRef}
+            onChange={(event) =>
+              setSshForm((current) => ({ ...current, secretRef: event.target.value }))
+            }
+            placeholder={
+              sshForm.authMethod === "private-key"
+                ? "/home/user/.ssh/id_rsa"
+                : "Password mode will be added after the first SSH workflow lands."
+            }
+          />
+        </label>
+
+        <div className="ssh-actions">
+          <button className="primary-button" onClick={() => void handleSshTest()} type="button">
+            {isTestingSsh ? "Testing..." : "Test SSH Connection"}
+          </button>
+          <p className="helper-text">
+            The first implementation targets key-based SSH using the local `ssh` binary.
+          </p>
+        </div>
+
+        {sshResult ? (
+          <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`}>
+            {sshResult.message}
+          </p>
+        ) : null}
       </section>
 
       <section className="run-panel">

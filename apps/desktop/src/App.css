@@ -123,6 +123,86 @@ body {
   box-shadow: 0 18px 48px rgba(51, 67, 84, 0.08);
 }
 
+.ssh-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.ssh-grid label,
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ssh-grid span,
+.field-block span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #31404e;
+}
+
+.ssh-grid input,
+.ssh-grid select,
+.field-block input {
+  padding: 12px 14px;
+  border: 1px solid rgba(24, 32, 40, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #182028;
+  font: inherit;
+}
+
+.field-block {
+  margin-top: 14px;
+}
+
+.ssh-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.primary-button {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #0e4d6a;
+  color: #f8fbfd;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  background: #0a4058;
+}
+
+.helper-text {
+  color: #475463;
+}
+
+.connection-result {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-weight: 600;
+}
+
+.result-ok {
+  background: #e3f4e1;
+  color: #255c2c;
+}
+
+.result-error {
+  background: #fde2e2;
+  color: #8b2323;
+}
+
 .panel-header {
   display: flex;
   gap: 18px;
