@@ -1,0 +1,12 @@
+{
+  "name": "@opsprobe/storage",
+  "private": true,
+  "version": "0.3.0-dev",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@opsprobe/core": "*"
+  }
+}

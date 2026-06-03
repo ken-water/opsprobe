@@ -80,11 +80,13 @@ The first runnable setup guide will be added after the desktop skeleton is commi
 opsprobe/
   apps/
     desktop/
+    local-service/
   packages/
     core/
     runner/
     checks/
     report/
+    storage/
     shared/
   docs/
 ```
