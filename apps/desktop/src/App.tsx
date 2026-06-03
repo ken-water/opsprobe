@@ -6,6 +6,7 @@ import type {
   InspectionExecutionResponse,
   InspectionPreviewResponse,
   LocalServiceCommandResponse,
+  LocalServiceInspectionHistoryResponse,
   LocalServiceStatusResponse,
 } from "@opsprobe/local-service";
 import { runInspection, type SshConnectionTestInput, type SshConnectionTestResult } from "@opsprobe/runner";
@@ -76,6 +77,7 @@ function App() {
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceInspectionRun, setServiceInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceExecutionRun, setServiceExecutionRun] = useState<InspectionRun | null>(null);
+  const [serviceHistoryRuns, setServiceHistoryRuns] = useState<InspectionRun[]>([]);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
   const [serviceMessage, setServiceMessage] = useState<string | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
@@ -84,6 +86,7 @@ function App() {
   const [isRefreshingService, setIsRefreshingService] = useState(false);
   const [isRefreshingServicePreview, setIsRefreshingServicePreview] = useState(false);
   const [isRunningServiceInspection, setIsRunningServiceInspection] = useState(false);
+  const [isRefreshingHistory, setIsRefreshingHistory] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -106,6 +109,7 @@ function App() {
     void refreshLocalServiceHealth();
     void refreshLocalServiceInspectionPreview();
     void runLocalServiceInspection();
+    void refreshLocalServiceHistory();
     void refreshInspectionPreview();
   }, []);
 
@@ -207,8 +211,22 @@ function App() {
         },
       });
       setServiceExecutionRun(response.run);
+      await refreshLocalServiceHistory();
     } finally {
       setIsRunningServiceInspection(false);
+    }
+  }
+
+  async function refreshLocalServiceHistory() {
+    setIsRefreshingHistory(true);
+
+    try {
+      const response = await invoke<LocalServiceInspectionHistoryResponse>(
+        "get_local_service_inspection_history",
+      );
+      setServiceHistoryRuns(response.runs);
+    } finally {
+      setIsRefreshingHistory(false);
     }
   }
 
@@ -458,6 +476,46 @@ function App() {
           </>
         ) : (
           <p className="helper-text">Local service has not generated an inspection preview yet.</p>
+        )}
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Service Persistence Preview</p>
+            <h2>Recent Local Service Runs</h2>
+          </div>
+          <button
+            className="secondary-button"
+            onClick={() => void refreshLocalServiceHistory()}
+            type="button"
+          >
+            {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
+          </button>
+        </div>
+
+        {serviceHistoryRuns.length > 0 ? (
+          <div className="results-list">
+            {serviceHistoryRuns.map((run) => (
+              <article className="result-card" key={`history-${run.id}`}>
+                <div className="result-header">
+                  <div>
+                    <h3>{run.id}</h3>
+                    <p>
+                      {run.summary.total} checks, {run.summary.passed} pass, {run.summary.warning} warn,{" "}
+                      {run.summary.critical} critical
+                    </p>
+                  </div>
+                  <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>
+                    {run.status}
+                  </span>
+                </div>
+                <p className="helper-text">{run.createdAt}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="helper-text">No persisted runs have been recorded by local service yet.</p>
         )}
       </section>
 

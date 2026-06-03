@@ -1,5 +1,6 @@
 import type { LocalServiceHealth, LocalServiceStatus } from "./index";
 import type { LocalServiceConfig } from "./config";
+import type { InspectionRun } from "@opsprobe/core";
 
 export interface LocalServiceRuntimeSnapshot {
   status: LocalServiceStatus;
@@ -15,4 +16,10 @@ export interface LocalServiceStatusResponse {
 export interface LocalServiceCommandResponse {
   ok: boolean;
   message: string;
+}
+
+export interface LocalServiceInspectionHistoryResponse {
+  ok: boolean;
+  runs: InspectionRun[];
+  source: "local-service";
 }

@@ -4,17 +4,21 @@ import { stdin as input } from "node:process";
 import { StubLocalServiceBootstrap } from "./index.ts";
 import type {
   LocalServiceCommandResponse,
+  LocalServiceInspectionHistoryResponse,
   LocalServiceStatusResponse,
 } from "./index.ts";
 import {
   buildInspectionExecution,
   buildInspectionPreview,
+  readInspectionHistory,
   type InspectionExecutionRequest,
   type InspectionPreviewRequest,
 } from "./inspection.ts";
+import { LocalFileStorageAdapter } from "../../../packages/storage/src/index.ts";
 
 const bootstrap = new StubLocalServiceBootstrap();
 const config = bootstrap.config;
+const storage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprobe-storage.json`);
 
 async function ensureRuntimeDirs() {
   await Promise.all([
@@ -26,6 +30,8 @@ async function ensureRuntimeDirs() {
     mkdir(config.paths.postgresDataDir, { recursive: true }),
     mkdir(config.paths.postgresLogDir, { recursive: true }),
   ]);
+
+  await storage.bootstrap();
 }
 
 async function buildStatusResponse(
@@ -167,8 +173,16 @@ async function main() {
   }
 
   if (mode === "inspect-run") {
+    await ensureRuntimeDirs();
     const request = await readJsonStdin<InspectionExecutionRequest>();
-    const response = await buildInspectionExecution(request);
+    const response = await buildInspectionExecution(request, storage);
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "inspection-history") {
+    await ensureRuntimeDirs();
+    const response: LocalServiceInspectionHistoryResponse = await readInspectionHistory(storage);
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }

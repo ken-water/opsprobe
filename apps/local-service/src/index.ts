@@ -87,5 +87,6 @@ export type {
 export type {
   LocalServiceRuntimeSnapshot,
   LocalServiceCommandResponse,
+  LocalServiceInspectionHistoryResponse,
   LocalServiceStatusResponse,
 } from "./protocol.ts";

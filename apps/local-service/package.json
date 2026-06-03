@@ -6,6 +6,7 @@
   "scripts": {
     "inspect-run": "node --experimental-strip-types ./src/main.ts inspect-run",
     "inspect-preview": "node --experimental-strip-types ./src/main.ts inspect-preview",
+    "inspection-history": "node --experimental-strip-types ./src/main.ts inspection-history",
     "serve": "node --experimental-strip-types ./src/main.ts serve",
     "status": "node --experimental-strip-types ./src/main.ts status",
     "stop": "node --experimental-strip-types ./src/main.ts stop"
@@ -16,6 +17,7 @@
   "dependencies": {
     "@opsprobe/checks": "*",
     "@opsprobe/core": "*",
-    "@opsprobe/runner": "*"
+    "@opsprobe/runner": "*",
+    "@opsprobe/storage": "*"
   }
 }

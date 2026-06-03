@@ -223,6 +223,15 @@ fn run_local_service_inspection(
     run_local_service_json_command("inspect-run", Some(payload), "local service inspection command")
 }
 
+#[tauri::command]
+fn get_local_service_inspection_history() -> Result<Value, String> {
+    run_local_service_json_command(
+        "inspection-history",
+        None,
+        "local service inspection history command",
+    )
+}
+
 fn validate_ssh_input(
     host: &str,
     username: &str,
@@ -871,7 +880,8 @@ pub fn run() {
             start_local_service,
             stop_local_service,
             get_local_service_inspection_preview,
-            run_local_service_inspection
+            run_local_service_inspection,
+            get_local_service_inspection_history
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -18,4 +18,12 @@ The current service entrypoint can emit a structured runtime snapshot:
 npm run local-service:status
 ```
 
-This is a stepping stone toward a real managed local process that the desktop UI can probe and control.
+It can also execute a service-owned inspection run and read back recent persisted runs:
+
+```bash
+npm run local-service:inspect-run
+npm run local-service:inspection-history
+```
+
+This is still a stepping stone toward a real managed local process that the desktop UI can probe and control.
+For now, the service persists runs through a transitional local file adapter until the managed PostgreSQL runtime in `#21` is wired in.

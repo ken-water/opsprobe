@@ -32,7 +32,11 @@
   },
   "include": [
     "src",
-    "../../packages/*/src",
+    "../../packages/shared/src",
+    "../../packages/checks/src",
+    "../../packages/core/src",
+    "../../packages/runner/src",
+    "../../packages/report/src",
     "../../apps/local-service/src/index.ts",
     "../../apps/local-service/src/config.ts",
     "../../apps/local-service/src/protocol.ts"
