@@ -10,7 +10,7 @@ import {
 } from "@opsprobe/runner";
 import "./App.css";
 
-const sampleAsset: Asset = {
+const initialAsset: Asset = {
   id: "asset-linux-001",
   name: "opsprobe-demo-host",
   kind: "linux-host",
@@ -21,7 +21,7 @@ const sampleAsset: Asset = {
   credential: {
     method: "private-key",
     username: "root",
-    secretRef: "local://secrets/demo-root-key",
+    secretRef: "/home/user/.ssh/id_rsa",
   },
   createdAt: "2026-06-03T00:00:00.000Z",
   updatedAt: "2026-06-03T00:00:00.000Z",
@@ -29,40 +29,72 @@ const sampleAsset: Asset = {
 
 const template = createLinuxHostTemplate(builtInLinuxChecks);
 
-const task: InspectionTask = {
-  id: "task-manual-001",
-  assetId: sampleAsset.id,
-  templateId: template.id,
-  trigger: "manual",
-  createdAt: "2026-06-03T00:00:00.000Z",
-  updatedAt: "2026-06-03T00:00:00.000Z",
-};
-
 function App() {
+  const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
-  const [sshForm, setSshForm] = useState<SshConnectionTestInput>({
-    host: sampleAsset.host,
-    port: sampleAsset.port,
-    username: sampleAsset.credential.username,
-    authMethod: sampleAsset.credential.method,
-    secretRef: "",
-  });
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
   const [isTestingSsh, setIsTestingSsh] = useState(false);
+  const [isRefreshingPreview, setIsRefreshingPreview] = useState(false);
+
+  const task: InspectionTask = {
+    id: "task-manual-001",
+    assetId: asset.id,
+    templateId: template.id,
+    trigger: "manual",
+    createdAt: asset.createdAt,
+    updatedAt: asset.updatedAt,
+  };
+
+  const sshInput: SshConnectionTestInput = {
+    host: asset.host,
+    port: asset.port,
+    username: asset.credential.username,
+    authMethod: asset.credential.method,
+    secretRef: asset.credential.secretRef,
+  };
 
   useEffect(() => {
+    void refreshInspectionPreview();
+  }, []);
+
+  function patchAsset(patch: Partial<Asset>) {
+    setAsset((current) => ({
+      ...current,
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    }));
+  }
+
+  function patchCredential(patch: Partial<Asset["credential"]>) {
+    setAsset((current) => ({
+      ...current,
+      credential: {
+        ...current.credential,
+        ...patch,
+      },
+      updatedAt: new Date().toISOString(),
+    }));
+  }
+
+  async function refreshInspectionPreview() {
+    setIsRefreshingPreview(true);
     const adapter = new MockRunnerAdapter();
 
-    void runInspection(
-      {
-        asset: sampleAsset,
-        task,
-        template,
-        checks: builtInLinuxChecks,
-      },
-      adapter,
-    ).then(setInspectionRun);
-  }, []);
+    try {
+      const run = await runInspection(
+        {
+          asset,
+          task,
+          template,
+          checks: builtInLinuxChecks,
+        },
+        adapter,
+      );
+      setInspectionRun(run);
+    } finally {
+      setIsRefreshingPreview(false);
+    }
+  }
 
   async function handleSshTest() {
     setIsTestingSsh(true);
@@ -70,7 +102,7 @@ function App() {
 
     try {
       const result = await invoke<SshConnectionTestResult>("test_ssh_connection", {
-        input: sshForm,
+        input: sshInput,
       });
       setSshResult(result);
     } catch (error) {
@@ -137,18 +169,25 @@ function App() {
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.2.0 Preview</p>
-            <h2>SSH Connection Test</h2>
+            <h2>Linux Host Asset</h2>
           </div>
         </div>
 
         <div className="ssh-grid">
           <label>
+            <span>Asset Name</span>
+            <input
+              value={asset.name}
+              onChange={(event) => patchAsset({ name: event.target.value })}
+              placeholder="opsprobe-demo-host"
+            />
+          </label>
+
+          <label>
             <span>Host</span>
             <input
-              value={sshForm.host}
-              onChange={(event) =>
-                setSshForm((current) => ({ ...current, host: event.target.value }))
-              }
+              value={asset.host}
+              onChange={(event) => patchAsset({ host: event.target.value })}
               placeholder="10.0.0.12"
             />
           </label>
@@ -157,13 +196,8 @@ function App() {
             <span>Port</span>
             <input
               type="number"
-              value={sshForm.port}
-              onChange={(event) =>
-                setSshForm((current) => ({
-                  ...current,
-                  port: Number(event.target.value) || 22,
-                }))
-              }
+              value={asset.port}
+              onChange={(event) => patchAsset({ port: Number(event.target.value) || 22 })}
               placeholder="22"
             />
           </label>
@@ -171,10 +205,8 @@ function App() {
           <label>
             <span>Username</span>
             <input
-              value={sshForm.username}
-              onChange={(event) =>
-                setSshForm((current) => ({ ...current, username: event.target.value }))
-              }
+              value={asset.credential.username}
+              onChange={(event) => patchCredential({ username: event.target.value })}
               placeholder="root"
             />
           </label>
@@ -182,31 +214,44 @@ function App() {
           <label>
             <span>Auth Method</span>
             <select
-              value={sshForm.authMethod}
+              value={asset.credential.method}
               onChange={(event) =>
-                setSshForm((current) => ({
-                  ...current,
-                  authMethod: event.target.value as SshConnectionTestInput["authMethod"],
-                }))
+                patchCredential({
+                  method: event.target.value as SshConnectionTestInput["authMethod"],
+                })
               }
             >
               <option value="private-key">private-key</option>
               <option value="password">password</option>
             </select>
           </label>
+
+          <label>
+            <span>Tags</span>
+            <input
+              value={asset.tags.join(", ")}
+              onChange={(event) =>
+                patchAsset({
+                  tags: event.target.value
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .filter(Boolean),
+                })
+              }
+              placeholder="demo, linux"
+            />
+          </label>
         </div>
 
         <label className="field-block">
           <span>
-            {sshForm.authMethod === "private-key" ? "Private Key Path" : "Password Secret"}
+            {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
           </span>
           <input
-            value={sshForm.secretRef}
-            onChange={(event) =>
-              setSshForm((current) => ({ ...current, secretRef: event.target.value }))
-            }
+            value={asset.credential.secretRef}
+            onChange={(event) => patchCredential({ secretRef: event.target.value })}
             placeholder={
-              sshForm.authMethod === "private-key"
+              asset.credential.method === "private-key"
                 ? "/home/user/.ssh/id_rsa"
                 : "Password mode will be added after the first SSH workflow lands."
             }
@@ -217,8 +262,15 @@ function App() {
           <button className="primary-button" onClick={() => void handleSshTest()} type="button">
             {isTestingSsh ? "Testing..." : "Test SSH Connection"}
           </button>
+          <button
+            className="secondary-button"
+            onClick={() => void refreshInspectionPreview()}
+            type="button"
+          >
+            {isRefreshingPreview ? "Refreshing..." : "Refresh Inspection Preview"}
+          </button>
           <p className="helper-text">
-            The first implementation targets key-based SSH using the local `ssh` binary.
+            Asset fields are shared by the SSH test and the inspection runner preview.
           </p>
         </div>
 
@@ -246,9 +298,12 @@ function App() {
         </div>
 
         <div className="asset-banner">
-          <strong>{sampleAsset.name}</strong>
-          <span>{sampleAsset.host}:{sampleAsset.port}</span>
+          <strong>{asset.name}</strong>
+          <span>
+            {asset.host}:{asset.port}
+          </span>
           <span>{template.name}</span>
+          <span>{asset.tags.join(", ") || "no tags"}</span>
         </div>
 
         <div className="results-list">
