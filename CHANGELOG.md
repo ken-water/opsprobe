@@ -28,6 +28,27 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Kubernetes inspection currently targets node-side signals only and does not query the control plane or cluster API
 - Docker and Kubernetes checks assume compatible CLI tooling is available on the inspected host when runtime details are requested
 
+## [0.5.0] - 2026-06-04
+
+### Added
+
+- Structured report result view model for reusable history and export rendering
+- Local HTML report export through the local service
+- Built-in PDF export for desktop report sharing without external browser dependencies
+- Desktop local-state persistence for active asset, history filters, schedule interval, and export paths
+
+### Changed
+
+- Desktop startup no longer auto-runs inspection preview or service execution as a side effect
+- Built-in Linux baseline template is now persisted into local storage for migration and export consistency
+- Local settings persistence now restores the previous desktop editing context after restart
+
+### Known Limits
+
+- Service-aware inspection templates were not included yet and remained planned for `0.6.0`
+- Middleware and container runtime checks were still out of scope at this point
+- Release automation gates had not yet enforced previous minor-version release completion, which is now fixed after this backfill
+
 ## [0.4.0] - 2026-06-04
 
 ### Added

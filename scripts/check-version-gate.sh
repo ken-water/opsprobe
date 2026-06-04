@@ -64,6 +64,20 @@ if [[ "${TARGET_INDEX}" -gt 0 ]]; then
       failures=$((failures + 1))
     fi
   fi
+
+  if gh release view "v${PREVIOUS_VERSION}" >/dev/null 2>&1; then
+    echo "[pass] previous version v${PREVIOUS_VERSION} has a GitHub release"
+  else
+    echo "[fail] previous version v${PREVIOUS_VERSION} is missing a GitHub release"
+    failures=$((failures + 1))
+  fi
+
+  if git ls-remote --exit-code --tags origin "refs/tags/v${PREVIOUS_VERSION}" >/dev/null 2>&1; then
+    echo "[pass] previous version v${PREVIOUS_VERSION} tag exists on origin"
+  else
+    echo "[fail] previous version v${PREVIOUS_VERSION} tag is missing on origin"
+    failures=$((failures + 1))
+  fi
 fi
 
 open_earlier=0

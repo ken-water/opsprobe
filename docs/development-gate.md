@@ -14,10 +14,11 @@ These gates exist to prevent four recurring problems:
 Before starting development for a target version:
 
 1. The previous milestone must be closed
-2. Earlier milestones must not have open issues
-3. The target milestone must already exist
-4. The target milestone must already contain at least one open issue
-5. Any new scope discovered during planning must be added as a new issue before implementation starts
+2. The previous version must already have a pushed git tag and a published GitHub release
+3. Earlier milestones must not have open issues
+4. The target milestone must already exist
+5. The target milestone must already contain at least one open issue
+6. Any new scope discovered during planning must be added as a new issue before implementation starts
 
 If the gate fails, development should pause until the issue and milestone state is corrected.
 
@@ -48,9 +49,10 @@ For every new version:
 1. Run the checkpoint gate
 2. Run the version gate check script
 3. Close completed issues from earlier milestones
-4. Move unfinished work to the correct milestone if needed
-5. Create new issues for any newly identified work
-6. Start implementation only after both gates pass
+4. Publish the previous version if its release artifacts are still missing
+5. Move unfinished work to the correct milestone if needed
+6. Create new issues for any newly identified work
+7. Start implementation only after both gates pass
 
 ## Current Practice For OpsProbe
 
@@ -77,6 +79,8 @@ Pass example:
 [pass] local branch is not behind upstream
 Checkpoint gate passed
 [pass] previous milestone 0.1.0 is closed
+[pass] previous version v0.1.0 has a GitHub release
+[pass] previous version v0.1.0 tag exists on origin
 [pass] no open issues found in milestones before 0.2.0
 [pass] target milestone 0.2.0 exists
 [pass] target milestone 0.2.0 has open issues ready for development
@@ -90,6 +94,7 @@ Failure example:
 [fail] found 2 unpushed commit(s)
 Checkpoint gate failed
 [fail] previous milestone 0.1.0 is still open
+[fail] previous version v0.1.0 is missing a GitHub release
 [fail] target milestone 0.2.0 has no open issues
 Gate failed for version 0.2.0
 ```
