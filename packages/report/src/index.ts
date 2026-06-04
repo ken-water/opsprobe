@@ -67,6 +67,10 @@ export interface InspectionReportView {
   severityGroups: ReportSeverityGroup[];
 }
 
+export interface RenderInspectionReportHtmlOptions {
+  title?: string;
+}
+
 interface BuildInspectionReportViewInput {
   runs: InspectionRun[];
   assets?: Asset[];
@@ -264,4 +268,301 @@ export function buildSingleRunReportView(run: InspectionRun, asset?: Asset): Ins
     runs: [run],
     assets: asset ? [asset] : undefined,
   });
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderStatusSummary(summary: ReportStatusSummary) {
+  return `
+    <ul class="summary-list">
+      <li>Total <strong>${summary.total}</strong></li>
+      <li>Pass <strong>${summary.pass}</strong></li>
+      <li>Warning <strong>${summary.warning}</strong></li>
+      <li>Critical <strong>${summary.critical}</strong></li>
+      <li>Unknown <strong>${summary.unknown}</strong></li>
+    </ul>
+  `;
+}
+
+function renderEvidence(check: ReportCheckView) {
+  if (check.evidence.length === 0) {
+    return "<p class=\"helper\">No evidence was recorded.</p>";
+  }
+
+  return `
+    <ul class="evidence-list">
+      ${check.evidence
+        .map(
+          (item) =>
+            `<li><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(item.value)}</li>`,
+        )
+        .join("")}
+    </ul>
+  `;
+}
+
+export function renderInspectionReportHtml(
+  view: InspectionReportView,
+  options: RenderInspectionReportHtmlOptions = {},
+) {
+  const title = options.title ?? "OpsProbe Inspection Report";
+  const abnormalChecks = view.severityGroups
+    .filter((group) => group.severity !== "info")
+    .flatMap((group) => group.checks);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(title)}</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: #182028;
+        background: #f6f4ee;
+      }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(255, 201, 92, 0.28), transparent 30%),
+          linear-gradient(135deg, #f8f4ea 0%, #ecf2f6 54%, #dde7ee 100%);
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 24px 72px;
+      }
+      h1, h2, h3 { margin: 0; }
+      p { line-height: 1.7; }
+      .hero, .panel, .check-card {
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(24, 32, 40, 0.08);
+        border-radius: 24px;
+        box-shadow: 0 16px 44px rgba(51, 67, 84, 0.08);
+      }
+      .hero, .panel { padding: 24px; margin-top: 24px; }
+      .eyebrow {
+        margin-bottom: 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #8a4b17;
+      }
+      .summary-list, .evidence-list {
+        margin: 12px 0 0;
+        padding-left: 18px;
+        line-height: 1.7;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+      .host-grid, .checks-grid {
+        display: grid;
+        gap: 16px;
+        margin-top: 18px;
+      }
+      .host-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+      .checks-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+      .check-card {
+        padding: 18px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .severity-critical, .status-critical {
+        background: #ffd8d8;
+        color: #8a1f1f;
+      }
+      .severity-warning, .status-warning {
+        background: #fff0cc;
+        color: #8a5b00;
+      }
+      .severity-info, .status-pass {
+        background: #dcefdc;
+        color: #2e6a34;
+      }
+      .status-unknown {
+        background: #e2e7ed;
+        color: #495663;
+      }
+      .meta {
+        color: #475463;
+        font-size: 0.95rem;
+      }
+      .helper {
+        color: #5a6673;
+      }
+      .spaced {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .host-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .run-list {
+        margin-top: 14px;
+        padding-left: 18px;
+        line-height: 1.7;
+      }
+      @media (max-width: 720px) {
+        main {
+          padding: 24px 16px 56px;
+        }
+        .spaced, .host-header {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">OpsProbe Report</p>
+        <div class="spaced">
+          <div>
+            <h1>${escapeHtml(title)}</h1>
+            <p class="meta">Generated at ${escapeHtml(view.generatedAt)}</p>
+          </div>
+          <div class="pill status-pass">${view.hosts.length} host${view.hosts.length === 1 ? "" : "s"}</div>
+        </div>
+        ${renderStatusSummary(view.overallSummary)}
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Overview</p>
+        <div class="grid">
+          <div>
+            <h3>Status Summary</h3>
+            ${renderStatusSummary(view.overallSummary)}
+          </div>
+          <div>
+            <h3>Severity Summary</h3>
+            <ul class="summary-list">
+              <li>Critical <strong>${view.overallSeveritySummary.critical}</strong></li>
+              <li>Warning <strong>${view.overallSeveritySummary.warning}</strong></li>
+              <li>Info <strong>${view.overallSeveritySummary.info}</strong></li>
+              <li>Total <strong>${view.overallSeveritySummary.total}</strong></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Abnormal Items</p>
+        ${
+          abnormalChecks.length > 0
+            ? `<div class="checks-grid">
+                ${abnormalChecks
+                  .map(
+                    (check) => `
+                  <article class="check-card">
+                    <div class="spaced">
+                      <div>
+                        <h3>${escapeHtml(check.title)}</h3>
+                        <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)}</p>
+                      </div>
+                      <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
+                    </div>
+                    <p>${escapeHtml(check.summary)}</p>
+                    ${renderEvidence(check)}
+                    <p><strong>Suggestion:</strong> ${escapeHtml(check.remediation)}</p>
+                  </article>`,
+                  )
+                  .join("")}
+              </div>`
+            : "<p class=\"helper\">No abnormal items were found in this report.</p>"
+        }
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Hosts</p>
+        <div class="host-grid">
+          ${view.hosts
+            .map(
+              (host) => `
+            <article class="check-card">
+              <div class="host-header">
+                <div>
+                  <h3>${escapeHtml(host.assetName)}</h3>
+                  <p class="meta">${escapeHtml(host.assetId)} · ${escapeHtml(host.host)}</p>
+                </div>
+                <span class="pill status-pass">${host.runs.length} run${host.runs.length === 1 ? "" : "s"}</span>
+              </div>
+              ${renderStatusSummary(host.summary)}
+              <ul class="run-list">
+                ${host.runs
+                  .map(
+                    (run) =>
+                      `<li>${escapeHtml(run.createdAt)} · ${escapeHtml(run.runId)} · ${escapeHtml(run.status)}</li>`,
+                  )
+                  .join("")}
+              </ul>
+            </article>`,
+            )
+            .join("")}
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Detailed Results</p>
+        ${view.severityGroups
+          .map(
+            (group) => `
+          <section class="panel">
+            <div class="spaced">
+              <div>
+                <h2>${escapeHtml(group.severity)} checks</h2>
+                <p class="meta">${group.checks.length} item${group.checks.length === 1 ? "" : "s"}</p>
+              </div>
+              <span class="pill severity-${group.severity}">${escapeHtml(group.severity)}</span>
+            </div>
+            <div class="checks-grid">
+              ${group.checks
+                .map(
+                  (check) => `
+                <article class="check-card">
+                  <div class="spaced">
+                    <div>
+                      <h3>${escapeHtml(check.title)}</h3>
+                      <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)} · ${escapeHtml(check.runId)}</p>
+                    </div>
+                    <span class="pill status-${check.status}">${escapeHtml(check.status)}</span>
+                  </div>
+                  <p>${escapeHtml(check.summary)}</p>
+                  ${renderEvidence(check)}
+                  <p><strong>Suggestion:</strong> ${escapeHtml(check.remediation)}</p>
+                </article>`,
+                )
+                .join("")}
+            </div>
+          </section>`,
+          )
+          .join("")}
+      </section>
+    </main>
+  </body>
+</html>`;
 }

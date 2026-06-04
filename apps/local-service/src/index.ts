@@ -86,6 +86,7 @@ export type {
   LocalConfigExportPackage,
   LocalConfigExportResponse,
   LocalFilePathRequest,
+  LocalHtmlReportExportRequest,
   LocalConfigImportRequest,
   LocalConfigImportResponse,
   LocalInspectionSchedule,

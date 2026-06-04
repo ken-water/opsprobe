@@ -32,14 +32,14 @@ struct RunLinuxCheckInput {
     title: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct CheckEvidence {
     label: String,
     value: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct CheckResult {
     check_id: String,
@@ -114,6 +114,38 @@ struct LocalServiceAssetUpsertInput {
 #[serde(rename_all = "camelCase")]
 struct LocalServiceFilePathInput {
     path: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct InspectionRunSummaryPayload {
+    total: u32,
+    passed: u32,
+    warning: u32,
+    critical: u32,
+    unknown: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct InspectionRunPayload {
+    id: String,
+    task_id: String,
+    asset_id: String,
+    template_id: String,
+    status: String,
+    results: Vec<CheckResult>,
+    summary: InspectionRunSummaryPayload,
+    created_at: String,
+    updated_at: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceHtmlReportExportInput {
+    path: String,
+    run: InspectionRunPayload,
+    asset: Option<AssetPayload>,
 }
 
 fn run_local_service_json_command(
@@ -369,6 +401,18 @@ fn import_local_service_config(input: LocalServiceFilePathInput) -> Result<Value
         "config-import",
         Some(payload),
         "local service config import command",
+    )
+}
+
+#[tauri::command]
+fn export_local_service_html_report(input: LocalServiceHtmlReportExportInput) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service HTML report export input: {error}"))?;
+
+    run_local_service_json_command(
+        "report-export-html",
+        Some(payload),
+        "local service HTML report export command",
     )
 }
 
@@ -1031,7 +1075,8 @@ pub fn run() {
             get_local_service_assets,
             upsert_local_service_asset,
             export_local_service_config,
-            import_local_service_config
+            import_local_service_config,
+            export_local_service_html_report
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

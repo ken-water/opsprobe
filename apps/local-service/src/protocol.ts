@@ -152,3 +152,8 @@ export interface LocalAssetUpsertRequest {
 export interface LocalFilePathRequest {
   path: string;
 }
+
+export interface LocalHtmlReportExportRequest extends LocalFilePathRequest {
+  run: InspectionRun;
+  asset?: Asset;
+}

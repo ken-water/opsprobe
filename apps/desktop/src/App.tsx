@@ -102,9 +102,11 @@ function App() {
   const [isRefreshingSchedules, setIsRefreshingSchedules] = useState(false);
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   const [migrationPath, setMigrationPath] = useState("/tmp/opsprobe-config.json");
+  const [reportPath, setReportPath] = useState("/tmp/opsprobe-report.html");
   const [isRefreshingAssets, setIsRefreshingAssets] = useState(false);
   const [isExportingConfig, setIsExportingConfig] = useState(false);
   const [isImportingConfig, setIsImportingConfig] = useState(false);
+  const [isExportingReport, setIsExportingReport] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -132,6 +134,18 @@ function App() {
     void refreshSavedAssets();
     void refreshInspectionPreview();
   }, []);
+
+  useEffect(() => {
+    if (!serviceResponse) {
+      return;
+    }
+
+    setReportPath((current) =>
+      current === "/tmp/opsprobe-report.html"
+        ? `${serviceResponse.snapshot.config.paths.reportDir}/opsprobe-report-${Date.now()}.html`
+        : current,
+    );
+  }, [serviceResponse]);
 
   function patchAsset(patch: Partial<Asset>) {
     setAsset((current) => ({
@@ -387,6 +401,32 @@ function App() {
       await refreshLocalServiceHealth();
     } finally {
       setIsImportingConfig(false);
+    }
+  }
+
+  function resolveAssetForRun(run: InspectionRun): Asset | undefined {
+    if (asset.id === run.assetId) {
+      return asset;
+    }
+
+    return savedAssets.find((savedAsset) => savedAsset.id === run.assetId);
+  }
+
+  async function handleExportHtmlReport(run: InspectionRun) {
+    setIsExportingReport(true);
+    setServiceMessage(null);
+
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("export_local_service_html_report", {
+        input: {
+          path: reportPath,
+          run,
+          asset: resolveAssetForRun(run),
+        },
+      });
+      setServiceMessage(response.message);
+    } finally {
+      setIsExportingReport(false);
     }
   }
 
@@ -917,13 +957,35 @@ function App() {
             <p className="eyebrow">0.4.0 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
-          <button
-            className="primary-button"
-            onClick={() => void runLocalServiceInspection()}
-            type="button"
-          >
-            {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
-          </button>
+          <div className="service-actions">
+            <button
+              className="primary-button"
+              onClick={() => void runLocalServiceInspection()}
+              type="button"
+            >
+              {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
+            </button>
+            {serviceExecutionRun ? (
+              <button
+                className="secondary-button"
+                onClick={() => void handleExportHtmlReport(serviceExecutionRun)}
+                type="button"
+              >
+                {isExportingReport ? "Exporting..." : "Export HTML Report"}
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="ssh-grid">
+          <label>
+            <span>Report File</span>
+            <input
+              value={reportPath}
+              onChange={(event) => setReportPath(event.target.value)}
+              placeholder="/tmp/opsprobe-report.html"
+            />
+          </label>
         </div>
 
         {serviceExecutionRun ? (
@@ -1128,6 +1190,16 @@ function App() {
                     >
                       {selectedHistoryRun.status}
                     </span>
+                  </div>
+
+                  <div className="service-actions">
+                    <button
+                      className="secondary-button"
+                      onClick={() => void handleExportHtmlReport(selectedHistoryRun)}
+                      type="button"
+                    >
+                      {isExportingReport ? "Exporting..." : "Export Selected Run"}
+                    </button>
                   </div>
 
                   {selectedHistoryRun.results.length > 0 ? (

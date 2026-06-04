@@ -10,6 +10,7 @@ import type {
   LocalConfigImportRequest,
   LocalConfigImportResponse,
   LocalFilePathRequest,
+  LocalHtmlReportExportRequest,
   LocalInspectionScheduleDeleteRequest,
   LocalInspectionScheduleListResponse,
   LocalInspectionScheduleUpsertRequest,
@@ -26,6 +27,7 @@ import {
   readInspectionHistory,
 } from "./inspection.ts";
 import { exportLocalConfig, importLocalConfig } from "./migration.ts";
+import { exportHtmlReport } from "./report.ts";
 import { LocalScheduleStore, LocalScheduler } from "./scheduler.ts";
 import {
   LocalFileStorageAdapter,
@@ -426,6 +428,14 @@ async function main() {
       ok: true,
       message: `Deleted schedule ${request.id}.`,
     };
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "report-export-html") {
+    await ensureRuntimeDirs();
+    const request = await readJsonStdin<LocalHtmlReportExportRequest>();
+    const response = await exportHtmlReport(request);
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }
