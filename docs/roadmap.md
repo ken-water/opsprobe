@@ -46,6 +46,7 @@ Target releases:
 ## Phase 3: Expansion
 
 - More host checks
+- Built-in template selection by Linux service role
 - Database inspection support
 - Configurable templates
 - Better remediation knowledge base

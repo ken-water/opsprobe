@@ -1,5 +1,5 @@
-import { builtInLinuxChecks } from "@opsprobe/checks";
-import { createLinuxHostTemplate, type Asset, type InspectionTemplate } from "@opsprobe/core";
+import { builtInInspectionTemplateDefinitions } from "@opsprobe/checks";
+import { createInspectionTemplate, type Asset, type InspectionTemplate } from "@opsprobe/core";
 import type { StorageAdapter } from "../../../packages/storage/src/index.ts";
 import type { LocalServiceConfig } from "./config.ts";
 import { LocalScheduleStore } from "./scheduler.ts";
@@ -45,11 +45,15 @@ export async function exportLocalConfig(
     storage.templates.list(),
     scheduleStore.list(),
   ]);
-  const exportedTemplates = templates.length > 0 ? templates : [createLinuxHostTemplate(builtInLinuxChecks)];
+  const exportedTemplates =
+    templates.length > 0
+      ? templates
+      : builtInInspectionTemplateDefinitions.map((definition) => createInspectionTemplate(definition));
 
   const portableSchedules = schedules.map((schedule) => ({
     id: schedule.id,
     assetId: schedule.asset.id,
+    templateId: schedule.templateId,
     intervalMinutes: schedule.intervalMinutes,
     enabled: schedule.enabled,
     nextRunAt: schedule.nextRunAt,
@@ -88,6 +92,7 @@ function buildImportedSchedule(
   return {
     id: schedule.id,
     asset,
+    templateId: schedule.templateId ?? builtInInspectionTemplateDefinitions[0].id,
     intervalMinutes: schedule.intervalMinutes,
     enabled: schedule.enabled,
     nextRunAt: schedule.nextRunAt,

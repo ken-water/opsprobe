@@ -1,8 +1,8 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { stdin as input } from "node:process";
-import { builtInLinuxChecks } from "@opsprobe/checks";
-import { createLinuxHostTemplate } from "@opsprobe/core";
+import { builtInInspectionTemplateDefinitions } from "@opsprobe/checks";
+import { createInspectionTemplate } from "@opsprobe/core";
 import { createDefaultLocalServiceConfig } from "./index.ts";
 import type {
   InspectionExecutionRequest,
@@ -48,7 +48,9 @@ let storage: StorageAdapter = fileStorage;
 let storageBackendMessage = "Local file storage adapter is active.";
 const scheduleStore = new LocalScheduleStore(config);
 const desktopSettingsStore = new LocalDesktopSettingsStore(config);
-const defaultTemplate = createLinuxHostTemplate(builtInLinuxChecks);
+const builtInTemplates = builtInInspectionTemplateDefinitions.map((definition) =>
+  createInspectionTemplate(definition),
+);
 
 async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter) {
   await fileStorage.bootstrap();
@@ -119,7 +121,9 @@ async function ensureRuntimeDirs() {
   ]);
 
   await selectStorageAdapter();
-  await storage.templates.upsert(defaultTemplate);
+  for (const template of builtInTemplates) {
+    await storage.templates.upsert(template);
+  }
 }
 
 async function buildStatusResponse(

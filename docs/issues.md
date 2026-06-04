@@ -9,6 +9,7 @@ Release mapping:
 - `0.3.0`: Issue 20
 - `0.4.0`: Issues 13, 14, 18, 19
 - `0.5.0`: Issues 9, 10, 11, 12 plus stabilization and MVP release prep
+- `0.6.0`: Issues 22, 23, 24, 25
 
 ## Foundation
 

@@ -131,6 +131,26 @@ Exit criteria:
 - Documentation is sufficient for first outside users
 - The repository is ready for wider open-source testing
 
+### `0.6.0` Service-Aware Templates
+
+Goal:
+
+- Expand the Linux inspection MVP from a single baseline into multiple reusable built-in templates
+
+Includes:
+
+- Add built-in inspection template registry and desktop template selection
+- Add Nginx, MySQL, and Redis baseline checks
+- Add Docker and Kubernetes node baseline checks
+- Show template metadata in history and reports
+
+Exit criteria:
+
+- Users can choose different built-in inspection templates for the same Linux host
+- Template choice is persisted through desktop restart and scheduling
+- Middleware and runtime templates have meaningful built-in checks
+- History and report outputs make template choice visible
+
 ## Stable Milestone
 
 ### `1.0.0`

@@ -31,6 +31,14 @@ export interface CheckDefinition {
   run: (context: CheckContext) => Promise<CheckResult>;
 }
 
+export interface BuiltInInspectionTemplateDefinition {
+  id: string;
+  name: string;
+  description: string;
+  assetKind: "linux-host";
+  checkIds: string[];
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -226,3 +234,52 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
 ];
+
+export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefinition[] = [
+  {
+    id: "template.linux.default",
+    name: "Linux Host Baseline",
+    description: "Balanced Linux host baseline with capacity and state checks.",
+    assetKind: "linux-host",
+    checkIds: builtInLinuxChecks.map((check) => check.id),
+  },
+  {
+    id: "template.linux.capacity",
+    name: "Linux Capacity Review",
+    description: "Focus on CPU, memory, disk, load, and log growth pressure.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.cpu.usage",
+      "linux.memory.usage",
+      "linux.disk.usage",
+      "linux.load.average",
+      "linux.log.usage",
+    ],
+  },
+  {
+    id: "template.linux.state",
+    name: "Linux Access and State Review",
+    description: "Focus on time sync, SSH reachability indicators, reboot age, and log state.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.time.sync",
+      "linux.process.sshd",
+      "linux.port.22",
+      "linux.reboot.age",
+      "linux.log.usage",
+    ],
+  },
+];
+
+export function findBuiltInTemplateDefinition(templateId: string) {
+  return builtInInspectionTemplateDefinitions.find((template) => template.id === templateId);
+}
+
+export function resolveTemplateChecks(templateId: string): CheckDefinition[] {
+  const template = findBuiltInTemplateDefinition(templateId) ?? builtInInspectionTemplateDefinitions[0];
+  const checkMap = new Map(builtInLinuxChecks.map((check) => [check.id, check]));
+
+  return template.checkIds
+    .map((checkId) => checkMap.get(checkId))
+    .filter((check): check is CheckDefinition => Boolean(check));
+}

@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { builtInLinuxChecks, type CheckDefinition, type CheckResult } from "@opsprobe/checks";
-import { createLinuxHostTemplate, type Asset, type InspectionRun, type InspectionTask } from "@opsprobe/core";
+import {
+  builtInInspectionTemplateDefinitions,
+  resolveTemplateChecks,
+  type CheckDefinition,
+  type CheckResult,
+} from "@opsprobe/checks";
+import {
+  createInspectionTemplate,
+  type Asset,
+  type InspectionRun,
+  type InspectionTask,
+} from "@opsprobe/core";
 import type {
   InspectionExecutionResponse,
   InspectionPreviewResponse,
@@ -36,7 +46,10 @@ const initialAsset: Asset = {
   updatedAt: "2026-06-03T00:00:00.000Z",
 };
 
-const template = createLinuxHostTemplate(builtInLinuxChecks);
+const builtInTemplates = builtInInspectionTemplateDefinitions.map((definition) =>
+  createInspectionTemplate(definition),
+);
+const defaultTemplate = builtInTemplates[0];
 const defaultMigrationPath = "/tmp/opsprobe-config.json";
 const defaultReportPath = "/tmp/opsprobe-report.html";
 const defaultPdfReportPath = "/tmp/opsprobe-report.pdf";
@@ -103,6 +116,7 @@ function App() {
   const [historyDateFrom, setHistoryDateFrom] = useState("");
   const [historyDateTo, setHistoryDateTo] = useState("");
   const [historyAssetFilter, setHistoryAssetFilter] = useState(initialAsset.id);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(defaultTemplate.id);
   const [scheduleIntervalMinutes, setScheduleIntervalMinutes] = useState("15");
   const [isRefreshingSchedules, setIsRefreshingSchedules] = useState(false);
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
@@ -115,11 +129,13 @@ function App() {
   const [isExportingReport, setIsExportingReport] = useState(false);
   const [isExportingPdfReport, setIsExportingPdfReport] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const activeTemplate = builtInTemplates.find((template) => template.id === selectedTemplateId) ?? defaultTemplate;
+  const activeChecks = resolveTemplateChecks(activeTemplate.id);
 
   const task: InspectionTask = {
     id: "task-manual-001",
     assetId: asset.id,
-    templateId: template.id,
+    templateId: activeTemplate.id,
     trigger: "manual",
     createdAt: asset.createdAt,
     updatedAt: asset.updatedAt,
@@ -164,6 +180,7 @@ function App() {
         input: {
           settings: {
             activeAsset: asset,
+            selectedTemplateId,
             historyAssetFilter,
             historyDateFrom,
             historyDateTo,
@@ -190,6 +207,7 @@ function App() {
     migrationPath,
     pdfReportPath,
     reportPath,
+    selectedTemplateId,
     settingsLoaded,
   ]);
 
@@ -223,6 +241,9 @@ function App() {
 
       if (restoredSettings.activeAsset) {
         setAsset(restoredSettings.activeAsset);
+      }
+      if (restoredSettings.selectedTemplateId !== undefined) {
+        setSelectedTemplateId(restoredSettings.selectedTemplateId);
       }
       if (restoredSettings.historyAssetFilter !== undefined) {
         setHistoryAssetFilter(restoredSettings.historyAssetFilter);
@@ -354,8 +375,8 @@ function App() {
         {
           asset,
           task,
-          template,
-          checks: builtInLinuxChecks,
+          template: activeTemplate,
+          checks: activeChecks,
         },
         adapter,
       );
@@ -372,6 +393,7 @@ function App() {
       const response = await invoke<InspectionPreviewResponse>("get_local_service_inspection_preview", {
         input: {
           asset,
+          templateId: activeTemplate.id,
         },
       });
       setServiceInspectionRun(response.run);
@@ -387,6 +409,7 @@ function App() {
       const response = await invoke<InspectionExecutionResponse>("run_local_service_inspection", {
         input: {
           asset,
+          templateId: activeTemplate.id,
         },
       });
       setServiceExecutionRun(response.run);
@@ -575,6 +598,7 @@ function App() {
       const response = await invoke<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
         input: {
           asset,
+          templateId: activeTemplate.id,
           intervalMinutes: Number(scheduleIntervalMinutes) || 15,
           enabled: true,
         },
@@ -612,6 +636,7 @@ function App() {
         input: {
           id: schedule.id,
           asset: schedule.asset,
+          templateId: schedule.templateId,
           intervalMinutes: schedule.intervalMinutes,
           enabled: !schedule.enabled,
         },
@@ -941,6 +966,11 @@ function App() {
           </label>
 
           <label>
+            <span>Template</span>
+            <input value={activeTemplate.name} readOnly />
+          </label>
+
+          <label>
             <span>Interval Minutes</span>
             <input
               type="number"
@@ -971,6 +1001,7 @@ function App() {
                 <p>
                   Every {schedule.intervalMinutes} minutes · next run {schedule.nextRunAt}
                 </p>
+                <p>Template: {builtInTemplates.find((template) => template.id === schedule.templateId)?.name ?? schedule.templateId}</p>
                 <p>
                   Last status: {schedule.lastRunStatus ?? "pending"}
                   {schedule.lastRunAt ? ` at ${schedule.lastRunAt}` : ""}
@@ -1157,7 +1188,7 @@ function App() {
                 {asset.host}:{asset.port}
               </span>
               <span>service-owned execution</span>
-              <span>{template.name}</span>
+              <span>{activeTemplate.name}</span>
             </div>
 
             <div className="results-list">
@@ -1212,6 +1243,7 @@ function App() {
               <strong>{asset.name}</strong>
               <span>service-owned preview</span>
               <span>{serviceInspectionRun.summary.total} checks</span>
+              <span>{activeTemplate.name}</span>
             </div>
 
             <div className="results-list">
@@ -1475,7 +1507,25 @@ function App() {
               placeholder="demo, linux"
             />
           </label>
+
+          <label>
+            <span>Inspection Template</span>
+            <select
+              value={selectedTemplateId}
+              onChange={(event) => setSelectedTemplateId(event.target.value)}
+            >
+              {builtInTemplates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
+
+        <p className="helper-text">
+          {activeTemplate.description} This template currently includes {activeChecks.length} checks.
+        </p>
 
         <label className="field-block">
           <span>
@@ -1538,7 +1588,7 @@ function App() {
           <span>
             {asset.host}:{asset.port}
           </span>
-          <span>{template.name}</span>
+          <span>{activeTemplate.name}</span>
           <span>{asset.tags.join(", ") || "no tags"}</span>
         </div>
 

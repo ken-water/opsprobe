@@ -20,6 +20,7 @@ export interface LocalServiceCommandResponse {
 
 export interface InspectionPreviewRequest {
   asset: Asset;
+  templateId?: string;
 }
 
 export interface InspectionPreviewResponse {
@@ -30,6 +31,7 @@ export interface InspectionPreviewResponse {
 
 export interface InspectionExecutionRequest {
   asset: Asset;
+  templateId?: string;
   trigger?: "manual" | "scheduled";
   taskId?: string;
 }
@@ -56,6 +58,7 @@ export interface LocalServiceInspectionHistoryRequest {
 export interface LocalInspectionSchedule {
   id: string;
   asset: Asset;
+  templateId: string;
   intervalMinutes: number;
   enabled: boolean;
   nextRunAt: string;
@@ -75,6 +78,7 @@ export interface LocalInspectionScheduleListResponse {
 export interface LocalInspectionScheduleUpsertRequest {
   id?: string;
   asset: Asset;
+  templateId: string;
   intervalMinutes: number;
   enabled?: boolean;
 }
@@ -107,6 +111,7 @@ export interface LocalConfigExportPackage {
   schedules: Array<{
     id: string;
     assetId: string;
+    templateId: string;
     intervalMinutes: number;
     enabled: boolean;
     nextRunAt: string;
@@ -151,6 +156,7 @@ export interface LocalAssetUpsertRequest {
 
 export interface LocalDesktopSettings {
   activeAsset?: Asset;
+  selectedTemplateId?: string;
   historyAssetFilter?: string;
   historyDateFrom?: string;
   historyDateTo?: string;

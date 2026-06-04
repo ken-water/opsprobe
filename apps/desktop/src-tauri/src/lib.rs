@@ -81,6 +81,7 @@ struct AssetPayload {
 #[serde(rename_all = "camelCase")]
 struct LocalServiceInspectionPreviewInput {
     asset: AssetPayload,
+    template_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -97,6 +98,7 @@ struct LocalServiceInspectionHistoryInput {
 struct LocalServiceScheduleUpsertInput {
     id: Option<String>,
     asset: AssetPayload,
+    template_id: String,
     interval_minutes: u32,
     enabled: Option<bool>,
 }
@@ -117,6 +119,7 @@ struct LocalServiceAssetUpsertInput {
 #[serde(rename_all = "camelCase")]
 struct LocalServiceSettingsPayload {
     active_asset: Option<AssetPayload>,
+    selected_template_id: Option<String>,
     history_asset_filter: Option<String>,
     history_date_from: Option<String>,
     history_date_to: Option<String>,

@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import type { Asset } from "@opsprobe/core";
+import { builtInInspectionTemplateDefinitions, findBuiltInTemplateDefinition } from "@opsprobe/checks";
 import type { StorageAdapter } from "../../../packages/storage/src/index.ts";
 import type { LocalServiceConfig } from "./config.ts";
 import { buildInspectionExecution } from "./inspection.ts";
@@ -18,6 +19,13 @@ interface ScheduleSnapshot {
 const EMPTY_SCHEDULE_SNAPSHOT: ScheduleSnapshot = {
   schedules: [],
 };
+
+function normalizeSchedule(schedule: LocalInspectionSchedule): LocalInspectionSchedule {
+  return {
+    ...schedule,
+    templateId: schedule.templateId ?? builtInInspectionTemplateDefinitions[0].id,
+  };
+}
 
 function nowIso() {
   return new Date().toISOString();
@@ -64,6 +72,7 @@ export class LocalScheduleStore {
       ? {
           ...existing,
           asset: cloneAsset(request.asset),
+          templateId: request.templateId,
           intervalMinutes,
           enabled: request.enabled ?? existing.enabled,
           updatedAt: timestamp,
@@ -80,6 +89,7 @@ export class LocalScheduleStore {
       : {
           id: request.id ?? createScheduleId(),
           asset: cloneAsset(request.asset),
+          templateId: request.templateId,
           intervalMinutes,
           enabled: request.enabled ?? true,
           nextRunAt: computeNextRunAt(intervalMinutes),
@@ -131,6 +141,9 @@ export class LocalScheduleStore {
       total: schedules.length,
       failedSchedules,
       enabledSchedules: schedules.filter((item) => item.enabled).length,
+      templateLabels: schedules
+        .map((item) => findBuiltInTemplateDefinition(item.templateId)?.name ?? item.templateId)
+        .slice(0, 3),
     };
   }
 
@@ -139,7 +152,10 @@ export class LocalScheduleStore {
 
     try {
       const raw = await readFile(this.config.paths.schedulesFile, "utf8");
-      return JSON.parse(raw) as ScheduleSnapshot;
+      const snapshot = JSON.parse(raw) as ScheduleSnapshot;
+      return {
+        schedules: snapshot.schedules.map(normalizeSchedule),
+      };
     } catch {
       return EMPTY_SCHEDULE_SNAPSHOT;
     }
@@ -179,6 +195,7 @@ export class LocalScheduler {
         const response = await buildInspectionExecution(
           {
             asset: schedule.asset,
+            templateId: schedule.templateId,
             trigger: "scheduled",
             taskId: `task-schedule-${schedule.id}-${Date.now()}`,
           },

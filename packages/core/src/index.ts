@@ -22,6 +22,7 @@ export interface Asset extends Timestamped {
 export interface InspectionTemplate extends Timestamped {
   id: string;
   name: string;
+  description?: string;
   assetKind: AssetKind;
   checkIds: string[];
 }
@@ -51,17 +52,32 @@ export interface InspectionRun extends Timestamped {
   summary: InspectionRunSummary;
 }
 
-export function createLinuxHostTemplate(checks: CheckDefinition[]): InspectionTemplate {
+export interface InspectionTemplateInput {
+  id: string;
+  name: string;
+  description?: string;
+  assetKind: AssetKind;
+  checkIds: string[];
+}
+
+export function createInspectionTemplate(input: InspectionTemplateInput): InspectionTemplate {
   const now = new Date().toISOString();
 
   return {
-    id: "template.linux.default",
-    name: "Linux Host Baseline",
-    assetKind: "linux-host",
-    checkIds: checks.map((check) => check.id),
+    ...input,
     createdAt: now,
     updatedAt: now,
   };
+}
+
+export function createLinuxHostTemplate(checks: CheckDefinition[]): InspectionTemplate {
+  return createInspectionTemplate({
+    id: "template.linux.default",
+    name: "Linux Host Baseline",
+    description: "Balanced Linux host baseline with capacity and state checks.",
+    assetKind: "linux-host",
+    checkIds: checks.map((check) => check.id),
+  });
 }
 
 export function summarizeResults(results: CheckResult[]): InspectionRunSummary {

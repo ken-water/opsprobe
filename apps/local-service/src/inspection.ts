@@ -1,9 +1,14 @@
-import { builtInLinuxChecks } from "@opsprobe/checks";
 import {
-  createLinuxHostTemplate,
+  builtInInspectionTemplateDefinitions,
+  findBuiltInTemplateDefinition,
+  resolveTemplateChecks,
+} from "@opsprobe/checks";
+import {
+  createInspectionTemplate,
   type Asset,
   type InspectionRun,
   type InspectionTask,
+  type InspectionTemplate,
 } from "@opsprobe/core";
 import { runInspection, type RunnerAdapter } from "@opsprobe/runner";
 import { LocalServicePreviewAdapter, LocalServiceSshRunnerAdapter } from "./ssh.ts";
@@ -23,20 +28,24 @@ interface InspectionRunStore {
   };
 }
 
-function createInspectionTask(asset: Asset, taskId: string): InspectionTask {
-  return createInspectionTaskWithTrigger(asset, taskId, "manual");
+function resolveTemplate(templateId?: string): InspectionTemplate {
+  const definition =
+    (templateId ? findBuiltInTemplateDefinition(templateId) : undefined) ??
+    builtInInspectionTemplateDefinitions[0];
+
+  return createInspectionTemplate(definition);
 }
 
 function createInspectionTaskWithTrigger(
   asset: Asset,
   taskId: string,
+  templateId: string,
   trigger: InspectionTask["trigger"],
 ): InspectionTask {
-  const template = createLinuxHostTemplate(builtInLinuxChecks);
   return {
     id: taskId,
     assetId: asset.id,
-    templateId: template.id,
+    templateId,
     trigger,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -50,18 +59,19 @@ function createTaskId(prefix: string) {
 async function buildRun(
   asset: Asset,
   taskId: string,
+  templateId: string | undefined,
   adapter: RunnerAdapter,
   trigger: InspectionTask["trigger"] = "manual",
 ): Promise<InspectionRun> {
-  const template = createLinuxHostTemplate(builtInLinuxChecks);
-  const task = createInspectionTaskWithTrigger(asset, taskId, trigger);
+  const template = resolveTemplate(templateId);
+  const task = createInspectionTaskWithTrigger(asset, taskId, template.id, trigger);
 
   return runInspection(
     {
       asset,
       task,
       template,
-      checks: builtInLinuxChecks,
+      checks: resolveTemplateChecks(template.id),
     },
     adapter,
   );
@@ -75,6 +85,7 @@ export async function buildInspectionPreview(
     run: await buildRun(
       request.asset,
       createTaskId("task-local-service-preview"),
+      request.templateId,
       new LocalServicePreviewAdapter(),
     ),
     source: "local-service",
@@ -88,6 +99,7 @@ export async function buildInspectionExecution(
   const run = await buildRun(
     request.asset,
     request.taskId ?? createTaskId("task-local-service-run"),
+    request.templateId,
     new LocalServiceSshRunnerAdapter(),
     request.trigger ?? "manual",
   );
