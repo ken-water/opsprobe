@@ -24,12 +24,20 @@ interface InspectionRunStore {
 }
 
 function createInspectionTask(asset: Asset, taskId: string): InspectionTask {
+  return createInspectionTaskWithTrigger(asset, taskId, "manual");
+}
+
+function createInspectionTaskWithTrigger(
+  asset: Asset,
+  taskId: string,
+  trigger: InspectionTask["trigger"],
+): InspectionTask {
   const template = createLinuxHostTemplate(builtInLinuxChecks);
   return {
     id: taskId,
     assetId: asset.id,
     templateId: template.id,
-    trigger: "manual",
+    trigger,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -43,9 +51,10 @@ async function buildRun(
   asset: Asset,
   taskId: string,
   adapter: RunnerAdapter,
+  trigger: InspectionTask["trigger"] = "manual",
 ): Promise<InspectionRun> {
   const template = createLinuxHostTemplate(builtInLinuxChecks);
-  const task = createInspectionTask(asset, taskId);
+  const task = createInspectionTaskWithTrigger(asset, taskId, trigger);
 
   return runInspection(
     {
@@ -78,8 +87,9 @@ export async function buildInspectionExecution(
 ): Promise<InspectionExecutionResponse> {
   const run = await buildRun(
     request.asset,
-    createTaskId("task-local-service-run"),
+    request.taskId ?? createTaskId("task-local-service-run"),
     new LocalServiceSshRunnerAdapter(),
+    request.trigger ?? "manual",
   );
   await storage.inspectionRuns.save(run);
 

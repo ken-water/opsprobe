@@ -1,6 +1,7 @@
 export interface LocalServicePaths {
   rootDir: string;
   configDir: string;
+  schedulesFile: string;
   dataDir: string;
   logDir: string;
   runtimeDir: string;
@@ -35,6 +36,7 @@ export function createDefaultLocalServiceConfig(): LocalServiceConfig {
     paths: {
       rootDir,
       configDir: `${rootDir}/config`,
+      schedulesFile: `${rootDir}/config/inspection-schedules.json`,
       dataDir: `${rootDir}/data`,
       logDir: `${rootDir}/logs`,
       runtimeDir: `${rootDir}/runtime`,

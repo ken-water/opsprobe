@@ -81,6 +81,11 @@ export type {
 export type {
   InspectionExecutionRequest,
   InspectionExecutionResponse,
+  LocalInspectionSchedule,
+  LocalInspectionScheduleDeleteRequest,
+  LocalInspectionScheduleListResponse,
+  LocalInspectionScheduleUpsertRequest,
+  LocalInspectionScheduleUpsertResponse,
   LocalServiceInspectionHistoryRequest,
   InspectionPreviewRequest,
   InspectionPreviewResponse,

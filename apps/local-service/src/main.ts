@@ -4,6 +4,10 @@ import { stdin as input } from "node:process";
 import { createDefaultLocalServiceConfig } from "./index.ts";
 import type {
   InspectionExecutionRequest,
+  LocalInspectionScheduleDeleteRequest,
+  LocalInspectionScheduleListResponse,
+  LocalInspectionScheduleUpsertRequest,
+  LocalInspectionScheduleUpsertResponse,
   LocalServiceInspectionHistoryRequest,
   InspectionPreviewRequest,
   LocalServiceCommandResponse,
@@ -15,6 +19,7 @@ import {
   buildInspectionPreview,
   readInspectionHistory,
 } from "./inspection.ts";
+import { LocalScheduleStore, LocalScheduler } from "./scheduler.ts";
 import {
   LocalFileStorageAdapter,
   PostgresStorageAdapter,
@@ -27,6 +32,7 @@ const bootstrap = new ManagedLocalServiceBootstrap(config);
 const fileStorage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprobe-storage.json`);
 let storage: StorageAdapter = fileStorage;
 let storageBackendMessage = "Local file storage adapter is active.";
+const scheduleStore = new LocalScheduleStore(config);
 
 async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter) {
   await fileStorage.bootstrap();
@@ -93,6 +99,8 @@ async function buildStatusResponse(
   mode: "starting" | "ready" | "stopped" = "starting",
 ): Promise<LocalServiceStatusResponse> {
   const health = await bootstrap.ensureRuntime();
+  const scheduleSummary = await scheduleStore.summarizeFailures();
+  const failedScheduleLabels = scheduleSummary.failedSchedules.slice(0, 3).map((item) => item.asset.name).join(", ");
 
   return {
     ok: true,
@@ -120,6 +128,17 @@ async function buildStatusResponse(
             label: "Storage Backend",
             status: storage === fileStorage ? "warning" : "pass",
             detail: storageBackendMessage,
+          },
+          {
+            id: "scheduling.local",
+            label: "Local Scheduling",
+            status: scheduleSummary.failedSchedules.length > 0 ? "warning" : "pass",
+            detail:
+              scheduleSummary.total === 0
+                ? "No local schedules have been configured yet."
+                : scheduleSummary.failedSchedules.length > 0
+                  ? `${scheduleSummary.failedSchedules.length} schedule failures need review: ${failedScheduleLabels}`
+                  : `${scheduleSummary.enabledSchedules} enabled schedules are stored locally.`,
           },
         ],
       },
@@ -228,6 +247,7 @@ async function stopPostgresCommand() {
 async function serveCommand() {
   await ensureRuntimeDirs();
   await writeFile(config.paths.servicePidFile, `${process.pid}\n`, "utf8");
+  const scheduler = new LocalScheduler(scheduleStore, storage);
 
   try {
     await bootstrap.startPostgres();
@@ -259,6 +279,11 @@ async function serveCommand() {
   setInterval(() => {
     void writeStatusFile("ready");
   }, 5000);
+
+  void scheduler.runDueSchedules();
+  setInterval(() => {
+    void scheduler.runDueSchedules();
+  }, 30_000);
 }
 
 async function main() {
@@ -308,6 +333,33 @@ async function main() {
     await ensureRuntimeDirs();
     const request = await readJsonStdin<LocalServiceInspectionHistoryRequest>().catch(() => ({}));
     const response: LocalServiceInspectionHistoryResponse = await readInspectionHistory(storage, request);
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "schedules-list") {
+    await ensureRuntimeDirs();
+    const response: LocalInspectionScheduleListResponse = await scheduleStore.listResponse();
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "schedules-upsert") {
+    await ensureRuntimeDirs();
+    const request = await readJsonStdin<LocalInspectionScheduleUpsertRequest>();
+    const response: LocalInspectionScheduleUpsertResponse = await scheduleStore.upsert(request);
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "schedules-delete") {
+    await ensureRuntimeDirs();
+    const request = await readJsonStdin<LocalInspectionScheduleDeleteRequest>();
+    await scheduleStore.delete(request);
+    const response: LocalServiceCommandResponse = {
+      ok: true,
+      message: `Deleted schedule ${request.id}.`,
+    };
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }

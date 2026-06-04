@@ -89,6 +89,21 @@ struct LocalServiceInspectionHistoryInput {
     limit: Option<u32>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceScheduleUpsertInput {
+    id: Option<String>,
+    asset: AssetPayload,
+    interval_minutes: u32,
+    enabled: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceScheduleDeleteInput {
+    id: String,
+}
+
 fn run_local_service_json_command(
     mode: &str,
     payload: Option<String>,
@@ -272,6 +287,35 @@ fn get_local_service_inspection_history(
         "inspection-history",
         payload,
         "local service inspection history command",
+    )
+}
+
+#[tauri::command]
+fn get_local_service_schedules() -> Result<Value, String> {
+    run_local_service_json_command("schedules-list", None, "local service schedules list command")
+}
+
+#[tauri::command]
+fn upsert_local_service_schedule(input: LocalServiceScheduleUpsertInput) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service schedule input: {error}"))?;
+
+    run_local_service_json_command(
+        "schedules-upsert",
+        Some(payload),
+        "local service schedule upsert command",
+    )
+}
+
+#[tauri::command]
+fn delete_local_service_schedule(input: LocalServiceScheduleDeleteInput) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service schedule delete input: {error}"))?;
+
+    run_local_service_json_command(
+        "schedules-delete",
+        Some(payload),
+        "local service schedule delete command",
     )
 }
 
@@ -927,7 +971,10 @@ pub fn run() {
             stop_local_service_postgres,
             get_local_service_inspection_preview,
             run_local_service_inspection,
-            get_local_service_inspection_history
+            get_local_service_inspection_history,
+            get_local_service_schedules,
+            upsert_local_service_schedule,
+            delete_local_service_schedule
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -5,6 +5,9 @@ import { createLinuxHostTemplate, type Asset, type InspectionRun, type Inspectio
 import type {
   InspectionExecutionResponse,
   InspectionPreviewResponse,
+  LocalInspectionSchedule,
+  LocalInspectionScheduleListResponse,
+  LocalInspectionScheduleUpsertResponse,
   LocalServiceCommandResponse,
   LocalServiceInspectionHistoryResponse,
   LocalServiceStatusResponse,
@@ -79,6 +82,7 @@ function App() {
   const [serviceExecutionRun, setServiceExecutionRun] = useState<InspectionRun | null>(null);
   const [serviceHistoryRuns, setServiceHistoryRuns] = useState<InspectionRun[]>([]);
   const [selectedHistoryRun, setSelectedHistoryRun] = useState<InspectionRun | null>(null);
+  const [schedules, setSchedules] = useState<LocalInspectionSchedule[]>([]);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
   const [serviceMessage, setServiceMessage] = useState<string | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
@@ -91,6 +95,9 @@ function App() {
   const [historyDateFrom, setHistoryDateFrom] = useState("");
   const [historyDateTo, setHistoryDateTo] = useState("");
   const [historyAssetFilter, setHistoryAssetFilter] = useState(initialAsset.id);
+  const [scheduleIntervalMinutes, setScheduleIntervalMinutes] = useState("15");
+  const [isRefreshingSchedules, setIsRefreshingSchedules] = useState(false);
+  const [isSavingSchedule, setIsSavingSchedule] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -114,6 +121,7 @@ function App() {
     void refreshLocalServiceInspectionPreview();
     void runLocalServiceInspection();
     void refreshLocalServiceHistory();
+    void refreshLocalSchedules();
     void refreshInspectionPreview();
   }, []);
 
@@ -289,6 +297,76 @@ function App() {
     }
   }
 
+  async function refreshLocalSchedules() {
+    setIsRefreshingSchedules(true);
+
+    try {
+      const response = await invoke<LocalInspectionScheduleListResponse>("get_local_service_schedules");
+      setSchedules(response.schedules);
+    } finally {
+      setIsRefreshingSchedules(false);
+    }
+  }
+
+  async function handleSaveSchedule() {
+    setIsSavingSchedule(true);
+    setServiceMessage(null);
+
+    try {
+      const response = await invoke<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
+        input: {
+          asset,
+          intervalMinutes: Number(scheduleIntervalMinutes) || 15,
+          enabled: true,
+        },
+      });
+      setServiceMessage(`Saved schedule ${response.schedule.id}.`);
+      await refreshLocalSchedules();
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsSavingSchedule(false);
+    }
+  }
+
+  async function handleDeleteSchedule(id: string) {
+    setIsRefreshingSchedules(true);
+    setServiceMessage(null);
+
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("delete_local_service_schedule", {
+        input: { id },
+      });
+      setServiceMessage(response.message);
+      await refreshLocalSchedules();
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsRefreshingSchedules(false);
+    }
+  }
+
+  async function handleToggleSchedule(schedule: LocalInspectionSchedule) {
+    setIsRefreshingSchedules(true);
+    setServiceMessage(null);
+
+    try {
+      const response = await invoke<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
+        input: {
+          id: schedule.id,
+          asset: schedule.asset,
+          intervalMinutes: schedule.intervalMinutes,
+          enabled: !schedule.enabled,
+        },
+      });
+      setServiceMessage(
+        `${response.schedule.id} ${response.schedule.enabled ? "enabled" : "disabled"} successfully.`,
+      );
+      await refreshLocalSchedules();
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsRefreshingSchedules(false);
+    }
+  }
+
   const repeatedProblems = serviceHistoryRuns
     .flatMap((run) => run.results.filter((result) => result.status !== "pass"))
     .reduce<Array<{ checkId: string; title: string; count: number }>>((summary, result) => {
@@ -372,6 +450,96 @@ function App() {
             Buy Me a Coffee
           </a>
         </article>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.4.0 Delivery</p>
+            <h2>Local Scheduling</h2>
+          </div>
+          <div className="service-actions">
+            <button
+              className="secondary-button"
+              onClick={() => void refreshLocalSchedules()}
+              type="button"
+            >
+              {isRefreshingSchedules ? "Refreshing..." : "Refresh Schedules"}
+            </button>
+            <button
+              className="primary-button"
+              onClick={() => void handleSaveSchedule()}
+              type="button"
+            >
+              {isSavingSchedule ? "Saving..." : "Create Schedule"}
+            </button>
+          </div>
+        </div>
+
+        <div className="ssh-grid">
+          <label>
+            <span>Scheduled Asset</span>
+            <input value={asset.id} readOnly />
+          </label>
+
+          <label>
+            <span>Interval Minutes</span>
+            <input
+              type="number"
+              min="5"
+              step="5"
+              value={scheduleIntervalMinutes}
+              onChange={(event) => setScheduleIntervalMinutes(event.target.value)}
+            />
+          </label>
+        </div>
+
+        <p className="helper-text">
+          Schedules are stored locally by the service and executed by the background process. Keep
+          the local service running for recurring inspections.
+        </p>
+
+        {schedules.length > 0 ? (
+          <div className="service-checks">
+            {schedules.map((schedule) => (
+              <article className="service-card" key={schedule.id}>
+                <div className="service-card-header">
+                  <strong>{schedule.asset.name}</strong>
+                  <span className={`badge badge-${schedule.enabled ? "pass" : "unknown"}`}>
+                    {schedule.enabled ? "enabled" : "disabled"}
+                  </span>
+                </div>
+                <p>{schedule.id}</p>
+                <p>
+                  Every {schedule.intervalMinutes} minutes · next run {schedule.nextRunAt}
+                </p>
+                <p>
+                  Last status: {schedule.lastRunStatus ?? "pending"}
+                  {schedule.lastRunAt ? ` at ${schedule.lastRunAt}` : ""}
+                </p>
+                {schedule.lastError ? <p className="result-error">Failure: {schedule.lastError}</p> : null}
+                <div className="service-actions">
+                  <button
+                    className="secondary-button"
+                    onClick={() => void handleToggleSchedule(schedule)}
+                    type="button"
+                  >
+                    {schedule.enabled ? "Disable" : "Enable"}
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => void handleDeleteSchedule(schedule.id)}
+                    type="button"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="helper-text">No local schedules configured yet.</p>
+        )}
       </section>
 
       <section className="run-panel">

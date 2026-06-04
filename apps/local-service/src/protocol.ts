@@ -30,6 +30,8 @@ export interface InspectionPreviewResponse {
 
 export interface InspectionExecutionRequest {
   asset: Asset;
+  trigger?: "manual" | "scheduled";
+  taskId?: string;
 }
 
 export interface InspectionExecutionResponse {
@@ -49,4 +51,40 @@ export interface LocalServiceInspectionHistoryRequest {
   dateFrom?: string;
   dateTo?: string;
   limit?: number;
+}
+
+export interface LocalInspectionSchedule {
+  id: string;
+  asset: Asset;
+  intervalMinutes: number;
+  enabled: boolean;
+  nextRunAt: string;
+  lastRunAt?: string;
+  lastRunStatus?: "completed" | "failed";
+  lastError?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LocalInspectionScheduleListResponse {
+  ok: boolean;
+  schedules: LocalInspectionSchedule[];
+  source: "local-service";
+}
+
+export interface LocalInspectionScheduleUpsertRequest {
+  id?: string;
+  asset: Asset;
+  intervalMinutes: number;
+  enabled?: boolean;
+}
+
+export interface LocalInspectionScheduleDeleteRequest {
+  id: string;
+}
+
+export interface LocalInspectionScheduleUpsertResponse {
+  ok: boolean;
+  schedule: LocalInspectionSchedule;
+  source: "local-service";
 }
