@@ -537,8 +537,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.3.0` starts the shift from a single desktop shell toward a desktop UI
-          backed by a dedicated local service and managed runtime.
+          `0.4.0` establishes the local-first desktop workflow around a dedicated local service,
+          managed runtime health, scheduling, history, and migration support.
         </p>
       </section>
 
@@ -554,11 +554,11 @@ function App() {
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.3.0</p>
+          <p className="version">v0.5.0</p>
           <ul>
-            <li>Local service process skeleton</li>
-            <li>Runtime health in the desktop UI</li>
-            <li>Report-oriented runtime structure</li>
+            <li>Result view model and report structure</li>
+            <li>Local HTML and PDF export</li>
+            <li>Persistence and UX polish</li>
           </ul>
         </article>
 
@@ -645,7 +645,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.4.0 Delivery</p>
+            <p className="eyebrow">0.4.0 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -736,7 +736,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.4.0 Delivery</p>
+            <p className="eyebrow">0.4.0 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -826,7 +826,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.3.0 Preview</p>
+            <p className="eyebrow">0.4.0 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -914,7 +914,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.3.0 Preview</p>
+            <p className="eyebrow">0.4.0 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <button
@@ -978,7 +978,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.3.0 Preview</p>
+            <p className="eyebrow">0.4.0 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button

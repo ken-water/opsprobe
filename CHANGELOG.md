@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.4.0] - 2026-06-04
+
+### Added
+
+- Dedicated local service runtime boundary for the desktop edition
+- Managed local PostgreSQL bootstrap, start, stop, and health inspection flow
+- Service-owned inspection preview and execution flow
+- Inspection history filtering, report replay, and repeated-problem summary
+- Local recurring inspection schedules owned by the background service
+- Portable local configuration export and import for machine migration
+- First-run setup guidance with environment validation for `ssh`, `sshpass`, and report directory writability
+
+### Changed
+
+- Desktop workflow now routes long-running runtime concerns through the local service boundary
+- Inspection persistence now prefers managed PostgreSQL and falls back to local file storage when needed
+- Imported assets are now marked with `bindingStatus: rebind-required` instead of carrying local secret bindings across machines
+- Development and release process now require a clean, pushed checkpoint gate before starting the next issue
+
+### Known Limits
+
+- Local HTML and PDF report export are not included yet and remain planned for `0.5.0`
+- Asset persistence is available, but broader persistence polish remains open under `#12`
+
 ## [0.2.1] - 2026-06-03
 
 ### Added

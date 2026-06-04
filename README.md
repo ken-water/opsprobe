@@ -24,7 +24,9 @@ The initial open source edition focuses on a Tauri desktop client with local exe
 - Built-in host inspection templates
 - Risk detection with evidence and remediation suggestions
 - Local inspection history
-- Local HTML/PDF report export
+- Local recurring scheduling
+- Local machine migration export/import
+- First-run environment guidance
 
 Web publishing, notifications, multi-user collaboration, and tenant management are planned for future commercial editions.
 
@@ -42,7 +44,7 @@ The first milestone includes:
 - SSH connection testing
 - Manual and scheduled inspections
 - Host health checks for CPU, memory, disk, load, time sync, process, ports, reboot, and log usage
-- Local report generation
+- Local inspection history and migration support
 - Inspection history and comparison
 
 See:
@@ -70,7 +72,7 @@ Planned local development prerequisites:
 - Node.js LTS
 - Rust stable
 - Tauri system dependencies
-- SQLite
+- PostgreSQL binaries available locally
 
 The first runnable setup guide will be added after the desktop skeleton is committed.
 

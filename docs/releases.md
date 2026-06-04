@@ -59,29 +59,27 @@ Exit criteria:
 - User can run a built-in host inspection template
 - Results are normalized and readable
 
-### `0.3.0` Local Reporting
+### `0.3.0` Local Service Foundation
 
 Goal:
 
-- Turn inspection results into a useful local report experience
+- Establish the dedicated local runtime boundary behind the desktop UI
 
 Includes:
 
-- Build result view model
-- Implement local HTML report export
-- Add PDF export path
+- Add local background service process for the desktop edition
+- Move long-running scheduling and durable state ownership into that service
+- Expose a stable local command boundary for the desktop UI
 
 Related issues:
 
-- Issue 9
-- Issue 10
-- Issue 11
+- Issue 20
 
 Exit criteria:
 
-- User can generate a readable report from inspection results
-- HTML export works reliably
-- PDF export is available or clearly documented as experimental
+- Desktop architecture assumes a dedicated local service
+- Long-running tasks and persistence are owned by that service
+- UI can query service status and interact through a defined boundary
 
 ### `0.4.0` Local Usability
 
@@ -91,22 +89,24 @@ Goal:
 
 Includes:
 
-- Add local persistence
 - Add inspection history view
 - Add local scheduling
+- Support configuration export and import for machine migration
+- Add first-run setup and environment validation
 
 Related issues:
 
-- Issue 12
 - Issue 13
 - Issue 14
+- Issue 18
+- Issue 19
 
 Exit criteria:
 
-- User data persists across restarts
 - Inspection history is browsable
 - Recurring local inspection can be configured
-- Managed PostgreSQL runtime validation checklist is completed on a real validation machine
+- Local migration package can be imported safely on another machine
+- Missing environment prerequisites are surfaced clearly during first run
 
 ### `0.5.0` Open Source MVP
 
@@ -116,6 +116,10 @@ Goal:
 
 Includes:
 
+- Build result view model
+- Implement local HTML report export
+- Add PDF export path
+- Finish broader local persistence polish
 - Documentation cleanup
 - Bug fixing and stability improvements
 - UX polish across the desktop flow
