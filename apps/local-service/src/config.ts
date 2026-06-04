@@ -3,6 +3,7 @@ export interface LocalServicePaths {
   configDir: string;
   schedulesFile: string;
   dataDir: string;
+  reportDir: string;
   logDir: string;
   runtimeDir: string;
   postgresDataDir: string;
@@ -38,6 +39,7 @@ export function createDefaultLocalServiceConfig(): LocalServiceConfig {
       configDir: `${rootDir}/config`,
       schedulesFile: `${rootDir}/config/inspection-schedules.json`,
       dataDir: `${rootDir}/data`,
+      reportDir: `${rootDir}/reports`,
       logDir: `${rootDir}/logs`,
       runtimeDir: `${rootDir}/runtime`,
       postgresDataDir: `${rootDir}/data/postgres`,

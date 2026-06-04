@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { createServer } from "node:net";
 import { promisify } from "node:util";
@@ -94,6 +94,33 @@ async function inspectPostgresBinaries(): Promise<PostgresBinarySnapshot> {
   };
 }
 
+async function inspectCommandBinary(command: string, args: string[] = ["-V"]) {
+  const result = await runCommand(command, args);
+  return {
+    available: result.ok,
+    detail: result.ok ? result.stdout || `${command} is available.` : result.stderr || `${command} is not available.`,
+  };
+}
+
+async function isReportDirWritable(path: string) {
+  try {
+    await mkdir(path, { recursive: true });
+    const probeFile = `${path}/.opsprobe-write-test`;
+    await writeFile(probeFile, "ok\n", "utf8");
+    await rm(probeFile, { force: true });
+    return {
+      writable: true,
+      detail: `Report directory is writable at ${path}.`,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown report directory write failure.";
+    return {
+      writable: false,
+      detail: `Report directory is not writable at ${path}: ${message}`,
+    };
+  }
+}
+
 function isProcessAlive(pid: number) {
   try {
     process.kill(pid, 0);
@@ -171,6 +198,9 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
 
   async ensureRuntime(): Promise<LocalServiceHealth> {
     const binaries = await inspectPostgresBinaries();
+    const sshBinary = await inspectCommandBinary("ssh", ["-V"]);
+    const sshpassBinary = await inspectCommandBinary("sshpass", ["-V"]);
+    const reportDir = await isReportDirWritable(this.config.paths.reportDir);
     const initialized = existsSync(`${this.config.paths.postgresDataDir}/PG_VERSION`);
     const missingBinaries = binaries.checks.filter((item) => !item.available);
     const postgresProcess = await inspectManagedPostgresProcess(this.config, binaries, initialized);
@@ -197,6 +227,26 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
         detail: serviceProcessRunning
           ? `The local service background process is running with pid ${servicePid}.`
           : "The local service background process is not running.",
+      },
+      {
+        id: "local.binary.ssh",
+        label: "SSH Client",
+        status: sshBinary.available ? "pass" : "critical",
+        detail: sshBinary.detail,
+      },
+      {
+        id: "local.binary.sshpass",
+        label: "Password Auth Helper",
+        status: sshpassBinary.available ? "pass" : "warning",
+        detail: sshpassBinary.available
+          ? sshpassBinary.detail
+          : "sshpass is not installed. Key-based SSH remains available, but password mode will fail until sshpass is installed.",
+      },
+      {
+        id: "local.report_dir",
+        label: "Report Directory",
+        status: reportDir.writable ? "pass" : "critical",
+        detail: reportDir.detail,
       },
       ...binaries.checks.map((item) => ({
         id: `postgres.binary.${item.name}`,

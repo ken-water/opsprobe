@@ -466,6 +466,51 @@ function App() {
     }, [])
     .sort((left, right) => right.count - left.count);
 
+  const serviceChecks = serviceResponse?.snapshot.health.checks ?? [];
+  const blockingChecks = serviceChecks.filter((check) => check.status === "critical");
+  const warningChecks = serviceChecks.filter((check) => check.status === "warning");
+  const assetsNeedingRebind = savedAssets.filter((savedAsset) => savedAsset.credential.bindingStatus === "rebind-required");
+  const firstRunChecklist = [
+    {
+      id: "setup.service",
+      label: "Start local service",
+      done: serviceResponse?.snapshot.health.checks.some((check) => check.id === "service.process" && check.status === "pass") ?? false,
+      action: () => void handleStartLocalService(),
+      actionLabel: "Start Service",
+      detail: "The background local service is required for schedules, history, and migration.",
+    },
+    {
+      id: "setup.asset",
+      label: "Save at least one asset",
+      done: savedAssets.length > 0,
+      action: () => void handleSaveAsset(),
+      actionLabel: "Save Current Asset",
+      detail: "Saved assets can be reused, migrated, and scheduled without re-entering host details.",
+    },
+    {
+      id: "setup.rebind",
+      label: "Rebind imported credentials",
+      done: assetsNeedingRebind.length === 0,
+      action: assetsNeedingRebind.length > 0 ? () => void handleLoadAsset(assetsNeedingRebind[0]) : undefined,
+      actionLabel: "Load First Asset",
+      detail:
+        assetsNeedingRebind.length > 0
+          ? `${assetsNeedingRebind.length} imported assets still need a local key path or password.`
+          : "No imported assets are waiting for credential rebind.",
+    },
+    {
+      id: "setup.reports",
+      label: "Validate report directory",
+      done: serviceChecks.some((check) => check.id === "local.report_dir" && check.status === "pass"),
+      action: () => void refreshLocalServiceHealth(),
+      actionLabel: "Recheck Environment",
+      detail: serviceResponse?.snapshot.config.paths.reportDir
+        ? `Reports will be written under ${serviceResponse.snapshot.config.paths.reportDir}.`
+        : "OpsProbe needs a writable local report directory.",
+    },
+  ];
+  const completedSetupSteps = firstRunChecklist.filter((item) => item.done).length;
+
   async function handleSshTest() {
     setIsTestingSsh(true);
     setSshResult(null);
@@ -532,6 +577,69 @@ function App() {
             Buy Me a Coffee
           </a>
         </article>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">First Run Guide</p>
+            <h2>Minimum Local Setup</h2>
+          </div>
+          <div className="summary-strip">
+            <span>{completedSetupSteps}/{firstRunChecklist.length} steps complete</span>
+            <span>{blockingChecks.length} blocking checks</span>
+            <span>{warningChecks.length} warnings</span>
+          </div>
+        </div>
+
+        <div className="setup-grid">
+          {firstRunChecklist.map((item) => (
+            <article className="setup-card" key={item.id}>
+              <div className="service-card-header">
+                <strong>{item.label}</strong>
+                <span className={`badge badge-${item.done ? "pass" : "warning"}`}>
+                  {item.done ? "done" : "todo"}
+                </span>
+              </div>
+              <p>{item.detail}</p>
+              {!item.done && item.action ? (
+                <button className="secondary-button" onClick={item.action} type="button">
+                  {item.actionLabel}
+                </button>
+              ) : null}
+            </article>
+          ))}
+        </div>
+
+        {blockingChecks.length > 0 ? (
+          <div className="service-checks">
+            {blockingChecks.map((check) => (
+              <article className="service-card" key={`blocking-${check.id}`}>
+                <div className="service-card-header">
+                  <strong>{check.label}</strong>
+                  <span className="badge badge-critical">blocking</span>
+                </div>
+                <p>{check.detail}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="helper-text">No blocking environment problems are currently detected.</p>
+        )}
+
+        {warningChecks.length > 0 ? (
+          <div className="service-checks">
+            {warningChecks.map((check) => (
+              <article className="service-card" key={`warning-${check.id}`}>
+                <div className="service-card-header">
+                  <strong>{check.label}</strong>
+                  <span className="badge badge-warning">warning</span>
+                </div>
+                <p>{check.detail}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="run-panel">
