@@ -20,6 +20,10 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 2
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+"${SCRIPT_DIR}/check-worktree-gate.sh"
+
 VERSION_ORDER=("0.1.0" "0.2.0" "0.3.0" "0.4.0" "0.5.0" "1.0.0")
 TARGET_INDEX=-1
 
