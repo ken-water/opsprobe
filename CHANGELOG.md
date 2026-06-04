@@ -28,6 +28,28 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Local HTML and PDF report export are not included yet and remain planned for `0.5.0`
 - Asset persistence is available, but broader persistence polish remains open under `#12`
 
+## [0.3.0] - 2026-06-04
+
+### Added
+
+- Dedicated local service package and desktop-visible runtime status flow
+- Service-owned inspection preview and execution path
+- Managed local PostgreSQL health inspection, bootstrap, start, and stop flow
+- PostgreSQL-backed inspection run persistence with file-backed fallback
+- File-to-PostgreSQL migration for previously persisted inspection runs
+
+### Changed
+
+- Desktop architecture now assumes a dedicated local service boundary for long-running runtime responsibilities
+- Inspection execution can now be routed through the local service instead of living only inside the UI process
+- Managed PostgreSQL runtime validation is now part of the local service operational workflow
+
+### Known Limits
+
+- Inspection history, scheduling, migration import/export, and first-run setup guidance were not included yet in `0.3.0`
+- Local HTML and PDF report export remained out of scope for this release and were deferred further
+- Asset persistence polish was still incomplete at this point and remained tracked separately
+
 ## [0.2.1] - 2026-06-03
 
 ### Added
