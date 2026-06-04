@@ -43,3 +43,10 @@ export interface LocalServiceInspectionHistoryResponse {
   runs: InspectionRun[];
   source: "local-service";
 }
+
+export interface LocalServiceInspectionHistoryRequest {
+  assetId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  limit?: number;
+}

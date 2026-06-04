@@ -4,6 +4,7 @@ import { stdin as input } from "node:process";
 import { createDefaultLocalServiceConfig } from "./index.ts";
 import type {
   InspectionExecutionRequest,
+  LocalServiceInspectionHistoryRequest,
   InspectionPreviewRequest,
   LocalServiceCommandResponse,
   LocalServiceInspectionHistoryResponse,
@@ -305,7 +306,8 @@ async function main() {
 
   if (mode === "inspection-history") {
     await ensureRuntimeDirs();
-    const response: LocalServiceInspectionHistoryResponse = await readInspectionHistory(storage);
+    const request = await readJsonStdin<LocalServiceInspectionHistoryRequest>().catch(() => ({}));
+    const response: LocalServiceInspectionHistoryResponse = await readInspectionHistory(storage, request);
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }

@@ -81,6 +81,7 @@ export type {
 export type {
   InspectionExecutionRequest,
   InspectionExecutionResponse,
+  LocalServiceInspectionHistoryRequest,
   InspectionPreviewRequest,
   InspectionPreviewResponse,
   LocalServiceRuntimeSnapshot,

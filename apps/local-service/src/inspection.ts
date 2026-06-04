@@ -10,6 +10,7 @@ import { LocalServicePreviewAdapter, LocalServiceSshRunnerAdapter } from "./ssh.
 import type {
   InspectionExecutionRequest,
   InspectionExecutionResponse,
+  LocalServiceInspectionHistoryRequest,
   InspectionPreviewRequest,
   InspectionPreviewResponse,
   LocalServiceInspectionHistoryResponse,
@@ -91,11 +92,29 @@ export async function buildInspectionExecution(
 
 export async function readInspectionHistory(
   storage: InspectionRunStore,
-  limit = 5,
+  request: LocalServiceInspectionHistoryRequest = {},
 ): Promise<LocalServiceInspectionHistoryResponse> {
+  const limit = request.limit ?? 20;
+  const candidateRuns = await storage.inspectionRuns.listRecent(Math.max(limit, 200));
+  const filteredRuns = candidateRuns.filter((run) => {
+    if (request.assetId && run.assetId !== request.assetId) {
+      return false;
+    }
+
+    if (request.dateFrom && run.createdAt < request.dateFrom) {
+      return false;
+    }
+
+    if (request.dateTo && run.createdAt > request.dateTo) {
+      return false;
+    }
+
+    return true;
+  });
+
   return {
     ok: true,
-    runs: await storage.inspectionRuns.listRecent(limit),
+    runs: filteredRuns.slice(0, limit),
     source: "local-service",
   };
 }

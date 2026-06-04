@@ -80,6 +80,15 @@ struct LocalServiceInspectionPreviewInput {
     asset: AssetPayload,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceInspectionHistoryInput {
+    asset_id: Option<String>,
+    date_from: Option<String>,
+    date_to: Option<String>,
+    limit: Option<u32>,
+}
+
 fn run_local_service_json_command(
     mode: &str,
     payload: Option<String>,
@@ -251,10 +260,17 @@ fn run_local_service_inspection(
 }
 
 #[tauri::command]
-fn get_local_service_inspection_history() -> Result<Value, String> {
+fn get_local_service_inspection_history(
+    input: Option<LocalServiceInspectionHistoryInput>,
+) -> Result<Value, String> {
+    let payload = input
+        .map(|value| serde_json::to_string(&value))
+        .transpose()
+        .map_err(|error| format!("Failed to serialize local service history input: {error}"))?;
+
     run_local_service_json_command(
         "inspection-history",
-        None,
+        payload,
         "local service inspection history command",
     )
 }

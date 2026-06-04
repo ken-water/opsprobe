@@ -78,6 +78,7 @@ function App() {
   const [serviceInspectionRun, setServiceInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceExecutionRun, setServiceExecutionRun] = useState<InspectionRun | null>(null);
   const [serviceHistoryRuns, setServiceHistoryRuns] = useState<InspectionRun[]>([]);
+  const [selectedHistoryRun, setSelectedHistoryRun] = useState<InspectionRun | null>(null);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
   const [serviceMessage, setServiceMessage] = useState<string | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
@@ -87,6 +88,9 @@ function App() {
   const [isRefreshingServicePreview, setIsRefreshingServicePreview] = useState(false);
   const [isRunningServiceInspection, setIsRunningServiceInspection] = useState(false);
   const [isRefreshingHistory, setIsRefreshingHistory] = useState(false);
+  const [historyDateFrom, setHistoryDateFrom] = useState("");
+  const [historyDateTo, setHistoryDateTo] = useState("");
+  const [historyAssetFilter, setHistoryAssetFilter] = useState(initialAsset.id);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -259,12 +263,48 @@ function App() {
     try {
       const response = await invoke<LocalServiceInspectionHistoryResponse>(
         "get_local_service_inspection_history",
+        {
+          input: {
+            assetId: historyAssetFilter.trim() || undefined,
+            dateFrom: historyDateFrom ? `${historyDateFrom}T00:00:00.000Z` : undefined,
+            dateTo: historyDateTo ? `${historyDateTo}T23:59:59.999Z` : undefined,
+            limit: 20,
+          },
+        },
       );
       setServiceHistoryRuns(response.runs);
+      setSelectedHistoryRun((current) => {
+        if (response.runs.length === 0) {
+          return null;
+        }
+
+        if (!current) {
+          return response.runs[0];
+        }
+
+        return response.runs.find((run) => run.id === current.id) ?? response.runs[0];
+      });
     } finally {
       setIsRefreshingHistory(false);
     }
   }
+
+  const repeatedProblems = serviceHistoryRuns
+    .flatMap((run) => run.results.filter((result) => result.status !== "pass"))
+    .reduce<Array<{ checkId: string; title: string; count: number }>>((summary, result) => {
+      const existing = summary.find((item) => item.checkId === result.checkId);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        summary.push({
+          checkId: result.checkId,
+          title: result.title,
+          count: 1,
+        });
+      }
+      return summary;
+    }, [])
+    .sort((left, right) => right.count - left.count);
 
   async function handleSshTest() {
     setIsTestingSsh(true);
@@ -551,26 +591,127 @@ function App() {
           </button>
         </div>
 
+        <div className="ssh-grid">
+          <label>
+            <span>Asset Filter</span>
+            <input
+              value={historyAssetFilter}
+              onChange={(event) => setHistoryAssetFilter(event.target.value)}
+              placeholder="asset-linux-001"
+            />
+          </label>
+
+          <label>
+            <span>Date From</span>
+            <input
+              type="date"
+              value={historyDateFrom}
+              onChange={(event) => setHistoryDateFrom(event.target.value)}
+            />
+          </label>
+
+          <label>
+            <span>Date To</span>
+            <input
+              type="date"
+              value={historyDateTo}
+              onChange={(event) => setHistoryDateTo(event.target.value)}
+            />
+          </label>
+        </div>
+
         {serviceHistoryRuns.length > 0 ? (
-          <div className="results-list">
-            {serviceHistoryRuns.map((run) => (
-              <article className="result-card" key={`history-${run.id}`}>
-                <div className="result-header">
-                  <div>
-                    <h3>{run.id}</h3>
-                    <p>
-                      {run.summary.total} checks, {run.summary.passed} pass, {run.summary.warning} warn,{" "}
-                      {run.summary.critical} critical
-                    </p>
+          <>
+            <div className="results-list">
+              {serviceHistoryRuns.map((run) => (
+                <article
+                  className="result-card"
+                  key={`history-${run.id}`}
+                  onClick={() => setSelectedHistoryRun(run)}
+                >
+                  <div className="result-header">
+                    <div>
+                      <h3>{run.id}</h3>
+                      <p>
+                        {run.assetId} · {run.summary.total} checks · {run.summary.warning} warn ·{" "}
+                        {run.summary.critical} critical
+                      </p>
+                    </div>
+                    <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>
+                      {run.status}
+                    </span>
                   </div>
-                  <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>
-                    {run.status}
-                  </span>
-                </div>
-                <p className="helper-text">{run.createdAt}</p>
-              </article>
-            ))}
-          </div>
+                  <p className="helper-text">{run.createdAt}</p>
+                </article>
+              ))}
+            </div>
+
+            {repeatedProblems.length > 0 ? (
+              <div className="service-checks">
+                {repeatedProblems.slice(0, 5).map((problem) => (
+                  <article className="service-card" key={`repeat-${problem.checkId}`}>
+                    <div className="service-card-header">
+                      <strong>{problem.title}</strong>
+                      <span className="badge badge-warning">{problem.count}x</span>
+                    </div>
+                    <p>{problem.checkId}</p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="helper-text">No repeated problem checks were found in the filtered history.</p>
+            )}
+
+            {selectedHistoryRun ? (
+              <div className="results-list">
+                <article className="result-card" key={`selected-${selectedHistoryRun.id}`}>
+                  <div className="result-header">
+                    <div>
+                      <h3>Selected Run</h3>
+                      <p>
+                        {selectedHistoryRun.id} · {selectedHistoryRun.assetId} · {selectedHistoryRun.createdAt}
+                      </p>
+                    </div>
+                    <span
+                      className={`badge badge-${
+                        selectedHistoryRun.status === "completed" ? "pass" : "critical"
+                      }`}
+                    >
+                      {selectedHistoryRun.status}
+                    </span>
+                  </div>
+
+                  {selectedHistoryRun.results.length > 0 ? (
+                    <div className="results-list">
+                      {selectedHistoryRun.results.map((result) => (
+                        <article className="result-card" key={`selected-${selectedHistoryRun.id}-${result.checkId}`}>
+                          <div className="result-header">
+                            <div>
+                              <h3>{result.title}</h3>
+                              <p>{result.summary}</p>
+                            </div>
+                            <span className={`badge badge-${result.status}`}>{result.status}</span>
+                          </div>
+                          <ul className="evidence-list">
+                            {result.evidence.map((item) => (
+                              <li key={`selected-${selectedHistoryRun.id}-${result.checkId}-${item.label}`}>
+                                <strong>{item.label}:</strong> {item.value}
+                              </li>
+                            ))}
+                          </ul>
+                          <p className="remediation">
+                            <strong>Remediation:</strong> {result.remediation}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="helper-text">This historical run has no normalized check results to reopen.</p>
+                  )}
+                </article>
+              </div>
+            ) : null}
+          </>
         ) : (
           <p className="helper-text">No persisted runs have been recorded by local service yet.</p>
         )}
