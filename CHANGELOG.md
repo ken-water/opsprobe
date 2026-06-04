@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.6.0] - 2026-06-04
+
+### Added
+
+- Built-in inspection template registry with Linux baseline, capacity, state, nginx, MySQL, Redis, Docker, and Kubernetes node templates
+- Desktop template selection with local persistence and schedule-aware template execution
+- Nginx process and configuration validation checks
+- MySQL or MariaDB process and TCP listener checks
+- Redis process and TCP listener checks
+- Docker daemon, runtime info, and container inventory checks
+- Kubelet process, kubelet secure port, and Kubernetes node runtime checks
+
+### Changed
+
+- HTML reports, PDF exports, and desktop history now show template metadata for each inspection run
+- Repeated-problem review now reflects which templates produced the same recurring finding
+- `0.6.0` version gate and release planning are now defined explicitly in the repository workflow
+
+### Known Limits
+
+- Service checks currently focus on process, listener, and basic runtime validation rather than deep application semantics
+- Kubernetes inspection currently targets node-side signals only and does not query the control plane or cluster API
+- Docker and Kubernetes checks assume compatible CLI tooling is available on the inspected host when runtime details are requested
+
 ## [0.4.0] - 2026-06-04
 
 ### Added
