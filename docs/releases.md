@@ -106,6 +106,7 @@ Exit criteria:
 - User data persists across restarts
 - Inspection history is browsable
 - Recurring local inspection can be configured
+- Managed PostgreSQL runtime validation checklist is completed on a real validation machine
 
 ### `0.5.0` Open Source MVP
 
