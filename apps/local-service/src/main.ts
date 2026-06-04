@@ -14,12 +14,50 @@ import {
   buildInspectionPreview,
   readInspectionHistory,
 } from "./inspection.ts";
-import { LocalFileStorageAdapter } from "../../../packages/storage/src/index.ts";
+import {
+  LocalFileStorageAdapter,
+  PostgresStorageAdapter,
+  type StorageAdapter,
+} from "../../../packages/storage/src/index.ts";
 import { ManagedLocalServiceBootstrap } from "./runtime.ts";
 
 const config = createDefaultLocalServiceConfig();
 const bootstrap = new ManagedLocalServiceBootstrap(config);
-const storage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprobe-storage.json`);
+const fileStorage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprobe-storage.json`);
+let storage: StorageAdapter = fileStorage;
+let storageBackendMessage = "Local file storage adapter is active.";
+
+async function selectStorageAdapter() {
+  const health = await bootstrap.ensureRuntime();
+
+  if (health.status === "ready") {
+    const postgresStorage = new PostgresStorageAdapter({
+      database: "postgres",
+      host: config.paths.runtimeDir,
+      port: config.postgres.port,
+      user: "opsprobe",
+    });
+
+    try {
+      await postgresStorage.bootstrap();
+      const postgresHealth = await postgresStorage.health();
+      if (postgresHealth.status === "pass") {
+        storage = postgresStorage;
+        storageBackendMessage = postgresHealth.detail;
+        return;
+      }
+      storageBackendMessage = `Falling back to local file storage: ${postgresHealth.detail}`;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown PostgreSQL storage bootstrap failure.";
+      storageBackendMessage = `Falling back to local file storage: ${message}`;
+    }
+  } else {
+    storageBackendMessage = "Local file storage adapter is active because managed PostgreSQL is not ready.";
+  }
+
+  await fileStorage.bootstrap();
+  storage = fileStorage;
+}
 
 async function ensureRuntimeDirs() {
   await Promise.all([
@@ -32,7 +70,7 @@ async function ensureRuntimeDirs() {
     mkdir(config.paths.postgresLogDir, { recursive: true }),
   ]);
 
-  await storage.bootstrap();
+  await selectStorageAdapter();
 }
 
 async function buildStatusResponse(
@@ -47,18 +85,27 @@ async function buildStatusResponse(
       config,
       health: {
         ...health,
-        checks:
-          mode === "ready"
-            ? health.checks.map((check) =>
-                check.id === "service.process"
-                  ? {
-                      ...check,
-                      status: "pass",
-                      detail: "The local service background process is running.",
-                    }
-                  : check,
-              )
-            : health.checks,
+        checks: [
+          ...(
+            mode === "ready"
+              ? health.checks.map((check) =>
+                  check.id === "service.process"
+                    ? {
+                        ...check,
+                        status: "pass",
+                        detail: "The local service background process is running.",
+                      }
+                    : check,
+                )
+              : health.checks
+          ),
+          {
+            id: "storage.backend",
+            label: "Storage Backend",
+            status: storage === fileStorage ? "warning" : "pass",
+            detail: storageBackendMessage,
+          },
+        ],
       },
     },
   };

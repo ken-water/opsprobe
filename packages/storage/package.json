@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@opsprobe/core": "*"
+    "@opsprobe/core": "*",
+    "pg": "^8.16.3"
   }
 }

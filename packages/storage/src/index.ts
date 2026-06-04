@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { Pool } from "pg";
 import type { Asset, InspectionRun, InspectionTemplate } from "@opsprobe/core";
 
 export interface StorageHealth {
@@ -32,6 +33,13 @@ export interface StorageAdapter {
   assets: AssetRepository;
   templates: TemplateRepository;
   inspectionRuns: InspectionRunRepository;
+}
+
+export interface PostgresStorageConfig {
+  database: string;
+  host: string;
+  port: number;
+  user: string;
 }
 
 interface FileStorageSnapshot {
@@ -83,6 +91,138 @@ export class StubPostgresStorageAdapter implements StorageAdapter {
       status: "warning",
       detail: "Storage adapter is present but not connected to a managed PostgreSQL runtime yet.",
     };
+  }
+}
+
+function serializeRun(run: InspectionRun) {
+  return JSON.stringify(run);
+}
+
+function deserializeRun(raw: string) {
+  return JSON.parse(raw) as InspectionRun;
+}
+
+export class PostgresStorageAdapter implements StorageAdapter {
+  private readonly pool: Pool;
+  private readonly config: PostgresStorageConfig;
+
+  constructor(config: PostgresStorageConfig) {
+    this.config = config;
+    this.pool = new Pool({
+      database: config.database,
+      host: config.host,
+      port: config.port,
+      user: config.user,
+    });
+  }
+
+  readonly assets: AssetRepository = {
+    async list() {
+      return [];
+    },
+    async upsert() {
+      return;
+    },
+  };
+
+  readonly templates: TemplateRepository = {
+    async list() {
+      return [];
+    },
+  };
+
+  readonly inspectionRuns: InspectionRunRepository = {
+    save: async (run) => {
+      await this.pool.query(
+        `
+          insert into opsprobe_inspection_runs (
+            id,
+            task_id,
+            asset_id,
+            template_id,
+            status,
+            created_at,
+            updated_at,
+            payload
+          )
+          values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
+          on conflict (id) do update set
+            task_id = excluded.task_id,
+            asset_id = excluded.asset_id,
+            template_id = excluded.template_id,
+            status = excluded.status,
+            created_at = excluded.created_at,
+            updated_at = excluded.updated_at,
+            payload = excluded.payload
+        `,
+        [
+          run.id,
+          run.taskId,
+          run.assetId,
+          run.templateId,
+          run.status,
+          run.createdAt,
+          run.updatedAt,
+          serializeRun(run),
+        ],
+      );
+    },
+    listRecent: async (limit) => {
+      const result = await this.pool.query<{ payload: InspectionRun }>(
+        `
+          select payload
+          from opsprobe_inspection_runs
+          order by created_at desc
+          limit $1
+        `,
+        [limit],
+      );
+
+      return result.rows.map((row) =>
+        typeof row.payload === "string" ? deserializeRun(row.payload) : (row.payload as InspectionRun),
+      );
+    },
+  };
+
+  async bootstrap(): Promise<StorageBootstrapResult> {
+    await this.pool.query(`
+      create table if not exists opsprobe_inspection_runs (
+        id text primary key,
+        task_id text not null,
+        asset_id text not null,
+        template_id text not null,
+        status text not null,
+        created_at timestamptz not null,
+        updated_at timestamptz not null,
+        payload jsonb not null
+      )
+    `);
+
+    await this.pool.query(`
+      create index if not exists idx_opsprobe_inspection_runs_created_at
+      on opsprobe_inspection_runs (created_at desc)
+    `);
+
+    return {
+      ok: true,
+      detail: `PostgreSQL storage adapter is ready on ${this.config.host}:${this.config.port}/${this.config.database}.`,
+    };
+  }
+
+  async health(): Promise<StorageHealth> {
+    try {
+      await this.pool.query("select 1");
+      return {
+        status: "pass",
+        detail: `PostgreSQL storage is reachable on ${this.config.host}:${this.config.port}/${this.config.database}.`,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown PostgreSQL storage failure.";
+      return {
+        status: "critical",
+        detail: message,
+      };
+    }
   }
 }
 

@@ -33,4 +33,4 @@ Current runtime progress:
 - `status` now probes PostgreSQL binary availability, port availability, and whether the managed data directory has been initialized
 - `postgres-bootstrap` runs `initdb` for the dedicated OpsProbe PostgreSQL data directory and writes OpsProbe-owned port/listen overrides
 - `postgres-start` and `postgres-stop` now control the managed PostgreSQL lifecycle through `pg_ctl`
-- inspection persistence is still using a transitional local file adapter until the managed PostgreSQL storage path is wired in end-to-end
+- inspection persistence now prefers PostgreSQL when the managed runtime is ready, and clearly falls back to the local file adapter when PostgreSQL is unavailable
