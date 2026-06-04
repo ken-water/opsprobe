@@ -8,6 +8,7 @@ import {
 } from "@opsprobe/checks";
 import {
   createInspectionTemplate,
+  summarizeResults,
   type Asset,
   type InspectionRun,
   type InspectionTask,
@@ -58,6 +59,86 @@ function templateLabel(templateId: string) {
   return builtInTemplates.find((template) => template.id === templateId)?.name ?? templateId;
 }
 
+function createDemoRun(
+  id: string,
+  templateId: string,
+  createdAt: string,
+  results: CheckResult[],
+): InspectionRun {
+  return {
+    id,
+    taskId: `task-${id}`,
+    assetId: initialAsset.id,
+    templateId,
+    status: "completed",
+    results,
+    summary: summarizeResults(results),
+    createdAt,
+    updatedAt: createdAt,
+  };
+}
+
+const demoRuns: InspectionRun[] = [
+  createDemoRun("demo-run-nginx-001", "template.linux.nginx", "2026-06-04T08:30:00.000Z", [
+    {
+      checkId: "linux.cpu.usage",
+      title: "CPU Usage",
+      status: "warning",
+      severity: "warning",
+      summary: "CPU usage is elevated during the morning traffic window.",
+      evidence: [{ label: "Usage", value: "76.4%" }],
+      remediation: "Review top CPU consumers and confirm whether traffic growth is expected.",
+    },
+    {
+      checkId: "linux.nginx.process",
+      title: "Nginx Process Status",
+      status: "pass",
+      severity: "info",
+      summary: "nginx is running normally.",
+      evidence: [{ label: "Process", value: "nginx" }],
+      remediation: "No action required.",
+    },
+    {
+      checkId: "linux.nginx.config",
+      title: "Nginx Configuration Validation",
+      status: "warning",
+      severity: "warning",
+      summary: "Configuration validation passed, but a deprecated directive is still present.",
+      evidence: [{ label: "Command Output", value: "warning: the 'http2_max_field_size' directive is deprecated" }],
+      remediation: "Update the nginx config to remove deprecated directives before the next upgrade window.",
+    },
+  ]),
+  createDemoRun("demo-run-k8s-001", "template.linux.kubernetes", "2026-06-04T09:10:00.000Z", [
+    {
+      checkId: "linux.kubelet.process",
+      title: "Kubelet Process Status",
+      status: "pass",
+      severity: "info",
+      summary: "kubelet is running.",
+      evidence: [{ label: "Process", value: "kubelet" }],
+      remediation: "No action required.",
+    },
+    {
+      checkId: "linux.kubernetes.node.runtime",
+      title: "Kubernetes Node Runtime",
+      status: "warning",
+      severity: "warning",
+      summary: "Node runtime info was collected, but the container runtime is still using an older cgroup driver.",
+      evidence: [{ label: "Runtime", value: "Runtime=containerd CgroupDriver=cgroupfs" }],
+      remediation: "Review node runtime alignment with the cluster standard before the next node rollout.",
+    },
+    {
+      checkId: "linux.disk.usage",
+      title: "Disk Usage",
+      status: "critical",
+      severity: "critical",
+      summary: "Root filesystem usage is high enough to risk node instability.",
+      evidence: [{ label: "Usage", value: "92.1%" }],
+      remediation: "Free space on the node and review image, log, and container retention settings.",
+    },
+  ]),
+];
+
 class TauriRunnerAdapter {
   async testConnection(asset: Asset): Promise<SshConnectionTestResult> {
     return invoke<SshConnectionTestResult>("test_ssh_connection", {
@@ -106,6 +187,7 @@ function App() {
   const [serviceExecutionRun, setServiceExecutionRun] = useState<InspectionRun | null>(null);
   const [serviceHistoryRuns, setServiceHistoryRuns] = useState<InspectionRun[]>([]);
   const [selectedHistoryRun, setSelectedHistoryRun] = useState<InspectionRun | null>(null);
+  const [onboardingMode, setOnboardingMode] = useState<"demo" | "real">("demo");
   const [schedules, setSchedules] = useState<LocalInspectionSchedule[]>([]);
   const [savedAssets, setSavedAssets] = useState<Asset[]>([]);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
@@ -135,6 +217,9 @@ function App() {
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const activeTemplate = builtInTemplates.find((template) => template.id === selectedTemplateId) ?? defaultTemplate;
   const activeChecks = resolveTemplateChecks(activeTemplate.id);
+  const hasRealData = savedAssets.length > 0 || serviceHistoryRuns.length > 0 || schedules.length > 0;
+  const showingDemoExperience = !hasRealData && onboardingMode === "demo";
+  const visibleHistoryRuns = showingDemoExperience ? demoRuns : serviceHistoryRuns;
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -185,6 +270,7 @@ function App() {
           settings: {
             activeAsset: asset,
             selectedTemplateId,
+            onboardingMode,
             historyAssetFilter,
             historyDateFrom,
             historyDateTo,
@@ -209,6 +295,7 @@ function App() {
     historyDateTo,
     scheduleIntervalMinutes,
     migrationPath,
+    onboardingMode,
     pdfReportPath,
     reportPath,
     selectedTemplateId,
@@ -248,6 +335,9 @@ function App() {
       }
       if (restoredSettings.selectedTemplateId !== undefined) {
         setSelectedTemplateId(restoredSettings.selectedTemplateId);
+      }
+      if (restoredSettings.onboardingMode === "demo" || restoredSettings.onboardingMode === "real") {
+        setOnboardingMode(restoredSettings.onboardingMode);
       }
       if (restoredSettings.historyAssetFilter !== undefined) {
         setHistoryAssetFilter(restoredSettings.historyAssetFilter);
@@ -299,6 +389,20 @@ function App() {
       setSettingsLoaded(true);
     }
   }
+
+  useEffect(() => {
+    setSelectedHistoryRun((current) => {
+      if (visibleHistoryRuns.length === 0) {
+        return null;
+      }
+
+      if (!current) {
+        return visibleHistoryRuns[0];
+      }
+
+      return visibleHistoryRuns.find((run) => run.id === current.id) ?? visibleHistoryRuns[0];
+    });
+  }, [visibleHistoryRuns]);
 
   async function refreshLocalServiceHealth() {
     setIsRefreshingService(true);
@@ -557,6 +661,10 @@ function App() {
   }
 
   function resolveAssetForRun(run: InspectionRun): Asset | undefined {
+    if (run.assetId === initialAsset.id) {
+      return asset.id === run.assetId ? asset : initialAsset;
+    }
+
     if (asset.id === run.assetId) {
       return asset;
     }
@@ -655,7 +763,24 @@ function App() {
     }
   }
 
-  const repeatedProblems = serviceHistoryRuns
+  function handleEnterDemoMode() {
+    setOnboardingMode("demo");
+    setAsset(initialAsset);
+    setSelectedTemplateId(demoRuns[0]?.templateId ?? defaultTemplate.id);
+    setHistoryAssetFilter(initialAsset.id);
+    setHistoryDateFrom("");
+    setHistoryDateTo("");
+    setSelectedHistoryRun(demoRuns[0] ?? null);
+    setServiceMessage("Showing sample runs so you can inspect OpsProbe before connecting a real host.");
+  }
+
+  function handleSwitchToRealSetup() {
+    setOnboardingMode("real");
+    setSelectedHistoryRun(null);
+    setServiceMessage("Demo mode hidden. Configure and save a real asset to start collecting live inspection history.");
+  }
+
+  const repeatedProblems = visibleHistoryRuns
     .flatMap((run) => run.results
       .filter((result) => result.status !== "pass")
       .map((result) => ({ result, templateId: run.templateId })))
@@ -749,8 +874,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.4.0` establishes the local-first desktop workflow around a dedicated local service,
-          managed runtime health, scheduling, history, and migration support.
+          `0.7.0` adds a guided first-run demo path so early users can evaluate local inspection,
+          reports, and remediation output before connecting real infrastructure.
         </p>
       </section>
 
@@ -766,11 +891,11 @@ function App() {
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.6.0</p>
+          <p className="version">v0.7.0</p>
           <ul>
-            <li>Service-aware built-in inspection templates</li>
-            <li>Middleware checks for nginx, MySQL, and Redis</li>
-            <li>Runtime coverage expansion for Docker and Kubernetes</li>
+            <li>Guided first-run demo experience</li>
+            <li>Clear sample-versus-real inspection separation</li>
+            <li>Faster feedback capture from early community users</li>
           </ul>
         </article>
 
@@ -789,6 +914,45 @@ function App() {
             Buy Me a Coffee
           </a>
         </article>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.7.0 Current Release</p>
+            <h2>First-Run Demo Experience</h2>
+          </div>
+          <div className="service-actions">
+            <button
+              className="secondary-button"
+              onClick={handleEnterDemoMode}
+              type="button"
+            >
+              Explore Demo Data
+            </button>
+            <button
+              className="primary-button"
+              onClick={handleSwitchToRealSetup}
+              type="button"
+            >
+              Switch to Real Setup
+            </button>
+          </div>
+        </div>
+
+        <div className={`onboarding-banner ${showingDemoExperience ? "onboarding-demo" : "onboarding-real"}`}>
+          <strong>{showingDemoExperience ? "Sample runs are visible" : "Real setup mode is active"}</strong>
+          <span>
+            {showingDemoExperience
+              ? "These results are bundled examples and are not written into your local service history."
+              : "Demo data is hidden. Save an asset and run inspections to build your own history."}
+          </span>
+        </div>
+
+        <p className="helper-text">
+          Use demo mode to review report quality, remediation wording, and result layout. Switch to
+          real setup when you are ready to connect your own hosts.
+        </p>
       </section>
 
       <section className="run-panel">
@@ -857,7 +1021,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.6.0 Current Release</p>
+            <p className="eyebrow">0.7.0 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -948,7 +1112,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.6.0 Current Release</p>
+            <p className="eyebrow">0.7.0 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1044,7 +1208,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.6.0 Current Release</p>
+            <p className="eyebrow">0.7.0 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1132,7 +1296,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.6.0 Current Release</p>
+            <p className="eyebrow">0.7.0 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1235,7 +1399,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.6.0 Current Release</p>
+            <p className="eyebrow">0.7.0 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button
@@ -1298,6 +1462,15 @@ function App() {
           </button>
         </div>
 
+        {showingDemoExperience ? (
+          <div className="asset-banner">
+            <strong>Demo History</strong>
+            <span>sample data only</span>
+            <span>{demoRuns.length} bundled runs</span>
+            <span>safe to explore and export</span>
+          </div>
+        ) : null}
+
         <div className="ssh-grid">
           <label>
             <span>Asset Filter</span>
@@ -1327,10 +1500,10 @@ function App() {
           </label>
         </div>
 
-        {serviceHistoryRuns.length > 0 ? (
+        {visibleHistoryRuns.length > 0 ? (
           <>
             <div className="results-list">
-              {serviceHistoryRuns.map((run) => (
+              {visibleHistoryRuns.map((run) => (
                 <article
                   className="result-card"
                   key={`history-${run.id}`}
@@ -1344,6 +1517,7 @@ function App() {
                         {run.summary.critical} critical
                       </p>
                       <p className="helper-text">Template: {templateLabel(run.templateId)}</p>
+                      {showingDemoExperience ? <p className="helper-text">Sample run bundled with OpsProbe.</p> : null}
                     </div>
                     <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>
                       {run.status}
@@ -1383,6 +1557,9 @@ function App() {
                         {selectedHistoryRun.id} · {selectedHistoryRun.assetId} · {selectedHistoryRun.createdAt}
                       </p>
                       <p className="helper-text">Template: {templateLabel(selectedHistoryRun.templateId)}</p>
+                      {showingDemoExperience ? (
+                        <p className="helper-text">This is sample inspection data and is not part of your persisted history.</p>
+                      ) : null}
                     </div>
                     <span
                       className={`badge badge-${
@@ -1443,7 +1620,11 @@ function App() {
             ) : null}
           </>
         ) : (
-          <p className="helper-text">No persisted runs have been recorded by local service yet.</p>
+          <p className="helper-text">
+            {onboardingMode === "real"
+              ? "No persisted runs have been recorded by local service yet."
+              : "No persisted runs yet. Explore the bundled demo data or switch to real setup."}
+          </p>
         )}
       </section>
 

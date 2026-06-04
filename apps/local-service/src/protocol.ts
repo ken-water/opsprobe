@@ -157,6 +157,7 @@ export interface LocalAssetUpsertRequest {
 export interface LocalDesktopSettings {
   activeAsset?: Asset;
   selectedTemplateId?: string;
+  onboardingMode?: "demo" | "real";
   historyAssetFilter?: string;
   historyDateFrom?: string;
   historyDateTo?: string;

@@ -260,6 +260,25 @@ body {
   color: #23313f;
 }
 
+.onboarding-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 16px;
+}
+
+.onboarding-demo {
+  background: rgba(255, 242, 210, 0.9);
+  color: #6f4a0b;
+}
+
+.onboarding-real {
+  background: rgba(222, 234, 225, 0.82);
+  color: #24503a;
+}
+
 .service-pill {
   display: inline-flex;
   align-items: center;

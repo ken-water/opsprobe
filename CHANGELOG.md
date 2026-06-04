@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.7.0] - 2026-06-04
+
+### Added
+
+- Guided first-run demo mode in the desktop app with realistic bundled sample inspection runs
+- Explicit desktop onboarding mode persistence so users can choose demo exploration or direct real setup
+- Clear sample-data labelling in history and report replay views to avoid mixing demo content with real local-service history
+
+### Changed
+
+- Desktop history and repeated-problem analysis now work against the visible onboarding context instead of assuming persisted history only
+- Release-facing desktop copy now reflects the `0.7.0` external-validation focus instead of the earlier `0.6.0` milestone text
+
+### Known Limits
+
+- Demo runs are static examples and do not yet adapt to the currently selected template or asset beyond the guided starter flow
+- Feedback capture from early users still depends on external channels and remains planned for `0.7.1+`
+
 ## [0.6.0] - 2026-06-04
 
 ### Added

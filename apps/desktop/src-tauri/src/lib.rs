@@ -120,6 +120,7 @@ struct LocalServiceAssetUpsertInput {
 struct LocalServiceSettingsPayload {
     active_asset: Option<AssetPayload>,
     selected_template_id: Option<String>,
+    onboarding_mode: Option<String>,
     history_asset_filter: Option<String>,
     history_date_from: Option<String>,
     history_date_to: Option<String>,
