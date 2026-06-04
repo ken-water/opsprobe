@@ -34,3 +34,4 @@ Current runtime progress:
 - `postgres-bootstrap` runs `initdb` for the dedicated OpsProbe PostgreSQL data directory and writes OpsProbe-owned port/listen overrides
 - `postgres-start` and `postgres-stop` now control the managed PostgreSQL lifecycle through `pg_ctl`
 - inspection persistence now prefers PostgreSQL when the managed runtime is ready, and clearly falls back to the local file adapter when PostgreSQL is unavailable
+- when PostgreSQL becomes available, existing file-backed inspection run history is migrated into PostgreSQL automatically via idempotent upserts

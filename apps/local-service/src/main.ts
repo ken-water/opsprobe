@@ -27,6 +27,17 @@ const fileStorage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprob
 let storage: StorageAdapter = fileStorage;
 let storageBackendMessage = "Local file storage adapter is active.";
 
+async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter) {
+  await fileStorage.bootstrap();
+  const runs = await fileStorage.inspectionRuns.listRecent(10000);
+
+  for (const run of runs.reverse()) {
+    await postgresStorage.inspectionRuns.save(run);
+  }
+
+  return runs.length;
+}
+
 async function selectStorageAdapter() {
   const health = await bootstrap.ensureRuntime();
 
@@ -42,8 +53,12 @@ async function selectStorageAdapter() {
       await postgresStorage.bootstrap();
       const postgresHealth = await postgresStorage.health();
       if (postgresHealth.status === "pass") {
+        const migratedRuns = await migrateFileRunsToPostgres(postgresStorage);
         storage = postgresStorage;
-        storageBackendMessage = postgresHealth.detail;
+        storageBackendMessage =
+          migratedRuns > 0
+            ? `${postgresHealth.detail} Migrated ${migratedRuns} file-backed inspection runs into PostgreSQL.`
+            : postgresHealth.detail;
         return;
       }
       storageBackendMessage = `Falling back to local file storage: ${postgresHealth.detail}`;
