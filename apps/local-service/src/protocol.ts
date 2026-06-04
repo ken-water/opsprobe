@@ -149,6 +149,27 @@ export interface LocalAssetUpsertRequest {
   asset: Asset;
 }
 
+export interface LocalDesktopSettings {
+  activeAsset?: Asset;
+  historyAssetFilter?: string;
+  historyDateFrom?: string;
+  historyDateTo?: string;
+  scheduleIntervalMinutes?: string;
+  migrationPath?: string;
+  reportPath?: string;
+  pdfReportPath?: string;
+}
+
+export interface LocalDesktopSettingsResponse {
+  ok: boolean;
+  settings: LocalDesktopSettings;
+  source: "local-service";
+}
+
+export interface LocalDesktopSettingsUpsertRequest {
+  settings: LocalDesktopSettings;
+}
+
 export interface LocalFilePathRequest {
   path: string;
 }

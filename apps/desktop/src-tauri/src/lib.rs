@@ -59,6 +59,7 @@ struct AssetCredentialPayload {
     method: String,
     username: String,
     secret_ref: String,
+    binding_status: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -110,6 +111,25 @@ struct LocalServiceScheduleDeleteInput {
 #[serde(rename_all = "camelCase")]
 struct LocalServiceAssetUpsertInput {
     asset: AssetPayload,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceSettingsPayload {
+    active_asset: Option<AssetPayload>,
+    history_asset_filter: Option<String>,
+    history_date_from: Option<String>,
+    history_date_to: Option<String>,
+    schedule_interval_minutes: Option<String>,
+    migration_path: Option<String>,
+    report_path: Option<String>,
+    pdf_report_path: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceSettingsUpsertInput {
+    settings: LocalServiceSettingsPayload,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -386,6 +406,23 @@ fn upsert_local_service_asset(input: LocalServiceAssetUpsertInput) -> Result<Val
         "assets-upsert",
         Some(payload),
         "local service asset upsert command",
+    )
+}
+
+#[tauri::command]
+fn get_local_service_settings() -> Result<Value, String> {
+    run_local_service_json_command("settings-get", None, "local service settings get command")
+}
+
+#[tauri::command]
+fn upsert_local_service_settings(input: LocalServiceSettingsUpsertInput) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service settings input: {error}"))?;
+
+    run_local_service_json_command(
+        "settings-upsert",
+        Some(payload),
+        "local service settings upsert command",
     )
 }
 
@@ -1098,6 +1135,8 @@ pub fn run() {
             delete_local_service_schedule,
             get_local_service_assets,
             upsert_local_service_asset,
+            get_local_service_settings,
+            upsert_local_service_settings,
             export_local_service_config,
             import_local_service_config,
             export_local_service_html_report,

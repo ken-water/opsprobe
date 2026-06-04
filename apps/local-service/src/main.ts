@@ -1,11 +1,15 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { stdin as input } from "node:process";
+import { builtInLinuxChecks } from "@opsprobe/checks";
+import { createLinuxHostTemplate } from "@opsprobe/core";
 import { createDefaultLocalServiceConfig } from "./index.ts";
 import type {
   InspectionExecutionRequest,
   LocalAssetListResponse,
   LocalAssetUpsertRequest,
+  LocalDesktopSettingsResponse,
+  LocalDesktopSettingsUpsertRequest,
   LocalConfigExportResponse,
   LocalConfigImportRequest,
   LocalConfigImportResponse,
@@ -35,6 +39,7 @@ import {
   type StorageAdapter,
 } from "../../../packages/storage/src/index.ts";
 import { ManagedLocalServiceBootstrap } from "./runtime.ts";
+import { LocalDesktopSettingsStore } from "./settings.ts";
 
 const config = createDefaultLocalServiceConfig();
 const bootstrap = new ManagedLocalServiceBootstrap(config);
@@ -42,6 +47,8 @@ const fileStorage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprob
 let storage: StorageAdapter = fileStorage;
 let storageBackendMessage = "Local file storage adapter is active.";
 const scheduleStore = new LocalScheduleStore(config);
+const desktopSettingsStore = new LocalDesktopSettingsStore(config);
+const defaultTemplate = createLinuxHostTemplate(builtInLinuxChecks);
 
 async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter) {
   await fileStorage.bootstrap();
@@ -112,6 +119,7 @@ async function ensureRuntimeDirs() {
   ]);
 
   await selectStorageAdapter();
+  await storage.templates.upsert(defaultTemplate);
 }
 
 async function buildStatusResponse(
@@ -375,6 +383,21 @@ async function main() {
       ok: true,
       message: `Saved asset ${request.asset.id}.`,
     };
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "settings-get") {
+    await ensureRuntimeDirs();
+    const response: LocalDesktopSettingsResponse = await desktopSettingsStore.getResponse();
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "settings-upsert") {
+    await ensureRuntimeDirs();
+    const request = await readJsonStdin<LocalDesktopSettingsUpsertRequest>();
+    const response = await desktopSettingsStore.upsert(request);
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }

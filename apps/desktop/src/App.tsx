@@ -7,6 +7,7 @@ import type {
   InspectionPreviewResponse,
   LocalAssetListResponse,
   LocalConfigImportResponse,
+  LocalDesktopSettingsResponse,
   LocalInspectionSchedule,
   LocalInspectionScheduleListResponse,
   LocalInspectionScheduleUpsertResponse,
@@ -36,6 +37,9 @@ const initialAsset: Asset = {
 };
 
 const template = createLinuxHostTemplate(builtInLinuxChecks);
+const defaultMigrationPath = "/tmp/opsprobe-config.json";
+const defaultReportPath = "/tmp/opsprobe-report.html";
+const defaultPdfReportPath = "/tmp/opsprobe-report.pdf";
 
 class TauriRunnerAdapter {
   async testConnection(asset: Asset): Promise<SshConnectionTestResult> {
@@ -102,14 +106,15 @@ function App() {
   const [scheduleIntervalMinutes, setScheduleIntervalMinutes] = useState("15");
   const [isRefreshingSchedules, setIsRefreshingSchedules] = useState(false);
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
-  const [migrationPath, setMigrationPath] = useState("/tmp/opsprobe-config.json");
-  const [reportPath, setReportPath] = useState("/tmp/opsprobe-report.html");
-  const [pdfReportPath, setPdfReportPath] = useState("/tmp/opsprobe-report.pdf");
+  const [migrationPath, setMigrationPath] = useState(defaultMigrationPath);
+  const [reportPath, setReportPath] = useState(defaultReportPath);
+  const [pdfReportPath, setPdfReportPath] = useState(defaultPdfReportPath);
   const [isRefreshingAssets, setIsRefreshingAssets] = useState(false);
   const [isExportingConfig, setIsExportingConfig] = useState(false);
   const [isImportingConfig, setIsImportingConfig] = useState(false);
   const [isExportingReport, setIsExportingReport] = useState(false);
   const [isExportingPdfReport, setIsExportingPdfReport] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -129,13 +134,7 @@ function App() {
   };
 
   useEffect(() => {
-    void refreshLocalServiceHealth();
-    void refreshLocalServiceInspectionPreview();
-    void runLocalServiceInspection();
-    void refreshLocalServiceHistory();
-    void refreshLocalSchedules();
-    void refreshSavedAssets();
-    void refreshInspectionPreview();
+    void loadInitialState();
   }, []);
 
   useEffect(() => {
@@ -144,16 +143,55 @@ function App() {
     }
 
     setReportPath((current) =>
-      current === "/tmp/opsprobe-report.html"
+      current === defaultReportPath
         ? `${serviceResponse.snapshot.config.paths.reportDir}/opsprobe-report-${Date.now()}.html`
         : current,
     );
     setPdfReportPath((current) =>
-      current === "/tmp/opsprobe-report.pdf"
+      current === defaultPdfReportPath
         ? `${serviceResponse.snapshot.config.paths.reportDir}/opsprobe-report-${Date.now()}.pdf`
         : current,
     );
   }, [serviceResponse]);
+
+  useEffect(() => {
+    if (!settingsLoaded) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void invoke<LocalDesktopSettingsResponse>("upsert_local_service_settings", {
+        input: {
+          settings: {
+            activeAsset: asset,
+            historyAssetFilter,
+            historyDateFrom,
+            historyDateTo,
+            scheduleIntervalMinutes,
+            migrationPath,
+            reportPath,
+            pdfReportPath,
+          },
+        },
+      }).catch(() => {
+        // Keep desktop editing responsive even if persistence is temporarily unavailable.
+      });
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [
+    asset,
+    historyAssetFilter,
+    historyDateFrom,
+    historyDateTo,
+    scheduleIntervalMinutes,
+    migrationPath,
+    pdfReportPath,
+    reportPath,
+    settingsLoaded,
+  ]);
 
   function patchAsset(patch: Partial<Asset>) {
     setAsset((current) => ({
@@ -169,9 +207,72 @@ function App() {
       credential: {
         ...current.credential,
         ...patch,
+        bindingStatus:
+          patch.secretRef !== undefined || patch.method !== undefined || patch.username !== undefined
+            ? "linked"
+            : current.credential.bindingStatus,
       },
       updatedAt: new Date().toISOString(),
     }));
+  }
+
+  async function loadInitialState() {
+    try {
+      const settingsResponse = await invoke<LocalDesktopSettingsResponse>("get_local_service_settings");
+      const restoredSettings = settingsResponse.settings;
+
+      if (restoredSettings.activeAsset) {
+        setAsset(restoredSettings.activeAsset);
+      }
+      if (restoredSettings.historyAssetFilter !== undefined) {
+        setHistoryAssetFilter(restoredSettings.historyAssetFilter);
+      } else if (restoredSettings.activeAsset) {
+        setHistoryAssetFilter(restoredSettings.activeAsset.id);
+      }
+      if (restoredSettings.historyDateFrom !== undefined) {
+        setHistoryDateFrom(restoredSettings.historyDateFrom);
+      }
+      if (restoredSettings.historyDateTo !== undefined) {
+        setHistoryDateTo(restoredSettings.historyDateTo);
+      }
+      if (restoredSettings.scheduleIntervalMinutes !== undefined) {
+        setScheduleIntervalMinutes(restoredSettings.scheduleIntervalMinutes);
+      }
+      if (restoredSettings.migrationPath !== undefined) {
+        setMigrationPath(restoredSettings.migrationPath);
+      }
+      if (restoredSettings.reportPath !== undefined) {
+        setReportPath(restoredSettings.reportPath);
+      }
+      if (restoredSettings.pdfReportPath !== undefined) {
+        setPdfReportPath(restoredSettings.pdfReportPath);
+      }
+
+      const activeAsset = restoredSettings.activeAsset ?? initialAsset;
+      const assetFilter = restoredSettings.historyAssetFilter ?? activeAsset.id;
+      const dateFrom = restoredSettings.historyDateFrom ?? "";
+      const dateTo = restoredSettings.historyDateTo ?? "";
+
+      await refreshLocalServiceHealth();
+      await refreshSavedAssets();
+      await refreshLocalSchedules();
+      await refreshLocalServiceHistory({
+        assetId: assetFilter,
+        dateFrom,
+        dateTo,
+      });
+    } catch {
+      await refreshLocalServiceHealth();
+      await refreshSavedAssets();
+      await refreshLocalSchedules();
+      await refreshLocalServiceHistory({
+        assetId: initialAsset.id,
+        dateFrom: "",
+        dateTo: "",
+      });
+    } finally {
+      setSettingsLoaded(true);
+    }
   }
 
   async function refreshLocalServiceHealth() {
@@ -295,17 +396,24 @@ function App() {
     }
   }
 
-  async function refreshLocalServiceHistory() {
+  async function refreshLocalServiceHistory(filters?: {
+    assetId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }) {
     setIsRefreshingHistory(true);
 
     try {
+      const assetId = filters?.assetId ?? historyAssetFilter;
+      const dateFrom = filters?.dateFrom ?? historyDateFrom;
+      const dateTo = filters?.dateTo ?? historyDateTo;
       const response = await invoke<LocalServiceInspectionHistoryResponse>(
         "get_local_service_inspection_history",
         {
           input: {
-            assetId: historyAssetFilter.trim() || undefined,
-            dateFrom: historyDateFrom ? `${historyDateFrom}T00:00:00.000Z` : undefined,
-            dateTo: historyDateTo ? `${historyDateTo}T23:59:59.999Z` : undefined,
+            assetId: assetId.trim() || undefined,
+            dateFrom: dateFrom ? `${dateFrom}T00:00:00.000Z` : undefined,
+            dateTo: dateTo ? `${dateTo}T23:59:59.999Z` : undefined,
             limit: 20,
           },
         },
@@ -354,9 +462,17 @@ function App() {
     setServiceMessage(null);
 
     try {
+      const assetToSave: Asset = {
+        ...asset,
+        credential: {
+          ...asset.credential,
+          bindingStatus: asset.credential.secretRef.trim().length > 0 ? "linked" : asset.credential.bindingStatus,
+        },
+      };
+      setAsset(assetToSave);
       const response = await invoke<LocalServiceCommandResponse>("upsert_local_service_asset", {
         input: {
-          asset,
+          asset: assetToSave,
         },
       });
       setServiceMessage(response.message);
@@ -372,7 +488,7 @@ function App() {
     setServiceMessage(`Loaded saved asset ${savedAsset.id}.`);
     await refreshInspectionPreview();
     await refreshLocalServiceInspectionPreview();
-    await refreshLocalServiceHistory();
+    await refreshLocalServiceHistory({ assetId: savedAsset.id });
   }
 
   async function handleExportConfig() {
@@ -407,6 +523,7 @@ function App() {
       await refreshSavedAssets();
       await refreshLocalSchedules();
       await refreshLocalServiceHealth();
+      await refreshLocalServiceHistory();
     } finally {
       setIsImportingConfig(false);
     }

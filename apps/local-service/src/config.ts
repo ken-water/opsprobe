@@ -1,6 +1,7 @@
 export interface LocalServicePaths {
   rootDir: string;
   configDir: string;
+  desktopSettingsFile: string;
   schedulesFile: string;
   dataDir: string;
   reportDir: string;
@@ -37,6 +38,7 @@ export function createDefaultLocalServiceConfig(): LocalServiceConfig {
     paths: {
       rootDir,
       configDir: `${rootDir}/config`,
+      desktopSettingsFile: `${rootDir}/config/desktop-settings.json`,
       schedulesFile: `${rootDir}/config/inspection-schedules.json`,
       dataDir: `${rootDir}/data`,
       reportDir: `${rootDir}/reports`,

@@ -35,3 +35,6 @@ Current runtime progress:
 - `postgres-start` and `postgres-stop` now control the managed PostgreSQL lifecycle through `pg_ctl`
 - inspection persistence now prefers PostgreSQL when the managed runtime is ready, and clearly falls back to the local file adapter when PostgreSQL is unavailable
 - when PostgreSQL becomes available, existing file-backed inspection run history is migrated into PostgreSQL automatically via idempotent upserts
+- the built-in Linux baseline template is persisted automatically so exports and migrations always include a usable default template
+- desktop state such as the active asset, history filters, schedule interval, and export paths is stored in `~/.opsprobe/config/desktop-settings.json`
+- schedules remain file-backed in `~/.opsprobe/config/inspection-schedules.json`, while assets/templates/runs prefer PostgreSQL and fall back to the local JSON storage adapter when PostgreSQL is not ready
