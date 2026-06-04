@@ -1313,6 +1313,272 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "If Redis should accept TCP connections, verify the bind, protected-mode, and listener settings.",
             ))
         }
+        "linux.docker.process" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"pgrep -x dockerd >/dev/null 2>&1 && echo running || echo stopped\"",
+            )?;
+            if output == "running" {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "docker daemon is running.".into(),
+                    vec![CheckEvidence {
+                        label: "Process".into(),
+                        value: "dockerd".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "docker daemon is not running.".into(),
+                vec![CheckEvidence {
+                    label: "Process".into(),
+                    value: "dockerd".into(),
+                }],
+                "Start Docker and verify the service is enabled if this host is expected to run containers.",
+            ))
+        }
+        "linux.docker.info" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if command -v docker >/dev/null 2>&1; then docker info --format 'ServerVersion={{.ServerVersion}} Driver={{.Driver}} CgroupDriver={{.CgroupDriver}}' 2>/dev/null; else echo missing-docker; fi\"",
+            )?;
+
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            let combined = if stdout.is_empty() { stderr } else { stdout };
+
+            if combined.contains("missing-docker") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "docker CLI is not installed, so runtime info could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "docker info".into(),
+                    }],
+                    "Install Docker or use a template that matches the runtime available on this host.",
+                ));
+            }
+
+            if output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "docker runtime info was collected successfully.".into(),
+                    vec![CheckEvidence {
+                        label: "Runtime".into(),
+                        value: combined,
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "warning",
+                "warning",
+                "docker runtime info could not be collected.".into(),
+                vec![CheckEvidence {
+                    label: "Command Output".into(),
+                    value: combined,
+                }],
+                "Verify docker socket access, daemon health, and runtime configuration.",
+            ))
+        }
+        "linux.docker.containers" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if command -v docker >/dev/null 2>&1; then printf 'running=%s exited=%s' \\\"$(docker ps --format '{{.ID}}' 2>/dev/null | wc -l)\\\" \\\"$(docker ps -a --filter status=exited --format '{{.ID}}' 2>/dev/null | wc -l)\\\"; else echo missing-docker; fi\"",
+            )?;
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            let combined = if stdout.is_empty() { stderr } else { stdout };
+
+            if combined.contains("missing-docker") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "docker CLI is not installed, so container inventory could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "docker ps -a".into(),
+                    }],
+                    "Install Docker or switch to a template that matches the runtime available on this host.",
+                ));
+            }
+
+            if output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "docker container inventory was collected successfully.".into(),
+                    vec![CheckEvidence {
+                        label: "Inventory".into(),
+                        value: combined,
+                    }],
+                    "Review unexpected exited containers if service continuity is important on this host.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "warning",
+                "warning",
+                "docker container inventory could not be collected.".into(),
+                vec![CheckEvidence {
+                    label: "Command Output".into(),
+                    value: combined,
+                }],
+                "Verify docker CLI access and daemon health on the host.",
+            ))
+        }
+        "linux.kubelet.process" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"pgrep -x kubelet >/dev/null 2>&1 && echo running || echo stopped\"",
+            )?;
+            if output == "running" {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "kubelet is running.".into(),
+                    vec![CheckEvidence {
+                        label: "Process".into(),
+                        value: "kubelet".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "kubelet is not running.".into(),
+                vec![CheckEvidence {
+                    label: "Process".into(),
+                    value: "kubelet".into(),
+                }],
+                "Start kubelet and verify the node bootstrap/runtime configuration if this host should be a Kubernetes node.",
+            ))
+        }
+        "linux.kubelet.port.10250" => {
+            let listeners = tcp_listener_count(&input, 10250)?;
+
+            if listeners.is_none() {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Kubelet listener state could not be collected because ss/netstat is unavailable.".into(),
+                    vec![CheckEvidence {
+                        label: "Collector".into(),
+                        value: "missing ss/netstat".into(),
+                    }],
+                    "Install iproute2 or net-tools to allow port inspection.",
+                ));
+            }
+            let listeners = listeners.unwrap_or(0);
+
+            if listeners > 0 {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "Port 10250 is listening.".into(),
+                    vec![CheckEvidence {
+                        label: "Port".into(),
+                        value: "10250/tcp".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "warning",
+                "warning",
+                "Port 10250 is not listening.".into(),
+                vec![CheckEvidence {
+                    label: "Port".into(),
+                    value: "10250/tcp".into(),
+                }],
+                "Verify kubelet listener settings and node bootstrap state if secure kubelet access is expected.",
+            ))
+        }
+        "linux.kubernetes.node.runtime" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if command -v crictl >/dev/null 2>&1; then crictl info 2>/dev/null | awk -F': ' '/runtimeType|storageDriver/ {print $1\"=\"$2}' | tr '\n' ' '; elif command -v docker >/dev/null 2>&1; then docker info --format 'Runtime={{.DefaultRuntime}} CgroupDriver={{.CgroupDriver}}' 2>/dev/null; else echo missing-runtime; fi\"",
+            )?;
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            let combined = if stdout.is_empty() { stderr } else { stdout };
+
+            if combined.contains("missing-runtime") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Neither crictl nor docker CLI is available, so node runtime info could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "crictl info or docker info".into(),
+                    }],
+                    "Install crictl for Kubernetes nodes or ensure a supported container runtime CLI is available.",
+                ));
+            }
+
+            if output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "node runtime information was collected successfully.".into(),
+                    vec![CheckEvidence {
+                        label: "Runtime".into(),
+                        value: combined,
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "warning",
+                "warning",
+                "node runtime information could not be collected.".into(),
+                vec![CheckEvidence {
+                    label: "Command Output".into(),
+                    value: combined,
+                }],
+                "Verify container runtime CLI access and node runtime health on this host.",
+            ))
+        }
         _ => Ok(normalized_result(
             &input,
             "unknown",

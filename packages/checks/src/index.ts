@@ -359,6 +359,132 @@ export const builtInLinuxChecks: CheckDefinition[] = [
       };
     },
   },
+  {
+    id: "linux.docker.process",
+    title: "Docker Daemon Status",
+    description: "Checks whether the Docker daemon is running.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.docker.process",
+        title: "Docker Daemon Status",
+        status: "pass",
+        severity: "info",
+        summary: "docker daemon is running.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Process", value: "dockerd" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.docker.info",
+    title: "Docker Runtime Info",
+    description: "Checks whether docker info can be collected from the host.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.docker.info",
+        title: "Docker Runtime Info",
+        status: "pass",
+        severity: "info",
+        summary: "docker runtime info was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Command", value: "docker info" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.docker.containers",
+    title: "Docker Container Inventory",
+    description: "Checks the number of running and stopped Docker containers.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.docker.containers",
+        title: "Docker Container Inventory",
+        status: "pass",
+        severity: "info",
+        summary: "docker container inventory was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Command", value: "docker ps -a" },
+        ],
+        remediation: "Review unexpected exited containers if service continuity is important on this host.",
+      };
+    },
+  },
+  {
+    id: "linux.kubelet.process",
+    title: "Kubelet Process Status",
+    description: "Checks whether the kubelet process is running.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.kubelet.process",
+        title: "Kubelet Process Status",
+        status: "pass",
+        severity: "info",
+        summary: "kubelet is running.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Process", value: "kubelet" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.kubelet.port.10250",
+    title: "Kubelet Port Listening",
+    description: "Checks whether kubelet secure port 10250 is listening.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.kubelet.port.10250",
+        title: "Kubelet Port Listening",
+        status: "pass",
+        severity: "info",
+        summary: "Port 10250 is listening.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Port", value: "10250/tcp" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.kubernetes.node.runtime",
+    title: "Kubernetes Node Runtime",
+    description: "Checks node-side runtime information through crictl or container runtime CLI.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.kubernetes.node.runtime",
+        title: "Kubernetes Node Runtime",
+        status: "pass",
+        severity: "info",
+        summary: "node runtime information was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Command", value: "crictl info or docker info" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
 ];
 
 export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefinition[] = [
@@ -441,6 +567,40 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.log.usage",
       "linux.redis.process",
       "linux.redis.port.6379",
+    ],
+  },
+  {
+    id: "template.linux.docker",
+    name: "Linux Docker Host Baseline",
+    description: "Linux host baseline plus docker daemon, runtime, and container inventory checks.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.cpu.usage",
+      "linux.memory.usage",
+      "linux.disk.usage",
+      "linux.load.average",
+      "linux.time.sync",
+      "linux.log.usage",
+      "linux.docker.process",
+      "linux.docker.info",
+      "linux.docker.containers",
+    ],
+  },
+  {
+    id: "template.linux.kubernetes",
+    name: "Linux Kubernetes Node Baseline",
+    description: "Linux host baseline plus kubelet and node runtime checks.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.cpu.usage",
+      "linux.memory.usage",
+      "linux.disk.usage",
+      "linux.load.average",
+      "linux.time.sync",
+      "linux.log.usage",
+      "linux.kubelet.process",
+      "linux.kubelet.port.10250",
+      "linux.kubernetes.node.runtime",
     ],
   },
 ];
