@@ -22,6 +22,8 @@ It can also execute a service-owned inspection run and read back recent persiste
 
 ```bash
 npm run local-service:postgres-bootstrap
+npm run local-service:postgres-start
+npm run local-service:postgres-stop
 npm run local-service:inspect-run
 npm run local-service:inspection-history
 ```
@@ -30,4 +32,5 @@ Current runtime progress:
 
 - `status` now probes PostgreSQL binary availability, port availability, and whether the managed data directory has been initialized
 - `postgres-bootstrap` runs `initdb` for the dedicated OpsProbe PostgreSQL data directory and writes OpsProbe-owned port/listen overrides
+- `postgres-start` and `postgres-stop` now control the managed PostgreSQL lifecycle through `pg_ctl`
 - inspection persistence is still using a transitional local file adapter until the managed PostgreSQL storage path is wired in end-to-end

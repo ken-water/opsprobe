@@ -6,6 +6,8 @@ export interface LocalServicePaths {
   runtimeDir: string;
   postgresDataDir: string;
   postgresLogDir: string;
+  postgresCtlLogFile: string;
+  postgresPidFile: string;
   servicePidFile: string;
   serviceStatusFile: string;
 }
@@ -38,6 +40,8 @@ export function createDefaultLocalServiceConfig(): LocalServiceConfig {
       runtimeDir: `${rootDir}/runtime`,
       postgresDataDir: `${rootDir}/data/postgres`,
       postgresLogDir: `${rootDir}/logs/postgres`,
+      postgresCtlLogFile: `${rootDir}/logs/postgres/managed-postgres.log`,
+      postgresPidFile: `${rootDir}/data/postgres/postmaster.pid`,
       servicePidFile: `${rootDir}/runtime/local-service.pid`,
       serviceStatusFile: `${rootDir}/runtime/local-service-status.json`,
     },

@@ -20,6 +20,12 @@ interface PostgresBinarySnapshot {
   checks: BinaryCheck[];
 }
 
+interface ManagedPostgresProcessState {
+  running: boolean;
+  pid: number | null;
+  detail: string;
+}
+
 async function runCommand(command: string, args: string[]) {
   try {
     const { stdout, stderr } = await execFileAsync(command, args, {
@@ -110,6 +116,51 @@ function buildPostgresAutoConfig(config: LocalServiceConfig) {
   ].join("\n");
 }
 
+async function readManagedPostgresPid(config: LocalServiceConfig) {
+  if (!existsSync(config.paths.postgresPidFile)) {
+    return null;
+  }
+
+  const raw = (await readFileSafe(config.paths.postgresPidFile)).trim();
+  const pid = Number.parseInt(raw.split("\n")[0] ?? "", 10);
+  return Number.isNaN(pid) ? null : pid;
+}
+
+async function inspectManagedPostgresProcess(
+  config: LocalServiceConfig,
+  binaries: PostgresBinarySnapshot,
+  initialized: boolean,
+): Promise<ManagedPostgresProcessState> {
+  const pid = await readManagedPostgresPid(config);
+  if (pid !== null && isProcessAlive(pid)) {
+    return {
+      running: true,
+      pid,
+      detail: `Managed PostgreSQL is running with pid ${pid}.`,
+    };
+  }
+
+  const pgCtlCheck = binaries.checks.find((item) => item.name === "pg_ctl");
+  if (initialized && pgCtlCheck?.available) {
+    const status = await runCommand("pg_ctl", ["-D", config.paths.postgresDataDir, "status"]);
+    if (status.ok) {
+      return {
+        running: true,
+        pid,
+        detail: status.stdout || "Managed PostgreSQL is running.",
+      };
+    }
+  }
+
+  return {
+    running: false,
+    pid: pid ?? null,
+    detail: initialized
+      ? "Managed PostgreSQL data directory is initialized, but the process is not running."
+      : "Managed PostgreSQL data directory is not initialized yet.",
+  };
+}
+
 export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
   readonly config: LocalServiceConfig;
 
@@ -120,8 +171,9 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
   async ensureRuntime(): Promise<LocalServiceHealth> {
     const binaries = await inspectPostgresBinaries();
     const initialized = existsSync(`${this.config.paths.postgresDataDir}/PG_VERSION`);
-    const portAvailable = await isPortAvailable(this.config.postgres.port);
     const missingBinaries = binaries.checks.filter((item) => !item.available);
+    const postgresProcess = await inspectManagedPostgresProcess(this.config, binaries, initialized);
+    const portAvailable = postgresProcess.running ? false : await isPortAvailable(this.config.postgres.port);
     const servicePid = existsSync(this.config.paths.servicePidFile)
       ? Number.parseInt(await readFileSafe(this.config.paths.servicePidFile), 10)
       : Number.NaN;
@@ -162,25 +214,34 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
       {
         id: "postgres.port",
         label: "Managed PostgreSQL Port",
-        status: portAvailable ? "pass" : "critical",
-        detail: portAvailable
-          ? `Port ${this.config.postgres.port} is available for the managed PostgreSQL runtime.`
-          : `Port ${this.config.postgres.port} is already occupied and cannot be used by OpsProbe.`,
+        status: postgresProcess.running || portAvailable ? "pass" : "critical",
+        detail: postgresProcess.running
+          ? `Port ${this.config.postgres.port} is in use by the managed PostgreSQL runtime.`
+          : portAvailable
+            ? `Port ${this.config.postgres.port} is available for the managed PostgreSQL runtime.`
+            : `Port ${this.config.postgres.port} is already occupied and cannot be used by OpsProbe.`,
       },
       {
         id: "postgres.process",
         label: "Managed PostgreSQL Process",
-        status: initialized && missingBinaries.length === 0 ? "warning" : "critical",
-        detail:
-          initialized && missingBinaries.length === 0
-            ? "Managed PostgreSQL is prepared but is not started automatically in the current skeleton."
+        status: postgresProcess.running
+          ? "pass"
+          : initialized && missingBinaries.length === 0
+            ? "warning"
+            : "critical",
+        detail: postgresProcess.running
+          ? postgresProcess.detail
+          : initialized && missingBinaries.length === 0
+            ? postgresProcess.detail
             : "Managed PostgreSQL cannot be started until prerequisites and initialization are complete.",
       },
     ];
 
     let status: LocalServiceHealth["status"] = "degraded";
-    if (missingBinaries.length > 0 || !portAvailable) {
+    if (missingBinaries.length > 0 || (!portAvailable && !postgresProcess.running)) {
       status = "error";
+    } else if (postgresProcess.running) {
+      status = "ready";
     } else if (initialized) {
       status = "starting";
     }
@@ -227,6 +288,88 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
 
     await this.writeManagedPostgresConfig();
     return "Managed PostgreSQL data directory initialized for OpsProbe.";
+  }
+
+  async startPostgres(): Promise<string> {
+    const binaries = await inspectPostgresBinaries();
+    const missingBinaries = binaries.checks.filter((item) => !item.available);
+    if (missingBinaries.length > 0) {
+      throw new Error(
+        `Managed PostgreSQL cannot start because required binaries are missing: ${missingBinaries.map((item) => item.command).join(", ")}.`,
+      );
+    }
+
+    if (!existsSync(`${this.config.paths.postgresDataDir}/PG_VERSION`)) {
+      await this.bootstrapPostgres();
+    } else {
+      await this.writeManagedPostgresConfig();
+    }
+
+    const processState = await inspectManagedPostgresProcess(this.config, binaries, true);
+    if (processState.running) {
+      return processState.detail;
+    }
+
+    const portAvailable = await isPortAvailable(this.config.postgres.port);
+    if (!portAvailable) {
+      throw new Error(
+        `Port ${this.config.postgres.port} is already occupied and managed PostgreSQL cannot be started.`,
+      );
+    }
+
+    const start = await runCommand("pg_ctl", [
+      "-D",
+      this.config.paths.postgresDataDir,
+      "-l",
+      this.config.paths.postgresCtlLogFile,
+      "-w",
+      "start",
+    ]);
+
+    if (!start.ok) {
+      throw new Error(
+        start.stderr || start.stdout || "pg_ctl failed to start the managed PostgreSQL runtime.",
+      );
+    }
+
+    const nextState = await inspectManagedPostgresProcess(this.config, binaries, true);
+    return nextState.running
+      ? nextState.detail
+      : start.stdout || "Managed PostgreSQL start was requested.";
+  }
+
+  async stopPostgres(): Promise<string> {
+    const binaries = await inspectPostgresBinaries();
+    const pgCtlCheck = binaries.checks.find((item) => item.name === "pg_ctl");
+    if (!pgCtlCheck?.available) {
+      throw new Error("Managed PostgreSQL cannot be stopped because pg_ctl is not available.");
+    }
+
+    if (!existsSync(`${this.config.paths.postgresDataDir}/PG_VERSION`)) {
+      return "Managed PostgreSQL data directory is not initialized.";
+    }
+
+    const processState = await inspectManagedPostgresProcess(this.config, binaries, true);
+    if (!processState.running) {
+      return "Managed PostgreSQL is already stopped.";
+    }
+
+    const stop = await runCommand("pg_ctl", [
+      "-D",
+      this.config.paths.postgresDataDir,
+      "-m",
+      "fast",
+      "-w",
+      "stop",
+    ]);
+
+    if (!stop.ok) {
+      throw new Error(
+        stop.stderr || stop.stdout || "pg_ctl failed to stop the managed PostgreSQL runtime.",
+      );
+    }
+
+    return "Managed PostgreSQL stop completed.";
   }
 
   async shutdown(): Promise<void> {

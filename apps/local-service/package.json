@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "postgres-bootstrap": "node --experimental-strip-types ./src/main.ts postgres-bootstrap",
+    "postgres-start": "node --experimental-strip-types ./src/main.ts postgres-start",
+    "postgres-stop": "node --experimental-strip-types ./src/main.ts postgres-stop",
     "inspect-run": "node --experimental-strip-types ./src/main.ts inspect-run",
     "inspect-preview": "node --experimental-strip-types ./src/main.ts inspect-preview",
     "inspection-history": "node --experimental-strip-types ./src/main.ts inspection-history",

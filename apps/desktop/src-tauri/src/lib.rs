@@ -204,6 +204,33 @@ fn stop_local_service() -> Result<Value, String> {
 }
 
 #[tauri::command]
+fn bootstrap_local_service_postgres() -> Result<Value, String> {
+    run_local_service_json_command(
+        "postgres-bootstrap",
+        None,
+        "local service postgres bootstrap command",
+    )
+}
+
+#[tauri::command]
+fn start_local_service_postgres() -> Result<Value, String> {
+    run_local_service_json_command(
+        "postgres-start",
+        None,
+        "local service postgres start command",
+    )
+}
+
+#[tauri::command]
+fn stop_local_service_postgres() -> Result<Value, String> {
+    run_local_service_json_command(
+        "postgres-stop",
+        None,
+        "local service postgres stop command",
+    )
+}
+
+#[tauri::command]
 fn get_local_service_inspection_preview(
     input: LocalServiceInspectionPreviewInput,
 ) -> Result<Value, String> {
@@ -879,6 +906,9 @@ pub fn run() {
             get_local_service_status,
             start_local_service,
             stop_local_service,
+            bootstrap_local_service_postgres,
+            start_local_service_postgres,
+            stop_local_service_postgres,
             get_local_service_inspection_preview,
             run_local_service_inspection,
             get_local_service_inspection_history

@@ -166,6 +166,42 @@ function App() {
     }
   }
 
+  async function handleBootstrapLocalPostgres() {
+    setIsRefreshingService(true);
+    setServiceMessage(null);
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("bootstrap_local_service_postgres");
+      setServiceMessage(response.message);
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsRefreshingService(false);
+    }
+  }
+
+  async function handleStartLocalPostgres() {
+    setIsRefreshingService(true);
+    setServiceMessage(null);
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("start_local_service_postgres");
+      setServiceMessage(response.message);
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsRefreshingService(false);
+    }
+  }
+
+  async function handleStopLocalPostgres() {
+    setIsRefreshingService(true);
+    setServiceMessage(null);
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("stop_local_service_postgres");
+      setServiceMessage(response.message);
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsRefreshingService(false);
+    }
+  }
+
   async function refreshInspectionPreview() {
     setIsRefreshingPreview(true);
     const adapter = new TauriRunnerAdapter();
@@ -325,6 +361,27 @@ function App() {
               type="button"
             >
               Stop Service
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => void handleBootstrapLocalPostgres()}
+              type="button"
+            >
+              Bootstrap PostgreSQL
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => void handleStartLocalPostgres()}
+              type="button"
+            >
+              Start PostgreSQL
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => void handleStopLocalPostgres()}
+              type="button"
+            >
+              Stop PostgreSQL
             </button>
           </div>
         </div>

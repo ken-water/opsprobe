@@ -47,7 +47,6 @@ async function buildStatusResponse(
       config,
       health: {
         ...health,
-        status: mode === "ready" ? "ready" : mode === "stopped" ? "stopped" : health.status,
         checks:
           mode === "ready"
             ? health.checks.map((check) =>
@@ -111,6 +110,12 @@ async function stopCommand() {
     }
   }
 
+  try {
+    await bootstrap.stopPostgres();
+  } catch {
+    // Stop should still clean local-service state even if PostgreSQL stop fails.
+  }
+
   await writeStatusFile("stopped");
   await rm(config.paths.servicePidFile, { force: true });
 
@@ -132,12 +137,46 @@ async function bootstrapPostgresCommand() {
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }
 
+async function startPostgresCommand() {
+  await ensureRuntimeDirs();
+
+  const response: LocalServiceCommandResponse = {
+    ok: true,
+    message: await bootstrap.startPostgres(),
+  };
+
+  process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+}
+
+async function stopPostgresCommand() {
+  await ensureRuntimeDirs();
+
+  const response: LocalServiceCommandResponse = {
+    ok: true,
+    message: await bootstrap.stopPostgres(),
+  };
+
+  process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+}
+
 async function serveCommand() {
   await ensureRuntimeDirs();
   await writeFile(config.paths.servicePidFile, `${process.pid}\n`, "utf8");
+
+  try {
+    await bootstrap.startPostgres();
+  } catch {
+    // Keep local-service alive even when managed PostgreSQL is not ready.
+  }
+
   await writeStatusFile("ready");
 
   const cleanup = async () => {
+    try {
+      await bootstrap.stopPostgres();
+    } catch {
+      // Preserve best-effort shutdown for the service process.
+    }
     await writeStatusFile("stopped");
     await rm(config.paths.servicePidFile, { force: true });
     process.exit(0);
@@ -170,6 +209,16 @@ async function main() {
 
   if (mode === "postgres-bootstrap") {
     await bootstrapPostgresCommand();
+    return;
+  }
+
+  if (mode === "postgres-start") {
+    await startPostgresCommand();
+    return;
+  }
+
+  if (mode === "postgres-stop") {
+    await stopPostgresCommand();
     return;
   }
 
