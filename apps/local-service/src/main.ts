@@ -4,6 +4,12 @@ import { stdin as input } from "node:process";
 import { createDefaultLocalServiceConfig } from "./index.ts";
 import type {
   InspectionExecutionRequest,
+  LocalAssetListResponse,
+  LocalAssetUpsertRequest,
+  LocalConfigExportResponse,
+  LocalConfigImportRequest,
+  LocalConfigImportResponse,
+  LocalFilePathRequest,
   LocalInspectionScheduleDeleteRequest,
   LocalInspectionScheduleListResponse,
   LocalInspectionScheduleUpsertRequest,
@@ -19,6 +25,7 @@ import {
   buildInspectionPreview,
   readInspectionHistory,
 } from "./inspection.ts";
+import { exportLocalConfig, importLocalConfig } from "./migration.ts";
 import { LocalScheduleStore, LocalScheduler } from "./scheduler.ts";
 import {
   LocalFileStorageAdapter,
@@ -36,7 +43,17 @@ const scheduleStore = new LocalScheduleStore(config);
 
 async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter) {
   await fileStorage.bootstrap();
+  const assets = await fileStorage.assets.list();
+  const templates = await fileStorage.templates.list();
   const runs = await fileStorage.inspectionRuns.listRecent(10000);
+
+  for (const asset of assets) {
+    await postgresStorage.assets.upsert(asset);
+  }
+
+  for (const template of templates) {
+    await postgresStorage.templates.upsert(template);
+  }
 
   for (const run of runs.reverse()) {
     await postgresStorage.inspectionRuns.save(run);
@@ -337,9 +354,58 @@ async function main() {
     return;
   }
 
+  if (mode === "assets-list") {
+    await ensureRuntimeDirs();
+    const response: LocalAssetListResponse = {
+      ok: true,
+      assets: await storage.assets.list(),
+      source: "local-service",
+    };
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "assets-upsert") {
+    await ensureRuntimeDirs();
+    const request = await readJsonStdin<LocalAssetUpsertRequest>();
+    await storage.assets.upsert(request.asset);
+    const response: LocalServiceCommandResponse = {
+      ok: true,
+      message: `Saved asset ${request.asset.id}.`,
+    };
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
   if (mode === "schedules-list") {
     await ensureRuntimeDirs();
     const response: LocalInspectionScheduleListResponse = await scheduleStore.listResponse();
+    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "config-export") {
+    await ensureRuntimeDirs();
+    const request = await readJsonStdin<LocalFilePathRequest>();
+    const response: LocalConfigExportResponse = await exportLocalConfig(storage, scheduleStore, config);
+    await writeFile(request.path, `${JSON.stringify(response.package, null, 2)}\n`, "utf8");
+    const commandResponse: LocalServiceCommandResponse = {
+      ok: true,
+      message: `Exported local configuration to ${request.path}.`,
+    };
+    process.stdout.write(`${JSON.stringify(commandResponse, null, 2)}\n`);
+    return;
+  }
+
+  if (mode === "config-import") {
+    await ensureRuntimeDirs();
+    const request = await readJsonStdin<LocalFilePathRequest>();
+    const raw = await readFile(request.path, "utf8");
+    const response: LocalConfigImportResponse = await importLocalConfig(
+      { package: JSON.parse(raw) as LocalConfigImportRequest["package"] },
+      storage,
+      scheduleStore,
+    );
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;
   }

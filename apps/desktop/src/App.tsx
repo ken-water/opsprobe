@@ -5,6 +5,8 @@ import { createLinuxHostTemplate, type Asset, type InspectionRun, type Inspectio
 import type {
   InspectionExecutionResponse,
   InspectionPreviewResponse,
+  LocalAssetListResponse,
+  LocalConfigImportResponse,
   LocalInspectionSchedule,
   LocalInspectionScheduleListResponse,
   LocalInspectionScheduleUpsertResponse,
@@ -83,6 +85,7 @@ function App() {
   const [serviceHistoryRuns, setServiceHistoryRuns] = useState<InspectionRun[]>([]);
   const [selectedHistoryRun, setSelectedHistoryRun] = useState<InspectionRun | null>(null);
   const [schedules, setSchedules] = useState<LocalInspectionSchedule[]>([]);
+  const [savedAssets, setSavedAssets] = useState<Asset[]>([]);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
   const [serviceMessage, setServiceMessage] = useState<string | null>(null);
   const [sshResult, setSshResult] = useState<SshConnectionTestResult | null>(null);
@@ -98,6 +101,10 @@ function App() {
   const [scheduleIntervalMinutes, setScheduleIntervalMinutes] = useState("15");
   const [isRefreshingSchedules, setIsRefreshingSchedules] = useState(false);
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
+  const [migrationPath, setMigrationPath] = useState("/tmp/opsprobe-config.json");
+  const [isRefreshingAssets, setIsRefreshingAssets] = useState(false);
+  const [isExportingConfig, setIsExportingConfig] = useState(false);
+  const [isImportingConfig, setIsImportingConfig] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -122,6 +129,7 @@ function App() {
     void runLocalServiceInspection();
     void refreshLocalServiceHistory();
     void refreshLocalSchedules();
+    void refreshSavedAssets();
     void refreshInspectionPreview();
   }, []);
 
@@ -308,6 +316,80 @@ function App() {
     }
   }
 
+  async function refreshSavedAssets() {
+    setIsRefreshingAssets(true);
+
+    try {
+      const response = await invoke<LocalAssetListResponse>("get_local_service_assets");
+      setSavedAssets(response.assets);
+    } finally {
+      setIsRefreshingAssets(false);
+    }
+  }
+
+  async function handleSaveAsset() {
+    setIsRefreshingAssets(true);
+    setServiceMessage(null);
+
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("upsert_local_service_asset", {
+        input: {
+          asset,
+        },
+      });
+      setServiceMessage(response.message);
+      await refreshSavedAssets();
+    } finally {
+      setIsRefreshingAssets(false);
+    }
+  }
+
+  async function handleLoadAsset(savedAsset: Asset) {
+    setAsset(savedAsset);
+    setHistoryAssetFilter(savedAsset.id);
+    setServiceMessage(`Loaded saved asset ${savedAsset.id}.`);
+    await refreshInspectionPreview();
+    await refreshLocalServiceInspectionPreview();
+    await refreshLocalServiceHistory();
+  }
+
+  async function handleExportConfig() {
+    setIsExportingConfig(true);
+    setServiceMessage(null);
+
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("export_local_service_config", {
+        input: {
+          path: migrationPath,
+        },
+      });
+      setServiceMessage(response.message);
+    } finally {
+      setIsExportingConfig(false);
+    }
+  }
+
+  async function handleImportConfig() {
+    setIsImportingConfig(true);
+    setServiceMessage(null);
+
+    try {
+      const response = await invoke<LocalConfigImportResponse>("import_local_service_config", {
+        input: {
+          path: migrationPath,
+        },
+      });
+      setServiceMessage(
+        `Imported ${response.importedAssets} assets, ${response.importedTemplates} templates, ${response.importedSchedules} schedules.`,
+      );
+      await refreshSavedAssets();
+      await refreshLocalSchedules();
+      await refreshLocalServiceHealth();
+    } finally {
+      setIsImportingConfig(false);
+    }
+  }
+
   async function handleSaveSchedule() {
     setIsSavingSchedule(true);
     setServiceMessage(null);
@@ -450,6 +532,97 @@ function App() {
             Buy Me a Coffee
           </a>
         </article>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.4.0 Delivery</p>
+            <h2>Machine Migration</h2>
+          </div>
+          <div className="service-actions">
+            <button
+              className="secondary-button"
+              onClick={() => void refreshSavedAssets()}
+              type="button"
+            >
+              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Assets"}
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => void handleSaveAsset()}
+              type="button"
+            >
+              Save Current Asset
+            </button>
+          </div>
+        </div>
+
+        <div className="ssh-grid">
+          <label>
+            <span>Migration File</span>
+            <input
+              value={migrationPath}
+              onChange={(event) => setMigrationPath(event.target.value)}
+              placeholder="/tmp/opsprobe-config.json"
+            />
+          </label>
+        </div>
+
+        <div className="service-actions">
+          <button
+            className="primary-button"
+            onClick={() => void handleExportConfig()}
+            type="button"
+          >
+            {isExportingConfig ? "Exporting..." : "Export Local Config"}
+          </button>
+          <button
+            className="secondary-button"
+            onClick={() => void handleImportConfig()}
+            type="button"
+          >
+            {isImportingConfig ? "Importing..." : "Import Local Config"}
+          </button>
+        </div>
+
+        <p className="helper-text">
+          Exported packages exclude secret values. Imported assets are marked for credential rebind
+          before use on the new machine.
+        </p>
+
+        {savedAssets.length > 0 ? (
+          <div className="service-checks">
+            {savedAssets.map((savedAsset) => (
+              <article className="service-card" key={`asset-${savedAsset.id}`}>
+                <div className="service-card-header">
+                  <strong>{savedAsset.name}</strong>
+                  <span className={`badge badge-${savedAsset.id === asset.id ? "pass" : "unknown"}`}>
+                    {savedAsset.id === asset.id ? "active" : "saved"}
+                  </span>
+                </div>
+                <p>
+                  {savedAsset.id} · {savedAsset.host}:{savedAsset.port}
+                </p>
+                <p>
+                  Credential: {savedAsset.credential.method} / {savedAsset.credential.username}
+                  {savedAsset.credential.bindingStatus ? ` / ${savedAsset.credential.bindingStatus}` : ""}
+                </p>
+                <div className="service-actions">
+                  <button
+                    className="secondary-button"
+                    onClick={() => void handleLoadAsset(savedAsset)}
+                    type="button"
+                  >
+                    Load Asset
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="helper-text">No saved assets yet. Save the current asset before exporting.</p>
+        )}
       </section>
 
       <section className="run-panel">

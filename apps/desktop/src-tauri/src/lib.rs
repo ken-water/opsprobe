@@ -104,6 +104,18 @@ struct LocalServiceScheduleDeleteInput {
     id: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceAssetUpsertInput {
+    asset: AssetPayload,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalServiceFilePathInput {
+    path: String,
+}
+
 fn run_local_service_json_command(
     mode: &str,
     payload: Option<String>,
@@ -316,6 +328,47 @@ fn delete_local_service_schedule(input: LocalServiceScheduleDeleteInput) -> Resu
         "schedules-delete",
         Some(payload),
         "local service schedule delete command",
+    )
+}
+
+#[tauri::command]
+fn get_local_service_assets() -> Result<Value, String> {
+    run_local_service_json_command("assets-list", None, "local service assets list command")
+}
+
+#[tauri::command]
+fn upsert_local_service_asset(input: LocalServiceAssetUpsertInput) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service asset input: {error}"))?;
+
+    run_local_service_json_command(
+        "assets-upsert",
+        Some(payload),
+        "local service asset upsert command",
+    )
+}
+
+#[tauri::command]
+fn export_local_service_config(input: LocalServiceFilePathInput) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service export path input: {error}"))?;
+
+    run_local_service_json_command(
+        "config-export",
+        Some(payload),
+        "local service config export command",
+    )
+}
+
+#[tauri::command]
+fn import_local_service_config(input: LocalServiceFilePathInput) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input)
+        .map_err(|error| format!("Failed to serialize local service import path input: {error}"))?;
+
+    run_local_service_json_command(
+        "config-import",
+        Some(payload),
+        "local service config import command",
     )
 }
 
@@ -974,7 +1027,11 @@ pub fn run() {
             get_local_service_inspection_history,
             get_local_service_schedules,
             upsert_local_service_schedule,
-            delete_local_service_schedule
+            delete_local_service_schedule,
+            get_local_service_assets,
+            upsert_local_service_asset,
+            export_local_service_config,
+            import_local_service_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

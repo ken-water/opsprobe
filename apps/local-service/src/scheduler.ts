@@ -114,6 +114,15 @@ export class LocalScheduleStore {
     await this.writeSnapshot(snapshot);
   }
 
+  async saveImported(schedule: LocalInspectionSchedule) {
+    const snapshot = await this.readSnapshot();
+    const existing = snapshot.schedules.some((item) => item.id === schedule.id);
+    snapshot.schedules = existing
+      ? snapshot.schedules.map((item) => (item.id === schedule.id ? schedule : item))
+      : [...snapshot.schedules, schedule];
+    await this.writeSnapshot(snapshot);
+  }
+
   async summarizeFailures() {
     const schedules = await this.list();
     const failedSchedules = schedules.filter((item) => Boolean(item.lastError));

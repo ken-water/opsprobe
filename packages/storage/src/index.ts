@@ -20,6 +20,7 @@ export interface AssetRepository {
 
 export interface TemplateRepository {
   list(): Promise<InspectionTemplate[]>;
+  upsert(template: InspectionTemplate): Promise<void>;
 }
 
 export interface InspectionRunRepository {
@@ -68,6 +69,9 @@ export class StubPostgresStorageAdapter implements StorageAdapter {
   readonly templates: TemplateRepository = {
     async list() {
       return [];
+    },
+    async upsert() {
+      return;
     },
   };
 
@@ -127,17 +131,68 @@ export class PostgresStorageAdapter implements StorageAdapter {
   }
 
   readonly assets: AssetRepository = {
-    async list() {
-      return [];
+    list: async () => {
+      const result = await this.pool.query<{ payload: Asset }>(
+        `
+          select payload
+          from opsprobe_assets
+          order by updated_at desc
+        `,
+      );
+
+      return result.rows.map((row) =>
+        typeof row.payload === "string" ? (JSON.parse(row.payload) as Asset) : (row.payload as Asset),
+      );
     },
-    async upsert() {
-      return;
+    upsert: async (asset) => {
+      await this.pool.query(
+        `
+          insert into opsprobe_assets (
+            id,
+            updated_at,
+            payload
+          )
+          values ($1, $2, $3::jsonb)
+          on conflict (id) do update set
+            updated_at = excluded.updated_at,
+            payload = excluded.payload
+        `,
+        [asset.id, asset.updatedAt, JSON.stringify(asset)],
+      );
     },
   };
 
   readonly templates: TemplateRepository = {
-    async list() {
-      return [];
+    list: async () => {
+      const result = await this.pool.query<{ payload: InspectionTemplate }>(
+        `
+          select payload
+          from opsprobe_templates
+          order by updated_at desc
+        `,
+      );
+
+      return result.rows.map((row) =>
+        typeof row.payload === "string"
+          ? (JSON.parse(row.payload) as InspectionTemplate)
+          : (row.payload as InspectionTemplate),
+      );
+    },
+    upsert: async (template) => {
+      await this.pool.query(
+        `
+          insert into opsprobe_templates (
+            id,
+            updated_at,
+            payload
+          )
+          values ($1, $2, $3::jsonb)
+          on conflict (id) do update set
+            updated_at = excluded.updated_at,
+            payload = excluded.payload
+        `,
+        [template.id, template.updatedAt, JSON.stringify(template)],
+      );
     },
   };
 
@@ -196,6 +251,22 @@ export class PostgresStorageAdapter implements StorageAdapter {
 
   async bootstrap(): Promise<StorageBootstrapResult> {
     await this.pool.query(`
+      create table if not exists opsprobe_assets (
+        id text primary key,
+        updated_at timestamptz not null,
+        payload jsonb not null
+      )
+    `);
+
+    await this.pool.query(`
+      create table if not exists opsprobe_templates (
+        id text primary key,
+        updated_at timestamptz not null,
+        payload jsonb not null
+      )
+    `);
+
+    await this.pool.query(`
       create table if not exists opsprobe_inspection_runs (
         id text primary key,
         task_id text not null,
@@ -206,6 +277,16 @@ export class PostgresStorageAdapter implements StorageAdapter {
         updated_at timestamptz not null,
         payload jsonb not null
       )
+    `);
+
+    await this.pool.query(`
+      create index if not exists idx_opsprobe_assets_updated_at
+      on opsprobe_assets (updated_at desc)
+    `);
+
+    await this.pool.query(`
+      create index if not exists idx_opsprobe_templates_updated_at
+      on opsprobe_templates (updated_at desc)
     `);
 
     await this.pool.query(`
@@ -262,6 +343,15 @@ export class LocalFileStorageAdapter implements StorageAdapter {
 
   readonly templates: TemplateRepository = {
     list: async () => (await this.readSnapshot()).templates,
+    upsert: async (template) => {
+      const snapshot = await this.readSnapshot();
+      const nextTemplates = snapshot.templates.filter((item) => item.id !== template.id);
+      nextTemplates.push(template);
+      await this.writeSnapshot({
+        ...snapshot,
+        templates: nextTemplates,
+      });
+    },
   };
 
   readonly inspectionRuns: InspectionRunRepository = {
