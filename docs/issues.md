@@ -10,6 +10,11 @@ Release mapping:
 - `0.4.0`: Issues 13, 14, 18, 19
 - `0.5.0`: Issues 9, 10, 11, 12 plus stabilization and MVP release prep
 - `0.6.0`: Issues 22, 23, 24, 25
+- `0.7.0`: guided first-run and demo experience
+- `0.7.1`: runtime diagnostics and troubleshooting
+- `0.7.2`: report variants for different audiences
+- `0.7.3`: structured external feedback capture
+- `0.7.4`: feedback-driven stabilization and next-stage decision
 
 ## Foundation
 

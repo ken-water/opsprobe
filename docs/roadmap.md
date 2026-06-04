@@ -56,6 +56,22 @@ Candidate release range:
 
 - `0.6.0+`
 
+## Phase 4: External Validation
+
+- Guided first-run experience with demo data
+- Clearer runtime diagnostics and repair guidance
+- Report variants for operators and managers
+- Better structured feedback capture from early outside users
+- Evidence-based closure of repeated early-user friction
+
+Target releases:
+
+- `0.7.0`
+- `0.7.1`
+- `0.7.2`
+- `0.7.3`
+- `0.7.4`
+
 ## Future Commercial Direction
 
 Potential future capabilities outside the open source scope:

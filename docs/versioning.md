@@ -54,12 +54,14 @@ OpsProbe rule:
 - Minor versions are the primary planning unit
 - Every minor version should have a clear theme
 - Every minor version should be demoable and documented
+- During `0.x`, a broader validation theme may be split across several consecutive minor versions when that keeps scope smaller and feedback loops faster
 
 Examples:
 
 - `0.1.0`: desktop skeleton and core structure
 - `0.2.0`: first runnable SSH inspection flow
 - `0.3.0`: local report export and history
+- `0.7.0` to `0.7.4`: one external-validation cycle split into several small, separately releasable milestones
 
 ### Patch Version
 
@@ -91,6 +93,7 @@ Rules:
 - Minor versions may still include moderate internal refactors
 - Breaking changes are acceptable if clearly documented
 - Every minor release should still produce visible user value
+- Consecutive minor versions may belong to the same broader product-validation phase if each version still has a concrete user-facing milestone
 
 ## Post-1.0 Rules
 

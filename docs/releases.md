@@ -151,6 +151,91 @@ Exit criteria:
 - Middleware and runtime templates have meaningful built-in checks
 - History and report outputs make template choice visible
 
+### `0.7.0` External Validation I: Guided First Run
+
+Goal:
+
+- Let outside users understand OpsProbe value within minutes, even before connecting a real host
+
+Includes:
+
+- Demo asset, demo run history, and demo report experience
+- Guided landing state for first-time users
+- Clear separation between sample data and real inspections
+
+Exit criteria:
+
+- A first-time user can understand the product workflow without setting up infrastructure first
+- Demo content makes reports, history, and templates visible immediately
+
+### `0.7.1` External Validation II: Runtime Diagnostics
+
+Goal:
+
+- Reduce user drop-off caused by environment and dependency problems
+
+Includes:
+
+- Better SSH troubleshooting detail
+- Better local-service and PostgreSQL diagnostics
+- Clear dependency checks and repair suggestions
+
+Exit criteria:
+
+- Users can understand why setup failed without reading source code
+- Common local environment failures are surfaced clearly in the UI
+
+### `0.7.2` External Validation III: Report Variants
+
+Goal:
+
+- Validate what different report audiences actually want to see
+
+Includes:
+
+- Operator-facing detailed report view
+- Manager-facing summary report view
+- Shared export path for both report styles
+
+Exit criteria:
+
+- Users can compare at least two report styles aimed at different audiences
+- Feedback can be collected on which report structure is more useful
+
+### `0.7.3` External Validation IV: Feedback Capture
+
+Goal:
+
+- Make it easy for early users to submit concrete workflow pain points and requests
+
+Includes:
+
+- Better issue templates for workflow problems and missing checks
+- Clear feedback prompts in docs and repository entry points
+- Structured request collection for report needs, inspection needs, and friction points
+
+Exit criteria:
+
+- Early users have a clear path to submit actionable feedback
+- Feedback arrives in a format that can guide roadmap decisions
+
+### `0.7.4` External Validation V: Feedback Closure
+
+Goal:
+
+- Convert the highest-signal early feedback into a stabilization checkpoint
+
+Includes:
+
+- Fixes for the most common first-user friction points
+- UX polish driven by repeated external feedback
+- Decision checkpoint for whether the next step is `0.8.0` exploration or `1.0.0` stabilization
+
+Exit criteria:
+
+- Repeated early-user pain points have been addressed or explicitly deferred
+- The next release stage is chosen with evidence instead of assumptions
+
 ## Stable Milestone
 
 ### `1.0.0`

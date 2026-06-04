@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 "${SCRIPT_DIR}/check-worktree-gate.sh"
 
-VERSION_ORDER=("0.1.0" "0.2.0" "0.3.0" "0.4.0" "0.5.0" "0.6.0" "1.0.0")
+VERSION_ORDER=("0.1.0" "0.2.0" "0.3.0" "0.4.0" "0.5.0" "0.6.0" "0.7.0" "0.7.1" "0.7.2" "0.7.3" "0.7.4" "1.0.0")
 TARGET_INDEX=-1
 
 for i in "${!VERSION_ORDER[@]}"; do
