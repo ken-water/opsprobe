@@ -54,6 +54,10 @@ const defaultMigrationPath = "/tmp/opsprobe-config.json";
 const defaultReportPath = "/tmp/opsprobe-report.html";
 const defaultPdfReportPath = "/tmp/opsprobe-report.pdf";
 
+function templateLabel(templateId: string) {
+  return builtInTemplates.find((template) => template.id === templateId)?.name ?? templateId;
+}
+
 class TauriRunnerAdapter {
   async testConnection(asset: Asset): Promise<SshConnectionTestResult> {
     return invoke<SshConnectionTestResult>("test_ssh_connection", {
@@ -652,16 +656,22 @@ function App() {
   }
 
   const repeatedProblems = serviceHistoryRuns
-    .flatMap((run) => run.results.filter((result) => result.status !== "pass"))
-    .reduce<Array<{ checkId: string; title: string; count: number }>>((summary, result) => {
-      const existing = summary.find((item) => item.checkId === result.checkId);
+    .flatMap((run) => run.results
+      .filter((result) => result.status !== "pass")
+      .map((result) => ({ result, templateId: run.templateId })))
+    .reduce<Array<{ checkId: string; title: string; count: number; templateIds: string[] }>>((summary, result) => {
+      const existing = summary.find((item) => item.checkId === result.result.checkId);
       if (existing) {
         existing.count += 1;
+        if (!existing.templateIds.includes(result.templateId)) {
+          existing.templateIds.push(result.templateId);
+        }
       } else {
         summary.push({
-          checkId: result.checkId,
-          title: result.title,
+          checkId: result.result.checkId,
+          title: result.result.title,
           count: 1,
+          templateIds: [result.templateId],
         });
       }
       return summary;
@@ -1001,7 +1011,7 @@ function App() {
                 <p>
                   Every {schedule.intervalMinutes} minutes · next run {schedule.nextRunAt}
                 </p>
-                <p>Template: {builtInTemplates.find((template) => template.id === schedule.templateId)?.name ?? schedule.templateId}</p>
+                <p>Template: {templateLabel(schedule.templateId)}</p>
                 <p>
                   Last status: {schedule.lastRunStatus ?? "pending"}
                   {schedule.lastRunAt ? ` at ${schedule.lastRunAt}` : ""}
@@ -1333,6 +1343,7 @@ function App() {
                         {run.assetId} · {run.summary.total} checks · {run.summary.warning} warn ·{" "}
                         {run.summary.critical} critical
                       </p>
+                      <p className="helper-text">Template: {templateLabel(run.templateId)}</p>
                     </div>
                     <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>
                       {run.status}
@@ -1352,6 +1363,9 @@ function App() {
                       <span className="badge badge-warning">{problem.count}x</span>
                     </div>
                     <p>{problem.checkId}</p>
+                    <p className="helper-text">
+                      Templates: {problem.templateIds.map((templateId) => templateLabel(templateId)).join(", ")}
+                    </p>
                   </article>
                 ))}
               </div>
@@ -1368,6 +1382,7 @@ function App() {
                       <p>
                         {selectedHistoryRun.id} · {selectedHistoryRun.assetId} · {selectedHistoryRun.createdAt}
                       </p>
+                      <p className="helper-text">Template: {templateLabel(selectedHistoryRun.templateId)}</p>
                     </div>
                     <span
                       className={`badge badge-${
@@ -1403,6 +1418,7 @@ function App() {
                             <div>
                               <h3>{result.title}</h3>
                               <p>{result.summary}</p>
+                              <p className="helper-text">{templateLabel(selectedHistoryRun.templateId)}</p>
                             </div>
                             <span className={`badge badge-${result.status}`}>{result.status}</span>
                           </div>

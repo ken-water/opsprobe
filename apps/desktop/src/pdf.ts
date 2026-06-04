@@ -34,6 +34,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 function checkRows(checks: ReportCheckView[]) {
   return checks.map((check) => [
     check.assetName,
+    check.templateName,
     check.title,
     check.status,
     check.severity,
@@ -60,6 +61,7 @@ export async function exportRunPdfReport(run: InspectionRun, asset: Asset | unde
     startY: 42,
     head: [["Metric", "Value"]],
     body: [
+      ["Template", view.hosts[0]?.runs[0]?.templateName ?? run.templateId],
       ["Total Checks", String(view.overallSummary.total)],
       ["Pass", String(view.overallSummary.pass)],
       ["Warning", String(view.overallSummary.warning)],
@@ -82,7 +84,7 @@ export async function exportRunPdfReport(run: InspectionRun, asset: Asset | unde
     body:
       abnormalChecks.length > 0
         ? abnormalChecks.map((check) => [
-            `${check.assetName} / ${check.title}`,
+            `${check.assetName} / ${check.templateName} / ${check.title}`,
             check.status,
             check.severity,
             check.summary,
@@ -109,7 +111,7 @@ export async function exportRunPdfReport(run: InspectionRun, asset: Asset | unde
 
     autoTable(doc, {
       startY: 30,
-      head: [["Host", "Check", "Status", "Summary", "Evidence", "Suggestion"]],
+      head: [["Host", "Template", "Check", "Status", "Summary", "Evidence", "Suggestion"]],
       body: checkRows(group.checks),
       styles: { fontSize: 7.5, cellPadding: 2, overflow: "linebreak", valign: "top" },
       headStyles: {
@@ -118,11 +120,12 @@ export async function exportRunPdfReport(run: InspectionRun, asset: Asset | unde
       },
       columnStyles: {
         0: { cellWidth: 24 },
-        1: { cellWidth: 28 },
-        2: { cellWidth: 16 },
-        3: { cellWidth: 42 },
-        4: { cellWidth: 52 },
-        5: { cellWidth: 28 },
+        1: { cellWidth: 24 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 14 },
+        4: { cellWidth: 34 },
+        5: { cellWidth: 44 },
+        6: { cellWidth: 28 },
       },
     });
   }

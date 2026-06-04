@@ -1,4 +1,4 @@
-import type { CheckResult } from "@opsprobe/checks";
+import { findBuiltInTemplateDefinition, type CheckResult } from "@opsprobe/checks";
 import type { Asset, InspectionRun } from "@opsprobe/core";
 
 export interface ReportSection {
@@ -25,6 +25,9 @@ export interface ReportCheckView {
   assetId: string;
   assetName: string;
   host: string;
+  templateId: string;
+  templateName: string;
+  templateDescription: string;
   runId: string;
   runStatus: InspectionRun["status"];
   collectedAt: string;
@@ -47,8 +50,13 @@ export interface ReportHostView {
   assetId: string;
   assetName: string;
   host: string;
+  templateIds: string[];
+  templateNames: string[];
   runs: Array<{
     runId: string;
+    templateId: string;
+    templateName: string;
+    templateDescription: string;
     status: InspectionRun["status"];
     createdAt: string;
     summary: ReportStatusSummary;
@@ -80,6 +88,12 @@ interface AssetSnapshot {
   id: string;
   name: string;
   host: string;
+}
+
+interface TemplateSnapshot {
+  id: string;
+  name: string;
+  description: string;
 }
 
 const SEVERITY_ORDER: CheckResult["severity"][] = ["critical", "warning", "info"];
@@ -147,11 +161,29 @@ function buildAssetMap(assets: Asset[] = []) {
   );
 }
 
-function toReportCheckView(run: InspectionRun, asset: AssetSnapshot, result: CheckResult): ReportCheckView {
+function resolveTemplateSnapshot(run: InspectionRun): TemplateSnapshot {
+  const template = findBuiltInTemplateDefinition(run.templateId);
+
+  return {
+    id: run.templateId,
+    name: template?.name ?? run.templateId,
+    description: template?.description ?? "Template metadata is unavailable for this run.",
+  };
+}
+
+function toReportCheckView(
+  run: InspectionRun,
+  asset: AssetSnapshot,
+  template: TemplateSnapshot,
+  result: CheckResult,
+): ReportCheckView {
   return {
     assetId: run.assetId,
     assetName: asset.name,
     host: asset.host,
+    templateId: template.id,
+    templateName: template.name,
+    templateDescription: template.description,
     runId: run.id,
     runStatus: run.status,
     collectedAt: run.createdAt,
@@ -201,10 +233,11 @@ export function buildInspectionReportView(
 
   for (const run of input.runs) {
     const asset = assetMap.get(run.assetId) ?? fallbackAsset(run);
+    const template = resolveTemplateSnapshot(run);
     const runStatusSummary = summarizeStatuses(run.results);
     const runSeveritySummary = summarizeSeverities(run.results);
     const hostKey = asset.id;
-    const hostChecks = run.results.map((result) => toReportCheckView(run, asset, result));
+    const hostChecks = run.results.map((result) => toReportCheckView(run, asset, template, result));
     allChecks.push(...hostChecks);
 
     const existingHost = hostMap.get(hostKey);
@@ -213,9 +246,14 @@ export function buildInspectionReportView(
         assetId: asset.id,
         assetName: asset.name,
         host: asset.host,
+        templateIds: [template.id],
+        templateNames: [template.name],
         runs: [
           {
             runId: run.id,
+            templateId: template.id,
+            templateName: template.name,
+            templateDescription: template.description,
             status: run.status,
             createdAt: run.createdAt,
             summary: runStatusSummary,
@@ -231,11 +269,20 @@ export function buildInspectionReportView(
 
     existingHost.runs.push({
       runId: run.id,
+      templateId: template.id,
+      templateName: template.name,
+      templateDescription: template.description,
       status: run.status,
       createdAt: run.createdAt,
       summary: runStatusSummary,
       severitySummary: runSeveritySummary,
     });
+    if (!existingHost.templateIds.includes(template.id)) {
+      existingHost.templateIds.push(template.id);
+    }
+    if (!existingHost.templateNames.includes(template.name)) {
+      existingHost.templateNames.push(template.name);
+    }
     addStatusSummary(existingHost.summary, runStatusSummary);
     addSeveritySummary(existingHost.severitySummary, runSeveritySummary);
     const mergedChecks = existingHost.severityGroups.flatMap((group) => group.checks).concat(hostChecks);
@@ -480,9 +527,9 @@ export function renderInspectionReportHtml(
                     (check) => `
                   <article class="check-card">
                     <div class="spaced">
-                      <div>
-                        <h3>${escapeHtml(check.title)}</h3>
-                        <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)}</p>
+                    <div>
+                      <h3>${escapeHtml(check.title)}</h3>
+                        <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)} · ${escapeHtml(check.templateName)}</p>
                       </div>
                       <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
                     </div>
@@ -508,6 +555,7 @@ export function renderInspectionReportHtml(
                 <div>
                   <h3>${escapeHtml(host.assetName)}</h3>
                   <p class="meta">${escapeHtml(host.assetId)} · ${escapeHtml(host.host)}</p>
+                  <p class="meta">Templates: ${escapeHtml(host.templateNames.join(", "))}</p>
                 </div>
                 <span class="pill status-pass">${host.runs.length} run${host.runs.length === 1 ? "" : "s"}</span>
               </div>
@@ -516,7 +564,7 @@ export function renderInspectionReportHtml(
                 ${host.runs
                   .map(
                     (run) =>
-                      `<li>${escapeHtml(run.createdAt)} · ${escapeHtml(run.runId)} · ${escapeHtml(run.status)}</li>`,
+                      `<li>${escapeHtml(run.createdAt)} · ${escapeHtml(run.runId)} · ${escapeHtml(run.templateName)} · ${escapeHtml(run.status)}</li>`,
                   )
                   .join("")}
               </ul>
@@ -547,7 +595,7 @@ export function renderInspectionReportHtml(
                   <div class="spaced">
                     <div>
                       <h3>${escapeHtml(check.title)}</h3>
-                      <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)} · ${escapeHtml(check.runId)}</p>
+                      <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)} · ${escapeHtml(check.templateName)} · ${escapeHtml(check.runId)}</p>
                     </div>
                     <span class="pill status-${check.status}">${escapeHtml(check.status)}</span>
                   </div>
