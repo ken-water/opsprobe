@@ -608,6 +608,25 @@ fn ssh_output(input: &RunLinuxCheckInput, remote_command: &str) -> Result<String
     })
 }
 
+fn tcp_listener_count(input: &RunLinuxCheckInput, port: u16) -> Result<Option<u32>, String> {
+    let output = ssh_output(
+        input,
+        &format!(
+            "sh -lc \"if command -v ss >/dev/null 2>&1; then ss -ltn '( sport = :{port} )' | tail -n +2 | wc -l; elif command -v netstat >/dev/null 2>&1; then netstat -ltn | awk '$4 ~ /:{port}$/ {{count++}} END {{print count+0}}'; else echo unsupported; fi\""
+        ),
+    )?;
+
+    if output == "unsupported" {
+        return Ok(None);
+    }
+
+    let listeners = output
+        .parse::<u32>()
+        .map_err(|_| format!("Unable to parse port listener output: {}", output))?;
+
+    Ok(Some(listeners))
+}
+
 fn normalized_result(
     input: &RunLinuxCheckInput,
     status: &str,
@@ -937,12 +956,9 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
             ))
         }
         "linux.port.22" => {
-            let output = ssh_output(
-                &input,
-                "sh -lc \"if command -v ss >/dev/null 2>&1; then ss -ltn '( sport = :22 )' | tail -n +2 | wc -l; elif command -v netstat >/dev/null 2>&1; then netstat -ltn | awk '$4 ~ /:22$/ {count++} END {print count+0}'; else echo unsupported; fi\"",
-            )?;
+            let listeners = tcp_listener_count(&input, 22)?;
 
-            if output == "unsupported" {
+            if listeners.is_none() {
                 return Ok(normalized_result(
                     &input,
                     "unknown",
@@ -955,10 +971,7 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                     "Install iproute2 or net-tools to allow port inspection.",
                 ));
             }
-
-            let listeners = output
-                .parse::<u32>()
-                .map_err(|_| format!("Unable to parse port listener output: {}", output))?;
+            let listeners = listeners.unwrap_or(0);
 
             if listeners > 0 {
                 return Ok(normalized_result(
@@ -1057,6 +1070,247 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                     },
                 ],
                 "Review log rotation, retention, and oversized log files in /var/log.",
+            ))
+        }
+        "linux.nginx.process" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"if pgrep -x nginx >/dev/null 2>&1 || pgrep -f 'nginx: master process' >/dev/null 2>&1; then echo running; else echo stopped; fi\"",
+            )?;
+            if output == "running" {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "nginx is running.".into(),
+                    vec![CheckEvidence {
+                        label: "Process".into(),
+                        value: "nginx".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "nginx is not running.".into(),
+                vec![CheckEvidence {
+                    label: "Process".into(),
+                    value: "nginx".into(),
+                }],
+                "Start nginx and verify the service is enabled if HTTP traffic is expected.",
+            ))
+        }
+        "linux.nginx.config" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if command -v nginx >/dev/null 2>&1; then nginx -t 2>&1; else echo missing-nginx; fi\"",
+            )?;
+
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            let combined = if stdout.is_empty() {
+                stderr.clone()
+            } else if stderr.is_empty() {
+                stdout.clone()
+            } else {
+                format!("{} {}", stdout, stderr)
+            };
+
+            if combined.contains("missing-nginx") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "nginx is not installed, so configuration validation was skipped.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "nginx -t".into(),
+                    }],
+                    "Install nginx or switch to a template that matches the services deployed on this host.",
+                ));
+            }
+
+            if output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "nginx configuration test passed.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "nginx configuration test failed.".into(),
+                vec![CheckEvidence {
+                    label: "Command Output".into(),
+                    value: combined,
+                }],
+                "Run `nginx -t`, fix the reported configuration errors, and reload nginx after validation passes.",
+            ))
+        }
+        "linux.mysql.process" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"if pgrep -x mysqld >/dev/null 2>&1; then echo mysqld; elif pgrep -x mariadbd >/dev/null 2>&1; then echo mariadbd; else echo stopped; fi\"",
+            )?;
+            if output != "stopped" {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    format!("{output} is running."),
+                    vec![CheckEvidence {
+                        label: "Process".into(),
+                        value: output,
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "mysql or mariadb process is not running.".into(),
+                vec![CheckEvidence {
+                    label: "Process".into(),
+                    value: "mysqld or mariadbd".into(),
+                }],
+                "Start the database service and confirm the expected mysql or mariadb daemon is healthy.",
+            ))
+        }
+        "linux.mysql.port.3306" => {
+            let listeners = tcp_listener_count(&input, 3306)?;
+
+            if listeners.is_none() {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "MySQL listener state could not be collected because ss/netstat is unavailable.".into(),
+                    vec![CheckEvidence {
+                        label: "Collector".into(),
+                        value: "missing ss/netstat".into(),
+                    }],
+                    "Install iproute2 or net-tools to allow port inspection.",
+                ));
+            }
+            let listeners = listeners.unwrap_or(0);
+
+            if listeners > 0 {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "Port 3306 is listening.".into(),
+                    vec![CheckEvidence {
+                        label: "Port".into(),
+                        value: "3306/tcp".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "warning",
+                "warning",
+                "Port 3306 is not listening.".into(),
+                vec![CheckEvidence {
+                    label: "Port".into(),
+                    value: "3306/tcp".into(),
+                }],
+                "If external or local TCP access is expected, verify bind-address, listener settings, and service status.",
+            ))
+        }
+        "linux.redis.process" => {
+            let output = ssh_output(
+                &input,
+                "sh -lc \"pgrep -x redis-server >/dev/null 2>&1 && echo running || echo stopped\"",
+            )?;
+            if output == "running" {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "redis-server is running.".into(),
+                    vec![CheckEvidence {
+                        label: "Process".into(),
+                        value: "redis-server".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "critical",
+                "critical",
+                "redis-server is not running.".into(),
+                vec![CheckEvidence {
+                    label: "Process".into(),
+                    value: "redis-server".into(),
+                }],
+                "Start redis and confirm the service is enabled if this host is expected to provide Redis.",
+            ))
+        }
+        "linux.redis.port.6379" => {
+            let listeners = tcp_listener_count(&input, 6379)?;
+
+            if listeners.is_none() {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Redis listener state could not be collected because ss/netstat is unavailable.".into(),
+                    vec![CheckEvidence {
+                        label: "Collector".into(),
+                        value: "missing ss/netstat".into(),
+                    }],
+                    "Install iproute2 or net-tools to allow port inspection.",
+                ));
+            }
+            let listeners = listeners.unwrap_or(0);
+
+            if listeners > 0 {
+                return Ok(normalized_result(
+                    &input,
+                    "pass",
+                    "info",
+                    "Port 6379 is listening.".into(),
+                    vec![CheckEvidence {
+                        label: "Port".into(),
+                        value: "6379/tcp".into(),
+                    }],
+                    "No action required.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "warning",
+                "warning",
+                "Port 6379 is not listening.".into(),
+                vec![CheckEvidence {
+                    label: "Port".into(),
+                    value: "6379/tcp".into(),
+                }],
+                "If Redis should accept TCP connections, verify the bind, protected-mode, and listener settings.",
             ))
         }
         _ => Ok(normalized_result(

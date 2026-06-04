@@ -756,11 +756,11 @@ function App() {
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.5.0</p>
+          <p className="version">v0.6.0</p>
           <ul>
-            <li>Result view model and report structure</li>
-            <li>Local HTML and PDF export</li>
-            <li>Persistence and UX polish</li>
+            <li>Service-aware built-in inspection templates</li>
+            <li>Middleware checks for nginx, MySQL, and Redis</li>
+            <li>Runtime coverage expansion for Docker and Kubernetes</li>
           </ul>
         </article>
 
@@ -847,7 +847,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.4.0 Current Release</p>
+            <p className="eyebrow">0.6.0 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -938,7 +938,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.4.0 Current Release</p>
+            <p className="eyebrow">0.6.0 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1034,7 +1034,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.4.0 Current Release</p>
+            <p className="eyebrow">0.6.0 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1122,7 +1122,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.4.0 Current Release</p>
+            <p className="eyebrow">0.6.0 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1225,7 +1225,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.4.0 Current Release</p>
+            <p className="eyebrow">0.6.0 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button

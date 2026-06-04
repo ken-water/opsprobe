@@ -233,6 +233,132 @@ export const builtInLinuxChecks: CheckDefinition[] = [
       };
     },
   },
+  {
+    id: "linux.nginx.process",
+    title: "Nginx Process Status",
+    description: "Checks whether the nginx process is running.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.process",
+        title: "Nginx Process Status",
+        status: "pass",
+        severity: "info",
+        summary: "nginx is running.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Process", value: "nginx" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.nginx.config",
+    title: "Nginx Configuration Validation",
+    description: "Checks whether nginx configuration passes syntax validation.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.config",
+        title: "Nginx Configuration Validation",
+        status: "pass",
+        severity: "info",
+        summary: "nginx configuration test passed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Command", value: "nginx -t" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.mysql.process",
+    title: "MySQL Process Status",
+    description: "Checks whether mysql or mariadb process is running.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.process",
+        title: "MySQL Process Status",
+        status: "pass",
+        severity: "info",
+        summary: "mysql or mariadb process is running.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Process", value: "mysqld or mariadbd" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.mysql.port.3306",
+    title: "MySQL Port Listening",
+    description: "Checks whether TCP port 3306 is listening.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.port.3306",
+        title: "MySQL Port Listening",
+        status: "pass",
+        severity: "info",
+        summary: "Port 3306 is listening.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Port", value: "3306/tcp" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.redis.process",
+    title: "Redis Process Status",
+    description: "Checks whether the redis-server process is running.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.process",
+        title: "Redis Process Status",
+        status: "pass",
+        severity: "info",
+        summary: "redis-server is running.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Process", value: "redis-server" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
+  {
+    id: "linux.redis.port.6379",
+    title: "Redis Port Listening",
+    description: "Checks whether TCP port 6379 is listening.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.port.6379",
+        title: "Redis Port Listening",
+        status: "pass",
+        severity: "info",
+        summary: "Port 6379 is listening.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Port", value: "6379/tcp" },
+        ],
+        remediation: "No action required.",
+      };
+    },
+  },
 ];
 
 export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefinition[] = [
@@ -267,6 +393,54 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.port.22",
       "linux.reboot.age",
       "linux.log.usage",
+    ],
+  },
+  {
+    id: "template.linux.nginx",
+    name: "Linux Nginx Baseline",
+    description: "Linux host baseline plus nginx process and configuration checks.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.cpu.usage",
+      "linux.memory.usage",
+      "linux.disk.usage",
+      "linux.load.average",
+      "linux.time.sync",
+      "linux.log.usage",
+      "linux.nginx.process",
+      "linux.nginx.config",
+    ],
+  },
+  {
+    id: "template.linux.mysql",
+    name: "Linux MySQL Baseline",
+    description: "Linux host baseline plus mysql or mariadb process and listener checks.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.cpu.usage",
+      "linux.memory.usage",
+      "linux.disk.usage",
+      "linux.load.average",
+      "linux.time.sync",
+      "linux.log.usage",
+      "linux.mysql.process",
+      "linux.mysql.port.3306",
+    ],
+  },
+  {
+    id: "template.linux.redis",
+    name: "Linux Redis Baseline",
+    description: "Linux host baseline plus redis process and listener checks.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.cpu.usage",
+      "linux.memory.usage",
+      "linux.disk.usage",
+      "linux.load.average",
+      "linux.time.sync",
+      "linux.log.usage",
+      "linux.redis.process",
+      "linux.redis.port.6379",
     ],
   },
 ];
