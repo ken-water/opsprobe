@@ -173,6 +173,7 @@ async function stopCommand() {
   }
 
   try {
+    await storage.shutdown();
     await bootstrap.stopPostgres();
   } catch {
     // Stop should still clean local-service state even if PostgreSQL stop fails.
@@ -213,6 +214,8 @@ async function startPostgresCommand() {
 async function stopPostgresCommand() {
   await ensureRuntimeDirs();
 
+  await storage.shutdown();
+
   const response: LocalServiceCommandResponse = {
     ok: true,
     message: await bootstrap.stopPostgres(),
@@ -235,6 +238,7 @@ async function serveCommand() {
 
   const cleanup = async () => {
     try {
+      await storage.shutdown();
       await bootstrap.stopPostgres();
     } catch {
       // Preserve best-effort shutdown for the service process.

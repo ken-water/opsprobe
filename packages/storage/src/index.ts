@@ -30,6 +30,7 @@ export interface InspectionRunRepository {
 export interface StorageAdapter {
   bootstrap(): Promise<StorageBootstrapResult>;
   health(): Promise<StorageHealth>;
+  shutdown(): Promise<void>;
   assets: AssetRepository;
   templates: TemplateRepository;
   inspectionRuns: InspectionRunRepository;
@@ -92,6 +93,10 @@ export class StubPostgresStorageAdapter implements StorageAdapter {
       detail: "Storage adapter is present but not connected to a managed PostgreSQL runtime yet.",
     };
   }
+
+  async shutdown(): Promise<void> {
+    return;
+  }
 }
 
 function serializeRun(run: InspectionRun) {
@@ -113,6 +118,11 @@ export class PostgresStorageAdapter implements StorageAdapter {
       host: config.host,
       port: config.port,
       user: config.user,
+    });
+    this.pool.on("error", () => {
+      // The local-service process may intentionally stop PostgreSQL while pooled
+      // clients still exist. Ignore asynchronous pool errors and let explicit
+      // health checks decide whether PostgreSQL-backed storage is still usable.
     });
   }
 
@@ -224,6 +234,10 @@ export class PostgresStorageAdapter implements StorageAdapter {
       };
     }
   }
+
+  async shutdown(): Promise<void> {
+    await this.pool.end();
+  }
 }
 
 export class LocalFileStorageAdapter implements StorageAdapter {
@@ -278,6 +292,10 @@ export class LocalFileStorageAdapter implements StorageAdapter {
       detail:
         "Local service is using a transitional file-backed storage adapter until managed PostgreSQL is wired in.",
     };
+  }
+
+  async shutdown(): Promise<void> {
+    return;
   }
 
   private async ensureFile() {

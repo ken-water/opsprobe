@@ -143,11 +143,12 @@ async function inspectManagedPostgresProcess(
   const pgCtlCheck = binaries.checks.find((item) => item.name === "pg_ctl");
   if (initialized && pgCtlCheck?.available) {
     const status = await runCommand("pg_ctl", ["-D", config.paths.postgresDataDir, "status"]);
-    if (status.ok) {
+    const detail = status.stdout || status.stderr;
+    if (status.ok && detail.includes("server is running") && !detail.includes("single-user server")) {
       return {
         running: true,
         pid,
-        detail: status.stdout || "Managed PostgreSQL is running.",
+        detail: detail || "Managed PostgreSQL is running.",
       };
     }
   }
@@ -333,9 +334,13 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
     }
 
     const nextState = await inspectManagedPostgresProcess(this.config, binaries, true);
-    return nextState.running
-      ? nextState.detail
-      : start.stdout || "Managed PostgreSQL start was requested.";
+    if (!nextState.running) {
+      throw new Error(
+        "Managed PostgreSQL start was requested, but the runtime did not become healthy.",
+      );
+    }
+
+    return nextState.detail;
   }
 
   async stopPostgres(): Promise<string> {
