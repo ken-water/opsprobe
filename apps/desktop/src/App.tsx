@@ -15,6 +15,7 @@ import type {
   LocalServiceStatusResponse,
 } from "@opsprobe/local-service";
 import { runInspection, type SshConnectionTestInput, type SshConnectionTestResult } from "@opsprobe/runner";
+import { exportRunPdfReport } from "./pdf";
 import "./App.css";
 
 const initialAsset: Asset = {
@@ -103,10 +104,12 @@ function App() {
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   const [migrationPath, setMigrationPath] = useState("/tmp/opsprobe-config.json");
   const [reportPath, setReportPath] = useState("/tmp/opsprobe-report.html");
+  const [pdfReportPath, setPdfReportPath] = useState("/tmp/opsprobe-report.pdf");
   const [isRefreshingAssets, setIsRefreshingAssets] = useState(false);
   const [isExportingConfig, setIsExportingConfig] = useState(false);
   const [isImportingConfig, setIsImportingConfig] = useState(false);
   const [isExportingReport, setIsExportingReport] = useState(false);
+  const [isExportingPdfReport, setIsExportingPdfReport] = useState(false);
 
   const task: InspectionTask = {
     id: "task-manual-001",
@@ -143,6 +146,11 @@ function App() {
     setReportPath((current) =>
       current === "/tmp/opsprobe-report.html"
         ? `${serviceResponse.snapshot.config.paths.reportDir}/opsprobe-report-${Date.now()}.html`
+        : current,
+    );
+    setPdfReportPath((current) =>
+      current === "/tmp/opsprobe-report.pdf"
+        ? `${serviceResponse.snapshot.config.paths.reportDir}/opsprobe-report-${Date.now()}.pdf`
         : current,
     );
   }, [serviceResponse]);
@@ -427,6 +435,18 @@ function App() {
       setServiceMessage(response.message);
     } finally {
       setIsExportingReport(false);
+    }
+  }
+
+  async function handleExportPdfReport(run: InspectionRun) {
+    setIsExportingPdfReport(true);
+    setServiceMessage(null);
+
+    try {
+      await exportRunPdfReport(run, resolveAssetForRun(run), pdfReportPath);
+      setServiceMessage(`Exported PDF report to ${pdfReportPath}.`);
+    } finally {
+      setIsExportingPdfReport(false);
     }
   }
 
@@ -966,13 +986,22 @@ function App() {
               {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
             </button>
             {serviceExecutionRun ? (
-              <button
-                className="secondary-button"
-                onClick={() => void handleExportHtmlReport(serviceExecutionRun)}
-                type="button"
-              >
-                {isExportingReport ? "Exporting..." : "Export HTML Report"}
-              </button>
+              <>
+                <button
+                  className="secondary-button"
+                  onClick={() => void handleExportHtmlReport(serviceExecutionRun)}
+                  type="button"
+                >
+                  {isExportingReport ? "Exporting..." : "Export HTML Report"}
+                </button>
+                <button
+                  className="secondary-button"
+                  onClick={() => void handleExportPdfReport(serviceExecutionRun)}
+                  type="button"
+                >
+                  {isExportingPdfReport ? "Exporting..." : "Export PDF Report"}
+                </button>
+              </>
             ) : null}
           </div>
         </div>
@@ -984,6 +1013,14 @@ function App() {
               value={reportPath}
               onChange={(event) => setReportPath(event.target.value)}
               placeholder="/tmp/opsprobe-report.html"
+            />
+          </label>
+          <label>
+            <span>PDF Report File</span>
+            <input
+              value={pdfReportPath}
+              onChange={(event) => setPdfReportPath(event.target.value)}
+              placeholder="/tmp/opsprobe-report.pdf"
             />
           </label>
         </div>
@@ -1199,6 +1236,13 @@ function App() {
                       type="button"
                     >
                       {isExportingReport ? "Exporting..." : "Export Selected Run"}
+                    </button>
+                    <button
+                      className="secondary-button"
+                      onClick={() => void handleExportPdfReport(selectedHistoryRun)}
+                      type="button"
+                    >
+                      {isExportingPdfReport ? "Exporting..." : "Export Selected PDF"}
                     </button>
                   </div>
 

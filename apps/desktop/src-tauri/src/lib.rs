@@ -1,5 +1,7 @@
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::fs;
 use std::path::Path;
 use std::process::Command;
 
@@ -146,6 +148,13 @@ struct LocalServiceHtmlReportExportInput {
     path: String,
     run: InspectionRunPayload,
     asset: Option<AssetPayload>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SaveExportFileInput {
+    path: String,
+    base64_data: String,
 }
 
 fn run_local_service_json_command(
@@ -414,6 +423,21 @@ fn export_local_service_html_report(input: LocalServiceHtmlReportExportInput) ->
         Some(payload),
         "local service HTML report export command",
     )
+}
+
+#[tauri::command]
+fn save_export_file(input: SaveExportFileInput) -> Result<String, String> {
+    let bytes = STANDARD
+        .decode(input.base64_data.trim())
+        .map_err(|error| format!("Failed to decode export data: {error}"))?;
+
+    if let Some(parent) = Path::new(&input.path).parent() {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("Failed to create export directory: {error}"))?;
+    }
+
+    fs::write(&input.path, bytes).map_err(|error| format!("Failed to write export file: {error}"))?;
+    Ok(input.path)
 }
 
 fn validate_ssh_input(
@@ -1076,7 +1100,8 @@ pub fn run() {
             upsert_local_service_asset,
             export_local_service_config,
             import_local_service_config,
-            export_local_service_html_report
+            export_local_service_html_report,
+            save_export_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
