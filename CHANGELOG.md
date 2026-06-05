@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.8.3] - 2026-06-05
+
+### Added
+
+- Local-service CLI functional coverage for asset save, inspection preview, and HTML report export
+- A dedicated smoke flow that validates the local-service asset-preview-report path before broader release checks
+
+### Changed
+
+- Release-candidate smoke validation now exercises a user-visible local workflow instead of build-only checks
+- Testing strategy documentation now reflects the first automated functional slice in the `0.8.x` line
+
+### Known Limits
+
+- Desktop UI journeys still rely largely on manual verification and do not yet have browser or Tauri end-to-end automation
+- The current functional slice covers preview and export confidence, but not live SSH execution against real hosts
+
 ## [0.8.2] - 2026-06-05
 
 ### Added

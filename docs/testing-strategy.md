@@ -1,6 +1,6 @@
 # Testing Strategy
 
-OpsProbe currently has basic validation gates, but not a high automated test coverage level yet.
+OpsProbe currently has basic validation gates, and `0.8.3` adds the first repeatable local-service CLI functional slice, but automated coverage is still not high yet.
 
 Current state:
 
@@ -9,17 +9,18 @@ Current state:
 - Rust `cargo check` is part of the release flow
 - Version, milestone, and release gates exist
 - Automated unit, integration, smoke, and end-to-end functional coverage is still limited
+- The release smoke flow now verifies a real local-service path: asset save, inspection preview, and HTML report export
 
 ## Coverage Assessment
 
 Current practical assessment:
 
 - Unit test coverage: low
-- Integration test coverage: low
-- Smoke test coverage: low
-- Functional end-to-end coverage: low
+- Integration test coverage: low to moderate for report and local-service paths
+- Smoke test coverage: low to moderate for release-candidate validation
+- Functional end-to-end coverage: low, with one automated local-service CLI journey now present
 
-This means the repository can catch some build-time regressions, but it still relies heavily on manual verification for behavior.
+This means the repository can catch more release-breaking regressions than before, but it still relies heavily on manual verification for broader desktop behavior.
 
 ## Target Test Layers
 
@@ -108,3 +109,10 @@ Suggested first checkpoint:
 - define package-level test scripts
 - cover report transforms, settings normalization, and one local-service integration path
 - add a smoke checklist script for release candidates
+
+Completed by `0.8.3`:
+
+- report transforms have focused unit coverage
+- local-service settings and report export paths have integration coverage
+- a CLI-level functional slice now validates asset persistence, preview execution, and HTML report export
+- the smoke script now includes that functional slice before running broader build and test gates

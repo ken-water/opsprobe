@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+./scripts/smoke-local-service-flow.sh
 npm run desktop:typecheck
 npm --workspace @opsprobe/desktop run build
 cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml --config 'source.crates-io.registry="sparse+https://index.crates.io/"'
