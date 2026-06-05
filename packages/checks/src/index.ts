@@ -360,6 +360,48 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.mysql.runtime.info",
+    title: "MySQL Runtime Configuration",
+    description: "Collects version, data directory, and read-only runtime signals from MySQL or MariaDB.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.runtime.info",
+        title: "MySQL Runtime Configuration",
+        status: "pass",
+        severity: "info",
+        summary: "MySQL runtime configuration was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Runtime", value: "version, datadir, read_only, super_read_only" },
+        ],
+        remediation: "Review role and write-path expectations if read-only signals differ from the intended database role.",
+      };
+    },
+  },
+  {
+    id: "linux.mysql.schema.inventory",
+    title: "MySQL Schema Inventory",
+    description: "Collects non-system schema count and sample names for recurring review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.schema.inventory",
+        title: "MySQL Schema Inventory",
+        status: "pass",
+        severity: "info",
+        summary: "MySQL schema inventory was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Inventory", value: "non-system schema count and sample names" },
+        ],
+        remediation: "Review unexpected schema growth or missing tenant schemas before the next maintenance window.",
+      };
+    },
+  },
+  {
     id: "linux.redis.process",
     title: "Redis Process Status",
     description: "Checks whether the redis-server process is running.",
@@ -612,6 +654,8 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.log.usage",
       "linux.mysql.process",
       "linux.mysql.port.3306",
+      "linux.mysql.runtime.info",
+      "linux.mysql.schema.inventory",
     ],
   },
   {

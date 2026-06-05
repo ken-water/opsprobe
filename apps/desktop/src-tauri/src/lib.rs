@@ -1522,6 +1522,189 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "If external or local TCP access is expected, verify bind-address, listener settings, and service status.",
             ))
         }
+        "linux.mysql.runtime.info" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if command -v mysql >/dev/null 2>&1; then client=mysql; elif command -v mariadb >/dev/null 2>&1; then client=mariadb; else echo missing-client; exit 0; fi; \\\"$client\\\" --batch --skip-column-names -e 'SHOW VARIABLES WHERE Variable_name IN (\\\"version\\\",\\\"version_comment\\\",\\\"datadir\\\",\\\"read_only\\\",\\\"super_read_only\\\")' 2>&1\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-client") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "MySQL client is not installed, so runtime configuration could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "mysql -e SHOW VARIABLES".into(),
+                    }],
+                    "Install mysql or mariadb client tooling on the host if local instance inspection is part of the expected workflow.",
+                ));
+            }
+
+            if !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "MySQL runtime configuration could not be collected through the local client.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify local socket access, client availability, and database permissions for the SSH user used by OpsProbe.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            let mut role_hint = "write-capable";
+
+            for line in combined.lines().map(|line| line.trim()).filter(|line| !line.is_empty()) {
+                let parts = line.split_whitespace().collect::<Vec<_>>();
+                if parts.is_empty() {
+                    continue;
+                }
+                let key = parts[0];
+                let value = parts[1..].join(" ");
+
+                match key {
+                    "version" => evidence.push(CheckEvidence {
+                        label: "Version".into(),
+                        value,
+                    }),
+                    "version_comment" => evidence.push(CheckEvidence {
+                        label: "Flavor".into(),
+                        value,
+                    }),
+                    "datadir" => evidence.push(CheckEvidence {
+                        label: "Datadir".into(),
+                        value,
+                    }),
+                    "read_only" => {
+                        if value.eq_ignore_ascii_case("ON") {
+                            role_hint = "read-only";
+                        }
+                        evidence.push(CheckEvidence {
+                            label: "read_only".into(),
+                            value,
+                        });
+                    }
+                    "super_read_only" => evidence.push(CheckEvidence {
+                        label: "super_read_only".into(),
+                        value,
+                    }),
+                    _ => {}
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Command Output".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                format!("MySQL runtime configuration was collected successfully and the instance appears {role_hint}."),
+                evidence,
+                "Review role and write-path expectations if read-only signals differ from the intended database role.",
+            ))
+        }
+        "linux.mysql.schema.inventory" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if command -v mysql >/dev/null 2>&1; then client=mysql; elif command -v mariadb >/dev/null 2>&1; then client=mariadb; else echo missing-client; exit 0; fi; count=$(\\\"$client\\\" --batch --skip-column-names -e \\\"SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys');\\\" 2>/dev/null || echo client-error); if [ \\\"$count\\\" = client-error ]; then echo client-error; exit 0; fi; sample=$(\\\"$client\\\" --batch --skip-column-names -e \\\"SELECT GROUP_CONCAT(schema_name ORDER BY schema_name SEPARATOR ', ') FROM (SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema','mysql','performance_schema','sys') ORDER BY schema_name LIMIT 5) sample;\\\" 2>/dev/null); printf 'count=%s\\nsample=%s\\n' \\\"$count\\\" \\\"${sample:-none}\\\"\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-client") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "MySQL client is not installed, so schema inventory could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "mysql -e SELECT FROM information_schema.schemata".into(),
+                    }],
+                    "Install mysql or mariadb client tooling on the host if local schema inventory is part of the expected workflow.",
+                ));
+            }
+
+            if combined.contains("client-error") || !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "MySQL schema inventory could not be collected through the local client.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify local socket access and metadata query permissions for the SSH user used by OpsProbe.",
+                ));
+            }
+
+            let mut count = 0_u32;
+            let mut sample = String::from("none");
+            for line in combined.lines().map(|line| line.trim()).filter(|line| !line.is_empty()) {
+                if let Some(value) = line.strip_prefix("count=") {
+                    count = value.parse::<u32>().unwrap_or(0);
+                } else if let Some(value) = line.strip_prefix("sample=") {
+                    sample = value.to_string();
+                }
+            }
+
+            if count == 0 {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "No non-system MySQL schemas were detected.".into(),
+                    vec![
+                        CheckEvidence {
+                            label: "Schema Count".into(),
+                            value: "0".into(),
+                        },
+                        CheckEvidence {
+                            label: "Schema Sample".into(),
+                            value: sample,
+                        },
+                    ],
+                    "If this host should hold tenant or application schemas, review instance role and data presence before the next maintenance window.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                format!("MySQL schema inventory found {count} non-system schema(s)."),
+                vec![
+                    CheckEvidence {
+                        label: "Schema Count".into(),
+                        value: count.to_string(),
+                    },
+                    CheckEvidence {
+                        label: "Schema Sample".into(),
+                        value: sample,
+                    },
+                ],
+                "Review unexpected schema growth or missing tenant schemas before the next maintenance window.",
+            ))
+        }
         "linux.redis.process" => {
             let output = ssh_output(
                 &input,
