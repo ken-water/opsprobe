@@ -16,8 +16,11 @@ Release mapping:
 - `0.7.3`: structured external feedback capture
 - `0.7.4`: feedback-driven stabilization and next-stage decision
 - `0.8.x`: deeper inspection workflows after the `0.7.x` validation cycle
-  Current issue line starts at milestone `0.8.0` and can continue with `0.8.1`, `0.8.2`, and later patches as needed
-  Current issues: 31, 32, 33, 34, 35
+  Current issue line:
+  `0.8.0`: Issues 31, 32, 33, 34, 35
+  `0.8.1`: Issue 37
+  `0.8.2`: Issue 36
+  `0.8.3`: Issue 38
 
 ## Foundation
 

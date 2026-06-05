@@ -260,6 +260,13 @@ Release approach:
 - each `0.8.x` release should close a concrete slice, such as one service-role workflow, one test-coverage step, or one local workflow improvement
 - do not jump to `0.9.0` or `1.0.0` until the planned `0.8.x` exploration outcomes are actually complete
 
+Planned checkpoints:
+
+- `0.8.0`: Docker host operational workflow depth and current exploration baseline release
+- `0.8.1`: Kubernetes node operational workflow depth
+- `0.8.2`: report usefulness and remediation guidance improvements for recurring operators
+- `0.8.3`: functional coverage growth and release hardening for the completed `0.8.x` line
+
 Related issues:
 
 - Issue 31
@@ -267,6 +274,9 @@ Related issues:
 - Issue 33
 - Issue 34
 - Issue 35
+- Issue 36
+- Issue 37
+- Issue 38
 
 ## Stable Milestone
 

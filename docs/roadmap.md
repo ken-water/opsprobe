@@ -83,6 +83,13 @@ Target release line:
 
 - `0.8.x`
 
+Current planned checkpoints:
+
+- `0.8.0`: Docker workflow depth and current exploration release
+- `0.8.1`: Kubernetes node workflow depth
+- `0.8.2`: report and remediation usefulness
+- `0.8.3`: functional coverage and release hardening
+
 ## Future Commercial Direction
 
 Potential future capabilities outside the open source scope:
