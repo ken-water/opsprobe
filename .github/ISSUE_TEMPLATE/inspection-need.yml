@@ -1,0 +1,50 @@
+name: Inspection Need
+description: Request a missing inspection capability, check, or template.
+title: "[Inspection Need] "
+labels:
+  - feedback
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when OpsProbe is missing a check, template, service inspection, or evidence output that you actually need.
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: What are you inspecting?
+      placeholder: Ubuntu 24.04 host running nginx, redis, and docker
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Current workflow
+      description: How do you inspect this today without OpsProbe?
+      placeholder: We SSH in, run nginx -t, check systemctl, inspect disk usage, then paste screenshots into a report.
+    validations:
+      required: true
+  - type: textarea
+    id: missing_capability
+    attributes:
+      label: Missing capability
+      description: What inspection or evidence output do you need?
+      placeholder: Need an nginx SSL expiry check with clear remediation and certificate metadata in the report.
+    validations:
+      required: true
+  - type: textarea
+    id: why_it_matters
+    attributes:
+      label: Why it matters
+      description: What risk, time cost, or reporting problem does this solve?
+      placeholder: We miss cert issues during manual checks and only find them when customers complain.
+    validations:
+      required: true
+  - type: textarea
+    id: sample_output
+    attributes:
+      label: Useful output example
+      description: If you already have a script, screenshot, or expected output shape, paste it here.
+      placeholder: A pass/warn/critical result with expiry date, issuer, SANs, and renewal suggestion.
+    validations:
+      required: false

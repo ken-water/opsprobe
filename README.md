@@ -15,6 +15,20 @@ OpsProbe is built to solve a narrower problem well:
 - Provide remediation suggestions for common issues
 - Keep deployment simple and local-first
 
+## Feedback
+
+OpsProbe is still in the validation stage, so concrete user feedback matters more than generic feature voting.
+
+If you try the product, please use one of the structured feedback paths:
+
+- [Inspection Need](https://github.com/ken-water/opsprobe/issues/new?template=inspection-need.yml)
+- [Report Feedback](https://github.com/ken-water/opsprobe/issues/new?template=report-feedback.yml)
+- [Workflow Friction](https://github.com/ken-water/opsprobe/issues/new?template=workflow-friction.yml)
+
+Guide:
+
+- [Feedback Guide](./docs/feedback.md)
+
 ## Open Source Edition Scope
 
 The initial open source edition focuses on a Tauri desktop client with local execution:
@@ -52,6 +66,7 @@ See:
 - [MVP](./docs/mvp.md)
 - [Architecture](./docs/architecture.md)
 - [Roadmap](./docs/roadmap.md)
+- [Feedback Guide](./docs/feedback.md)
 - [Versioning Strategy](./docs/versioning.md)
 - [Release Plan](./docs/releases.md)
 - [Initial Issues](./docs/issues.md)

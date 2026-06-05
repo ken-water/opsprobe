@@ -1088,8 +1088,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.7.2` focuses on report variants so early users can compare operator-grade detail with
-          manager-friendly summary output from the same inspection run.
+          `0.7.3` focuses on structured feedback capture so early users can turn real inspection,
+          report, and workflow friction into actionable roadmap input.
         </p>
       </section>
 
@@ -1097,19 +1097,19 @@ function App() {
         <article className="card">
           <h2>Current Focus</h2>
           <ul>
-            <li>Audience-specific report structure</li>
-            <li>Export parity across HTML and PDF</li>
-            <li>Faster feedback on what different readers actually need</li>
+            <li>Structured early-user feedback capture</li>
+            <li>Clear prompts for inspection, report, and workflow pain</li>
+            <li>Lower friction between product use and roadmap input</li>
           </ul>
         </article>
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.7.2</p>
+          <p className="version">v0.7.3</p>
           <ul>
-            <li>Operator-facing detailed reports</li>
-            <li>Manager-facing summary reports</li>
-            <li>Shared export flow for both audiences</li>
+            <li>Repository issue templates for real user needs</li>
+            <li>Feedback entry points in docs and desktop UI</li>
+            <li>More actionable outside-user signal</li>
           </ul>
         </article>
 
@@ -1133,7 +1133,73 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
+            <h2>Feedback Paths</h2>
+          </div>
+        </div>
+
+        <div className="service-checks">
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Inspection Need</strong>
+              <span className="badge badge-warning">missing check</span>
+            </div>
+            <p>Use this when a template, evidence field, or service check is missing from your real inspection workflow.</p>
+            <a
+              className="support-link"
+              href="https://github.com/ken-water/opsprobe/issues/new?template=inspection-need.yml"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open Inspection Need
+            </a>
+          </article>
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Report Feedback</strong>
+              <span className="badge badge-warning">report fit</span>
+            </div>
+            <p>Use this when the report exists, but the detail level, structure, wording, or audience fit is wrong.</p>
+            <a
+              className="support-link"
+              href="https://github.com/ken-water/opsprobe/issues/new?template=report-feedback.yml"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open Report Feedback
+            </a>
+          </article>
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Workflow Friction</strong>
+              <span className="badge badge-warning">real usage pain</span>
+            </div>
+            <p>Use this when OpsProbe does not fit the real sequence of work you need to complete, even if no single feature is missing.</p>
+            <a
+              className="support-link"
+              href="https://github.com/ken-water/opsprobe/issues/new?template=workflow-friction.yml"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open Workflow Friction
+            </a>
+          </article>
+        </div>
+
+        <p className="helper-text">
+          Good feedback includes the environment you were inspecting, what you were trying to finish,
+          what manual workaround you used, and what output or workflow you expected instead.
+        </p>
+
+        <p className="helper-text">
+          Guide: <a href="https://github.com/ken-water/opsprobe/blob/main/docs/feedback.md" target="_blank" rel="noreferrer">docs/feedback.md</a>
+        </p>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Report Variants</h2>
           </div>
         </div>
@@ -1180,7 +1246,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
@@ -1219,7 +1285,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Minimum Local Setup</h2>
           </div>
           <div className="summary-strip">
@@ -1282,7 +1348,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Troubleshooting Guidance</h2>
           </div>
           <div className="summary-strip">
@@ -1331,7 +1397,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -1422,7 +1488,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1518,7 +1584,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1606,7 +1672,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1709,7 +1775,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.2 Current Release</p>
+            <p className="eyebrow">0.7.3 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button

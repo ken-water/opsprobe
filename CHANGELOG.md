@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.7.3] - 2026-06-05
+
+### Added
+
+- Structured GitHub issue templates for inspection needs, report feedback, and workflow friction
+- Dedicated feedback guide with direct links and prompts for higher-signal early-user input
+- Desktop feedback entry panel with direct routes into the structured GitHub forms
+
+### Changed
+
+- Repository entry points now direct early users toward actionable feedback instead of generic feature requests
+- Desktop release copy now reflects the `0.7.3` external-validation focus on feedback capture
+
+### Known Limits
+
+- Feedback still routes through GitHub issues rather than an in-product submission backend
+- The current workflow captures structured input, but does not yet aggregate or prioritize repeated themes automatically
+
 ## [0.7.2] - 2026-06-05
 
 ### Added

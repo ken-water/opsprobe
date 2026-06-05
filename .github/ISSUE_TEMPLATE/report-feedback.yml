@@ -1,0 +1,53 @@
+name: Report Feedback
+description: Share what is missing, confusing, or unnecessary in OpsProbe reports.
+title: "[Report Feedback] "
+labels:
+  - feedback
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when the report exists, but the structure, wording, detail level, or audience fit is off.
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Report audience
+      description: Which report style were you evaluating?
+      options:
+        - Operator detailed report
+        - Manager summary report
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Reporting context
+      description: Who reads this report and what do they need to decide or do next?
+      placeholder: Our operators need exact evidence and commands. Our manager only wants risk level, affected hosts, and next actions.
+    validations:
+      required: true
+  - type: textarea
+    id: what_worked
+    attributes:
+      label: What worked
+      description: Which parts of the current report are useful?
+      placeholder: The abnormal items summary is useful because it quickly shows what needs attention.
+    validations:
+      required: true
+  - type: textarea
+    id: what_missing
+    attributes:
+      label: What is missing or wrong
+      description: What would you change?
+      placeholder: The manager report still has too much technical wording and should group actions by urgency instead.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example structure
+      description: If you already have a preferred report structure, paste or describe it here.
+      placeholder: One-page summary, top risks, affected assets, recommended maintenance window, owner, due date.
+    validations:
+      required: false
