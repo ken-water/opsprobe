@@ -713,6 +713,54 @@ export const builtInLinuxChecks: CheckDefinition[] = [
       };
     },
   },
+  {
+    id: "linux.kubelet.health.summary",
+    title: "Kubelet Health Summary",
+    description: "Collects kubelet service state, restart count, and recent failure hints for recurring review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.kubelet.health.summary",
+        title: "Kubelet Health Summary",
+        status: "warning",
+        severity: "warning",
+        summary: "Kubelet health summary should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Kubelet",
+            value: "systemd active state, sub state, restart count, recent failure sample",
+          },
+        ],
+        remediation: "Review unexpected restart growth or recent kubelet failures before the next maintenance window.",
+      };
+    },
+  },
+  {
+    id: "linux.kubernetes.node.pressure",
+    title: "Kubernetes Node Pressure Signals",
+    description: "Collects node pressure and eviction-related signals from the host for recurring review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.kubernetes.node.pressure",
+        title: "Kubernetes Node Pressure Signals",
+        status: "warning",
+        severity: "warning",
+        summary: "Kubernetes node pressure signals should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Pressure",
+            value: "memory.available, imagefs.available, nodefs.available, PID pressure, eviction sample",
+          },
+        ],
+        remediation: "Review memory, filesystem, or PID pressure before the node begins evicting workloads.",
+      };
+    },
+  },
 ];
 
 export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefinition[] = [
@@ -842,7 +890,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
   {
     id: "template.linux.kubernetes",
     name: "Linux Kubernetes Node Baseline",
-    description: "Linux host baseline plus kubelet, node runtime, and static pod inventory checks.",
+    description: "Linux host baseline plus kubelet health, node runtime, static pod inventory, and pressure checks.",
     assetKind: "linux-host",
     checkIds: [
       "linux.cpu.usage",
@@ -856,6 +904,8 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.kubernetes.node.runtime",
       "linux.kubernetes.node.summary",
       "linux.kubernetes.static-pod.inventory",
+      "linux.kubelet.health.summary",
+      "linux.kubernetes.node.pressure",
     ],
   },
 ];

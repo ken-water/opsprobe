@@ -2686,6 +2686,214 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "Review missing static pod manifests or non-running critical node containers before the next release window.",
             ))
         }
+        "linux.kubelet.health.summary" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if ! command -v systemctl >/dev/null 2>&1; then echo missing-systemctl; exit 0; fi; active=$(systemctl is-active kubelet 2>/dev/null || echo unknown); sub=$(systemctl show kubelet -p SubState --value 2>/dev/null || echo unknown); restarts=$(systemctl show kubelet -p NRestarts --value 2>/dev/null || echo 0); failures=$(journalctl -u kubelet -n 80 --no-pager 2>/dev/null | grep -Ei 'failed|error|evict|back-off|unable' | tail -n 3 | tr '\n' '; ' | sed 's/; $//'); printf 'active=%s\\nsub=%s\\nrestarts=%s\\nfailures=%s\\n' \"$active\" \"$sub\" \"$restarts\" \"${failures:-none}\"\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-systemctl") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "systemctl is not available, so kubelet health summary could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "systemctl show kubelet".into(),
+                    }],
+                    "Run this check on a systemd-managed node or extend the collector for your init system.",
+                ));
+            }
+
+            if !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Kubelet health summary could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify systemd access, kubelet service naming, and SSH-user permissions for node inspection.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            let mut active = String::from("unknown");
+            let mut restarts = 0_u32;
+            let mut failures = String::from("none");
+
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                if let Some(value) = line.strip_prefix("active=") {
+                    active = value.into();
+                    evidence.push(CheckEvidence {
+                        label: "Active State".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("sub=") {
+                    evidence.push(CheckEvidence {
+                        label: "Sub State".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("restarts=") {
+                    restarts = value.parse::<u32>().unwrap_or(0);
+                    evidence.push(CheckEvidence {
+                        label: "Restart Count".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("failures=") {
+                    failures = value.into();
+                    evidence.push(CheckEvidence {
+                        label: "Recent Failure Sample".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Kubelet".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            let unhealthy = active != "active" || restarts > 5 || failures != "none";
+            let (status, severity, summary) = if unhealthy {
+                (
+                    "warning",
+                    "warning",
+                    "Kubelet health summary was collected; service state, restart growth, or recent failures should be reviewed.".into(),
+                )
+            } else {
+                (
+                    "pass",
+                    "info",
+                    "Kubelet health summary was collected successfully.".into(),
+                )
+            };
+
+            Ok(normalized_result(
+                &input,
+                status,
+                severity,
+                summary,
+                evidence,
+                "Review unexpected restart growth or recent kubelet failures before the next maintenance window.",
+            ))
+        }
+        "linux.kubernetes.node.pressure" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"mem=$(grep -E '^memory.available:' /var/lib/kubelet/config.yaml 2>/dev/null | awk '{print $2}' | tail -n 1); imagefs=$(grep -E '^imagefs.available:' /var/lib/kubelet/config.yaml 2>/dev/null | awk '{print $2}' | tail -n 1); nodefs=$(grep -E '^nodefs.available:' /var/lib/kubelet/config.yaml 2>/dev/null | awk '{print $2}' | tail -n 1); pid=$(grep -E '^pid.available:' /var/lib/kubelet/config.yaml 2>/dev/null | awk '{print $2}' | tail -n 1); pressure=$(journalctl -u kubelet -n 120 --no-pager 2>/dev/null | grep -Ei 'evict|pressure|disk pressure|memory pressure|pid pressure' | tail -n 5 | tr '\n' '; ' | sed 's/; $//'); imagefs_usage=$(df -h /var/lib/containerd 2>/dev/null | awk 'NR==2 {print $5}' | tail -n 1); nodefs_usage=$(df -h /var/lib/kubelet 2>/dev/null | awk 'NR==2 {print $5}' | tail -n 1); printf 'memory_available=%s\\nimagefs_available=%s\\nnodefs_available=%s\\npid_available=%s\\nimagefs_usage=%s\\nnodefs_usage=%s\\npressure_sample=%s\\n' \"${mem:-unknown}\" \"${imagefs:-unknown}\" \"${nodefs:-unknown}\" \"${pid:-unknown}\" \"${imagefs_usage:-unknown}\" \"${nodefs_usage:-unknown}\" \"${pressure:-none}\"\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Kubernetes node pressure signals could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify kubelet config paths, journal access, and filesystem visibility for node pressure inspection.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            let mut pressure_sample = String::from("none");
+
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                if let Some(value) = line.strip_prefix("memory_available=") {
+                    evidence.push(CheckEvidence {
+                        label: "memory.available".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("imagefs_available=") {
+                    evidence.push(CheckEvidence {
+                        label: "imagefs.available".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("nodefs_available=") {
+                    evidence.push(CheckEvidence {
+                        label: "nodefs.available".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("pid_available=") {
+                    evidence.push(CheckEvidence {
+                        label: "pid.available".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("imagefs_usage=") {
+                    evidence.push(CheckEvidence {
+                        label: "ImageFS Usage".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("nodefs_usage=") {
+                    evidence.push(CheckEvidence {
+                        label: "NodeFS Usage".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("pressure_sample=") {
+                    pressure_sample = value.into();
+                    evidence.push(CheckEvidence {
+                        label: "Pressure Sample".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Pressure".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            let (status, severity, summary) = if pressure_sample != "none" {
+                (
+                    "warning",
+                    "warning",
+                    "Kubernetes node pressure signals were collected; recent pressure or eviction hints should be reviewed.".into(),
+                )
+            } else {
+                (
+                    "pass",
+                    "info",
+                    "Kubernetes node pressure signals were collected successfully.".into(),
+                )
+            };
+
+            Ok(normalized_result(
+                &input,
+                status,
+                severity,
+                summary,
+                evidence,
+                "Review memory, filesystem, or PID pressure before the node begins evicting workloads.",
+            ))
+        }
         _ => Ok(normalized_result(
             &input,
             "unknown",

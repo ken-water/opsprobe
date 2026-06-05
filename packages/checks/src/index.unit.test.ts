@@ -8,14 +8,18 @@ describe("built-in check definitions", () => {
     expect(template).toBeDefined();
     expect(template?.checkIds).toContain("linux.kubernetes.node.summary");
     expect(template?.checkIds).toContain("linux.kubernetes.static-pod.inventory");
+    expect(template?.checkIds).toContain("linux.kubelet.health.summary");
+    expect(template?.checkIds).toContain("linux.kubernetes.node.pressure");
   });
 
-  it("resolves Kubernetes node summary and static pod inventory checks", () => {
+  it("resolves Kubernetes node depth checks", () => {
     const checks = resolveTemplateChecks("template.linux.kubernetes");
     const ids = checks.map((check) => check.id);
 
     expect(ids).toContain("linux.kubernetes.node.summary");
     expect(ids).toContain("linux.kubernetes.static-pod.inventory");
+    expect(ids).toContain("linux.kubelet.health.summary");
+    expect(ids).toContain("linux.kubernetes.node.pressure");
   });
 
   it("includes deeper Docker workflow checks in the docker template", () => {
