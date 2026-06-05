@@ -2473,7 +2473,7 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                         label: "Runtime".into(),
                         value: combined,
                     }],
-                    "No action required.",
+                    "Confirm the runtime type and cgroup driver still match your cluster standard before the next node rollout.",
                 ));
             }
 
@@ -2575,7 +2575,7 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "info",
                 "Kubernetes node summary was collected successfully.".into(),
                 evidence,
-                "Review node runtime endpoint drift and unexpected pod-count changes before the next maintenance window.",
+                "Confirm the kubelet runtime endpoint, static pod path, and pod-count growth still match the intended node role before the next maintenance window.",
             ))
         }
         "linux.kubernetes.static-pod.inventory" => {
@@ -2683,7 +2683,7 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 severity,
                 summary,
                 evidence,
-                "Review missing static pod manifests or non-running critical node containers before the next release window.",
+                "Confirm expected static pod manifests exist, then inspect any non-running kube-apiserver, controller-manager, scheduler, or etcd containers before the next release window.",
             ))
         }
         "linux.kubelet.health.summary" => {
@@ -2789,7 +2789,7 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 severity,
                 summary,
                 evidence,
-                "Review unexpected restart growth or recent kubelet failures before the next maintenance window.",
+                "Check `systemctl status kubelet`, review recent kubelet journal failures, and stabilize restart growth before the next maintenance window.",
             ))
         }
         "linux.kubernetes.node.pressure" => {
@@ -2891,7 +2891,7 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 severity,
                 summary,
                 evidence,
-                "Review memory, filesystem, or PID pressure before the node begins evicting workloads.",
+                "Review eviction hints, free space under kubelet or container-runtime storage, and memory or PID pressure before the node begins evicting workloads.",
             ))
         }
         _ => Ok(normalized_result(

@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.8.1] - 2026-06-05
+
+### Added
+
+- Deeper Kubernetes node workflow coverage with node summary, static pod inventory, kubelet health, and node pressure signals
+- Report-side `Action focus` lines for abnormal and priority items so operators and managers can scan next actions faster
+
+### Changed
+
+- Kubernetes remediation guidance now points more explicitly at kubelet status, journal failures, runtime endpoint drift, static control-plane containers, and pressure or eviction hints
+- Desktop and repository release copy now reflect the `0.8.1` Kubernetes node exploration checkpoint
+
+### Known Limits
+
+- Kubernetes inspection remains SSH-first and node-side only; it still does not query the cluster API server or Kubernetes control plane directly
+- Report-usefulness improvements beyond the Kubernetes workflow remain planned for `0.8.2`
+
 ## [0.8.0] - 2026-06-05
 
 ### Added

@@ -74,6 +74,9 @@ describe("report view model", () => {
     expect(view.overallSummary.critical).toBe(1);
     expect(view.overallSeveritySummary.warning).toBe(1);
     expect(view.severityGroups[0]?.severity).toBe("critical");
+    expect(view.severityGroups[0]?.checks[0]?.actionFocus).toBe(
+      "Renew certificates before expiry and reload nginx.",
+    );
   });
 
   it("renders distinct operator and manager report variants", () => {
@@ -89,9 +92,11 @@ describe("report view model", () => {
     });
 
     expect(operatorHtml).toContain("Detailed Results");
+    expect(operatorHtml).toContain("Action focus:");
     expect(operatorHtml).toContain("Suggestion:");
     expect(managerHtml).toContain("Executive Summary");
     expect(managerHtml).toContain("Priority Actions");
+    expect(managerHtml).toContain("Action focus:");
     expect(managerHtml).not.toContain("Detailed Results");
   });
 });

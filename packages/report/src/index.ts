@@ -38,6 +38,7 @@ export interface ReportCheckView {
   summary: string;
   evidence: CheckResult["evidence"];
   remediation: string;
+  actionFocus: string;
 }
 
 export interface ReportSeverityGroup {
@@ -180,6 +181,8 @@ function toReportCheckView(
   template: TemplateSnapshot,
   result: CheckResult,
 ): ReportCheckView {
+  const actionFocus = deriveActionFocus(result);
+
   return {
     assetId: run.assetId,
     assetName: asset.name,
@@ -197,7 +200,34 @@ function toReportCheckView(
     summary: result.summary,
     evidence: result.evidence,
     remediation: result.remediation,
+    actionFocus,
   };
+}
+
+function deriveActionFocus(result: CheckResult) {
+  const firstSentence = result.remediation.split(/[.;]/)[0]?.trim();
+
+  if (result.checkId === "linux.kubelet.health.summary") {
+    return "Inspect kubelet state, restart growth, and recent failures first.";
+  }
+
+  if (result.checkId === "linux.kubernetes.node.pressure") {
+    return "Check eviction hints and filesystem or memory pressure first.";
+  }
+
+  if (result.checkId === "linux.kubernetes.static-pod.inventory") {
+    return "Confirm critical static pod manifests and control-plane containers first.";
+  }
+
+  if (result.checkId === "linux.kubernetes.node.summary") {
+    return "Verify runtime endpoint and unexpected pod-count drift first.";
+  }
+
+  if (firstSentence && firstSentence.length > 0) {
+    return firstSentence.endsWith(".") ? firstSentence : `${firstSentence}.`;
+  }
+
+  return "Review the finding and confirm the next operator action.";
 }
 
 function groupChecksBySeverity(checks: ReportCheckView[]): ReportSeverityGroup[] {
@@ -583,6 +613,7 @@ export function renderInspectionReportHtml(
                       <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
                     </div>
                     <p>${escapeHtml(check.summary)}</p>
+                    <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
                     ${renderEvidence(check)}
                     <p><strong>Suggestion:</strong> ${escapeHtml(check.remediation)}</p>
                   </article>`,
@@ -642,6 +673,7 @@ export function renderInspectionReportHtml(
                     <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
                   </div>
                   <p>${escapeHtml(check.summary)}</p>
+                  <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
                   <p><strong>Suggested next step:</strong> ${escapeHtml(check.remediation)}</p>
                 </article>`
                 )
@@ -676,6 +708,7 @@ export function renderInspectionReportHtml(
                     <span class="pill status-${check.status}">${escapeHtml(check.status)}</span>
                   </div>
                   <p>${escapeHtml(check.summary)}</p>
+                  <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
                   ${renderEvidence(check)}
                   <p><strong>Suggestion:</strong> ${escapeHtml(check.remediation)}</p>
                 </article>`,
