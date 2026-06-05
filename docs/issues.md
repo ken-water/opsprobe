@@ -19,7 +19,7 @@ Release mapping:
   Current issue line:
   `0.8.0`: Issues 31, 32, 33, 34, 35
   `0.8.1`: Issues 37, 39, 40
-  `0.8.2`: Issue 36
+  `0.8.2`: Issues 36, 41
   `0.8.3`: Issue 38
 
 ## Foundation

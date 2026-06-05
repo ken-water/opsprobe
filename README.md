@@ -114,7 +114,7 @@ opsprobe/
 
 OpsProbe is in the early build stage. The current focus is defining the product boundary, core architecture, and the first usable desktop workflow.
 
-The `0.7.x` external-validation cycle is now complete. OpsProbe is in the `0.8.x` exploration line, with `0.8.1` now focused on deeper Kubernetes node inspection quality and local workflow reliability rather than declaring `1.0.0` yet.
+The `0.7.x` external-validation cycle is now complete. OpsProbe is in the `0.8.x` exploration line, with `0.8.2` now focused on more useful reports and remediation guidance for recurring operations rather than declaring `1.0.0` yet.
 
 ## Roadmap Principles
 

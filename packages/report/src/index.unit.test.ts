@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Asset, InspectionRun } from "@opsprobe/core";
-import { buildSingleRunReportView, renderInspectionReportHtml } from "./index";
+import { buildInspectionReportView, buildSingleRunReportView, renderInspectionReportHtml } from "./index";
 
 const asset: Asset = {
   id: "asset-nginx-001",
@@ -65,6 +65,13 @@ const run: InspectionRun = {
   ],
 };
 
+const repeatedRun: InspectionRun = {
+  ...run,
+  id: "run-nginx-002",
+  createdAt: "2026-06-05T05:00:00.000Z",
+  updatedAt: "2026-06-05T05:00:00.000Z",
+};
+
 describe("report view model", () => {
   it("builds grouped host and severity summaries for a single run", () => {
     const view = buildSingleRunReportView(run, asset);
@@ -102,5 +109,22 @@ describe("report view model", () => {
     expect(managerHtml).toContain("Action focus:");
     expect(managerHtml).toContain("Evidence signal:");
     expect(managerHtml).not.toContain("Detailed Results");
+  });
+
+  it("builds recurring actions across repeated abnormal findings", () => {
+    const view = buildInspectionReportView({
+      runs: [run, repeatedRun],
+      assets: [asset],
+    });
+    const operatorHtml = renderInspectionReportHtml(view, {
+      title: "Operator Report",
+      audience: "operator",
+    });
+
+    expect(view.recurringActions).toHaveLength(2);
+    expect(view.recurringActions[0]?.occurrences).toBe(2);
+    expect(operatorHtml).toContain("Recurring Actions");
+    expect(operatorHtml).toContain("2x");
+    expect(operatorHtml).toContain("Last seen 2026-06-05T05:00:00.000Z");
   });
 });

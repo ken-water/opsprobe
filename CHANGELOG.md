@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.8.2] - 2026-06-05
+
+### Added
+
+- Operator-facing `Action Queue` and cross-run `Recurring Actions` sections in report output
+- `Evidence signal` and `Action focus` summaries to make repeated operational pain points easier to scan
+
+### Changed
+
+- Manager and operator report variants now surface clearer next actions and shorter evidence summaries
+- Repository and desktop release copy now reflect the `0.8.2` report-usefulness checkpoint
+
+### Known Limits
+
+- Recurring action summaries currently group repeated findings within the included report runs and do not yet compute long-term trends across broader history exports
+- Functional hardening and release-process coverage growth remain planned for `0.8.3`
+
 ## [0.8.1] - 2026-06-05
 
 ### Added

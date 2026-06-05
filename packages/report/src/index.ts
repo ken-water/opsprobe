@@ -69,12 +69,27 @@ export interface ReportHostView {
   severityGroups: ReportSeverityGroup[];
 }
 
+export interface ReportRecurringActionView {
+  assetId: string;
+  assetName: string;
+  host: string;
+  checkId: string;
+  title: string;
+  severity: CheckResult["severity"];
+  occurrences: number;
+  latestCollectedAt: string;
+  evidenceHighlight: string;
+  actionFocus: string;
+  remediation: string;
+}
+
 export interface InspectionReportView {
   generatedAt: string;
   hosts: ReportHostView[];
   overallSummary: ReportStatusSummary;
   overallSeveritySummary: ReportSeveritySummary;
   severityGroups: ReportSeverityGroup[];
+  recurringActions: ReportRecurringActionView[];
 }
 
 export type ReportAudience = "operator" | "manager";
@@ -244,6 +259,62 @@ function deriveEvidenceHighlight(result: CheckResult) {
     .join(" | ");
 }
 
+function buildRecurringActions(checks: ReportCheckView[]): ReportRecurringActionView[] {
+  const recurringMap = new Map<string, ReportRecurringActionView>();
+
+  for (const check of checks) {
+    if (check.severity === "info") {
+      continue;
+    }
+
+    const key = `${check.assetId}:${check.checkId}:${check.actionFocus}`;
+    const existing = recurringMap.get(key);
+
+    if (!existing) {
+      recurringMap.set(key, {
+        assetId: check.assetId,
+        assetName: check.assetName,
+        host: check.host,
+        checkId: check.checkId,
+        title: check.title,
+        severity: check.severity,
+        occurrences: 1,
+        latestCollectedAt: check.collectedAt,
+        evidenceHighlight: check.evidenceHighlight,
+        actionFocus: check.actionFocus,
+        remediation: check.remediation,
+      });
+      continue;
+    }
+
+    existing.occurrences += 1;
+    if (check.collectedAt > existing.latestCollectedAt) {
+      existing.latestCollectedAt = check.collectedAt;
+      existing.evidenceHighlight = check.evidenceHighlight;
+      existing.remediation = check.remediation;
+      if (check.severity === "critical") {
+        existing.severity = "critical";
+      }
+    }
+  }
+
+  return Array.from(recurringMap.values())
+    .filter((item) => item.occurrences > 1)
+    .sort((left, right) => {
+      if (right.occurrences !== left.occurrences) {
+        return right.occurrences - left.occurrences;
+      }
+
+      const severityDelta =
+        SEVERITY_ORDER.indexOf(left.severity) - SEVERITY_ORDER.indexOf(right.severity);
+      if (severityDelta !== 0) {
+        return severityDelta;
+      }
+
+      return right.latestCollectedAt.localeCompare(left.latestCollectedAt);
+    });
+}
+
 function groupChecksBySeverity(checks: ReportCheckView[]): ReportSeverityGroup[] {
   return SEVERITY_ORDER.map((severity) => {
     const severityChecks = checks.filter((check) => check.severity === severity);
@@ -354,6 +425,7 @@ export function buildInspectionReportView(
     overallSummary,
     overallSeveritySummary,
     severityGroups: groupChecksBySeverity(allChecks),
+    recurringActions: buildRecurringActions(allChecks),
   };
 }
 
@@ -435,6 +507,7 @@ export function renderInspectionReportHtml(
     .filter((group) => group.severity !== "info")
     .flatMap((group) => group.checks);
   const topAbnormalChecks = abnormalChecks.slice(0, 8);
+  const recurringActions = view.recurringActions.slice(0, 8);
   const criticalChecks = abnormalChecks.filter((check) => check.severity === "critical");
   const warningChecks = abnormalChecks.filter((check) => check.severity === "warning");
   const managerHighlights = [
@@ -666,6 +739,34 @@ export function renderInspectionReportHtml(
             )
             .join("")}
         </div>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Recurring Actions</p>
+        ${
+          recurringActions.length > 0
+            ? `<div class="checks-grid">
+              ${recurringActions
+                .map(
+                  (item) => `
+                <article class="check-card">
+                  <div class="spaced">
+                    <div>
+                      <h3>${escapeHtml(item.title)}</h3>
+                      <p class="meta">${escapeHtml(item.assetName)} · ${escapeHtml(item.host)}</p>
+                    </div>
+                    <span class="pill severity-${item.severity}">${item.occurrences}x</span>
+                  </div>
+                  <p><strong>Evidence signal:</strong> ${escapeHtml(item.evidenceHighlight)}</p>
+                  <p><strong>Action focus:</strong> ${escapeHtml(item.actionFocus)}</p>
+                  <p><strong>Suggested next step:</strong> ${escapeHtml(item.remediation)}</p>
+                  <p class="meta">Last seen ${escapeHtml(item.latestCollectedAt)}</p>
+                </article>`
+                )
+                .join("")}
+            </div>`
+            : "<p class=\"helper\">No repeated abnormal actions were detected across the included runs.</p>"
+        }
       </section>
 
       ${
