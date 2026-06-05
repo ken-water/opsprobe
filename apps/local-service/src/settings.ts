@@ -18,6 +18,7 @@ function normalizeSettings(settings: LocalDesktopSettings): LocalDesktopSettings
     activeAsset: settings.activeAsset ? cloneAsset(settings.activeAsset) : undefined,
     selectedTemplateId: settings.selectedTemplateId,
     onboardingMode: settings.onboardingMode,
+    reportAudience: settings.reportAudience,
     historyAssetFilter: settings.historyAssetFilter,
     historyDateFrom: settings.historyDateFrom,
     historyDateTo: settings.historyDateTo,

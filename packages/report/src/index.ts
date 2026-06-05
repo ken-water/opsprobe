@@ -75,8 +75,11 @@ export interface InspectionReportView {
   severityGroups: ReportSeverityGroup[];
 }
 
+export type ReportAudience = "operator" | "manager";
+
 export interface RenderInspectionReportHtmlOptions {
   title?: string;
+  audience?: ReportAudience;
 }
 
 interface BuildInspectionReportViewInput {
@@ -355,14 +358,50 @@ function renderEvidence(check: ReportCheckView) {
   `;
 }
 
+function renderSeveritySummary(summary: ReportSeveritySummary) {
+  return `
+    <ul class="summary-list">
+      <li>Critical <strong>${summary.critical}</strong></li>
+      <li>Warning <strong>${summary.warning}</strong></li>
+      <li>Info <strong>${summary.info}</strong></li>
+      <li>Total <strong>${summary.total}</strong></li>
+    </ul>
+  `;
+}
+
+function highestRiskLabel(view: InspectionReportView) {
+  if (view.overallSeveritySummary.critical > 0) {
+    return "critical";
+  }
+
+  if (view.overallSeveritySummary.warning > 0) {
+    return "warning";
+  }
+
+  return "stable";
+}
+
 export function renderInspectionReportHtml(
   view: InspectionReportView,
   options: RenderInspectionReportHtmlOptions = {},
 ) {
   const title = options.title ?? "OpsProbe Inspection Report";
+  const audience = options.audience ?? "operator";
   const abnormalChecks = view.severityGroups
     .filter((group) => group.severity !== "info")
     .flatMap((group) => group.checks);
+  const topAbnormalChecks = abnormalChecks.slice(0, 8);
+  const criticalChecks = abnormalChecks.filter((check) => check.severity === "critical");
+  const warningChecks = abnormalChecks.filter((check) => check.severity === "warning");
+  const managerHighlights = [
+    criticalChecks.length > 0
+      ? `${criticalChecks.length} critical item(s) need immediate attention.`
+      : "No critical items were detected.",
+    warningChecks.length > 0
+      ? `${warningChecks.length} warning item(s) should be scheduled into the next maintenance window.`
+      : "No warning items were detected.",
+    `${view.hosts.length} host(s) are included in this inspection summary.`,
+  ];
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -507,21 +546,31 @@ export function renderInspectionReportHtml(
           </div>
           <div>
             <h3>Severity Summary</h3>
-            <ul class="summary-list">
-              <li>Critical <strong>${view.overallSeveritySummary.critical}</strong></li>
-              <li>Warning <strong>${view.overallSeveritySummary.warning}</strong></li>
-              <li>Info <strong>${view.overallSeveritySummary.info}</strong></li>
-              <li>Total <strong>${view.overallSeveritySummary.total}</strong></li>
-            </ul>
+            ${renderSeveritySummary(view.overallSeveritySummary)}
           </div>
         </div>
       </section>
 
       <section class="panel">
-        <p class="eyebrow">Abnormal Items</p>
+        <p class="eyebrow">${audience === "manager" ? "Executive Summary" : "Abnormal Items"}</p>
         ${
-          abnormalChecks.length > 0
-            ? `<div class="checks-grid">
+          audience === "manager"
+            ? `<div class="grid">
+                <article class="check-card">
+                  <h3>Overall Risk</h3>
+                  <p class="meta">Highest active severity</p>
+                  <p><span class="pill severity-${highestRiskLabel(view) === "stable" ? "info" : highestRiskLabel(view)}">${escapeHtml(highestRiskLabel(view))}</span></p>
+                  ${renderSeveritySummary(view.overallSeveritySummary)}
+                </article>
+                <article class="check-card">
+                  <h3>Key Highlights</h3>
+                  <ul class="summary-list">
+                    ${managerHighlights.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                  </ul>
+                </article>
+              </div>`
+            : abnormalChecks.length > 0
+              ? `<div class="checks-grid">
                 ${abnormalChecks
                   .map(
                     (check) => `
@@ -540,12 +589,12 @@ export function renderInspectionReportHtml(
                   )
                   .join("")}
               </div>`
-            : "<p class=\"helper\">No abnormal items were found in this report.</p>"
+              : "<p class=\"helper\">No abnormal items were found in this report.</p>"
         }
       </section>
 
       <section class="panel">
-        <p class="eyebrow">Hosts</p>
+        <p class="eyebrow">${audience === "manager" ? "Asset Summary" : "Hosts"}</p>
         <div class="host-grid">
           ${view.hosts
             .map(
@@ -574,7 +623,34 @@ export function renderInspectionReportHtml(
         </div>
       </section>
 
-      <section class="panel">
+      ${
+        audience === "manager"
+          ? `<section class="panel">
+        <p class="eyebrow">Priority Actions</p>
+        ${
+          topAbnormalChecks.length > 0
+            ? `<div class="checks-grid">
+              ${topAbnormalChecks
+                .map(
+                  (check) => `
+                <article class="check-card">
+                  <div class="spaced">
+                    <div>
+                      <h3>${escapeHtml(check.title)}</h3>
+                      <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.templateName)}</p>
+                    </div>
+                    <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
+                  </div>
+                  <p>${escapeHtml(check.summary)}</p>
+                  <p><strong>Suggested next step:</strong> ${escapeHtml(check.remediation)}</p>
+                </article>`
+                )
+                .join("")}
+            </div>`
+            : "<p class=\"helper\">No priority actions are required from this inspection run.</p>"
+        }
+      </section>`
+          : `<section class="panel">
         <p class="eyebrow">Detailed Results</p>
         ${view.severityGroups
           .map(
@@ -609,7 +685,8 @@ export function renderInspectionReportHtml(
           </section>`,
           )
           .join("")}
-      </section>
+      </section>`
+      }
     </main>
   </body>
 </html>`;

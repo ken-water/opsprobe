@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.7.2] - 2026-06-05
+
+### Added
+
+- Shared operator and manager report audiences for HTML and PDF export
+- Desktop report-variant selector with persisted audience preference and in-product comparison guidance
+
+### Changed
+
+- HTML report rendering now supports a detailed operator layout and a condensed manager summary layout from the same inspection data
+- PDF export now supports a concise manager-facing priority-actions view in addition to the existing detailed operator view
+- Local HTML export flow now preserves the selected report audience across desktop and local-service boundaries
+
+### Known Limits
+
+- Report variants are currently single-run views; cross-run or multi-run comparison reports remain out of scope
+- Manager summaries are intentionally concise and do not yet include trend or SLA-oriented rollups
+
 ## [0.7.1] - 2026-06-05
 
 ### Added

@@ -29,6 +29,7 @@ import type {
 import { runInspection, type SshConnectionTestInput, type SshConnectionTestResult } from "@opsprobe/runner";
 import { exportRunPdfReport } from "./pdf";
 import "./App.css";
+import type { ReportAudience } from "@opsprobe/report";
 
 const initialAsset: Asset = {
   id: "asset-linux-001",
@@ -361,6 +362,7 @@ function App() {
   const [serviceHistoryRuns, setServiceHistoryRuns] = useState<InspectionRun[]>([]);
   const [selectedHistoryRun, setSelectedHistoryRun] = useState<InspectionRun | null>(null);
   const [onboardingMode, setOnboardingMode] = useState<"demo" | "real">("demo");
+  const [reportAudience, setReportAudience] = useState<ReportAudience>("operator");
   const [schedules, setSchedules] = useState<LocalInspectionSchedule[]>([]);
   const [savedAssets, setSavedAssets] = useState<Asset[]>([]);
   const [serviceResponse, setServiceResponse] = useState<LocalServiceStatusResponse | null>(null);
@@ -444,6 +446,7 @@ function App() {
             activeAsset: asset,
             selectedTemplateId,
             onboardingMode,
+            reportAudience,
             historyAssetFilter,
             historyDateFrom,
             historyDateTo,
@@ -470,6 +473,7 @@ function App() {
     migrationPath,
     onboardingMode,
     pdfReportPath,
+    reportAudience,
     reportPath,
     selectedTemplateId,
     settingsLoaded,
@@ -511,6 +515,9 @@ function App() {
       }
       if (restoredSettings.onboardingMode === "demo" || restoredSettings.onboardingMode === "real") {
         setOnboardingMode(restoredSettings.onboardingMode);
+      }
+      if (restoredSettings.reportAudience === "operator" || restoredSettings.reportAudience === "manager") {
+        setReportAudience(restoredSettings.reportAudience);
       }
       if (restoredSettings.historyAssetFilter !== undefined) {
         setHistoryAssetFilter(restoredSettings.historyAssetFilter);
@@ -878,6 +885,7 @@ function App() {
           path: reportPath,
           run,
           asset: resolveAssetForRun(run),
+          audience: reportAudience,
         },
       });
       setServiceMessage(response.message);
@@ -891,8 +899,8 @@ function App() {
     setServiceMessage(null);
 
     try {
-      await exportRunPdfReport(run, resolveAssetForRun(run), pdfReportPath);
-      setServiceMessage(`Exported PDF report to ${pdfReportPath}.`);
+      await exportRunPdfReport(run, resolveAssetForRun(run), pdfReportPath, reportAudience);
+      setServiceMessage(`Exported ${reportAudience} PDF report to ${pdfReportPath}.`);
     } finally {
       setIsExportingPdfReport(false);
     }
@@ -1080,8 +1088,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.7.1` focuses on runtime diagnostics so early users can understand dependency, port,
-          permission, and SSH failures without reading raw logs or source code.
+          `0.7.2` focuses on report variants so early users can compare operator-grade detail with
+          manager-friendly summary output from the same inspection run.
         </p>
       </section>
 
@@ -1089,19 +1097,19 @@ function App() {
         <article className="card">
           <h2>Current Focus</h2>
           <ul>
-            <li>Actionable dependency diagnostics</li>
-            <li>Clear SSH troubleshooting guidance</li>
-            <li>Repair advice for local service runtime issues</li>
+            <li>Audience-specific report structure</li>
+            <li>Export parity across HTML and PDF</li>
+            <li>Faster feedback on what different readers actually need</li>
           </ul>
         </article>
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.7.1</p>
+          <p className="version">v0.7.2</p>
           <ul>
-            <li>Better SSH failure explanations</li>
-            <li>Better local-service and PostgreSQL repair guidance</li>
-            <li>Less setup friction for early testers</li>
+            <li>Operator-facing detailed reports</li>
+            <li>Manager-facing summary reports</li>
+            <li>Shared export flow for both audiences</li>
           </ul>
         </article>
 
@@ -1125,7 +1133,54 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
+            <h2>Report Variants</h2>
+          </div>
+        </div>
+
+        <div className="ssh-grid">
+          <label>
+            <span>Audience</span>
+            <select
+              value={reportAudience}
+              onChange={(event) => setReportAudience(event.target.value as ReportAudience)}
+            >
+              <option value="operator">Operator Detailed Report</option>
+              <option value="manager">Manager Summary Report</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="service-checks">
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Operator Detailed Report</strong>
+              <span className={`badge badge-${reportAudience === "operator" ? "pass" : "unknown"}`}>
+                {reportAudience === "operator" ? "selected" : "available"}
+              </span>
+            </div>
+            <p>Includes detailed evidence, grouped results by severity, and per-check remediation text for operators doing the actual repair work.</p>
+          </article>
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Manager Summary Report</strong>
+              <span className={`badge badge-${reportAudience === "manager" ? "pass" : "unknown"}`}>
+                {reportAudience === "manager" ? "selected" : "available"}
+              </span>
+            </div>
+            <p>Condenses the run into risk summary, host overview, and priority actions for stakeholders who need decision-ready context.</p>
+          </article>
+        </div>
+
+        <p className="helper-text">
+          The selected audience affects both HTML and PDF export paths, so you can compare which report structure is more useful to early users.
+        </p>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
@@ -1164,7 +1219,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>Minimum Local Setup</h2>
           </div>
           <div className="summary-strip">
@@ -1227,7 +1282,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>Troubleshooting Guidance</h2>
           </div>
           <div className="summary-strip">
@@ -1276,7 +1331,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -1367,7 +1422,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1463,7 +1518,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1551,7 +1606,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1564,20 +1619,20 @@ function App() {
             </button>
             {serviceExecutionRun ? (
               <>
-                <button
-                  className="secondary-button"
-                  onClick={() => void handleExportHtmlReport(serviceExecutionRun)}
-                  type="button"
-                >
-                  {isExportingReport ? "Exporting..." : "Export HTML Report"}
-                </button>
-                <button
-                  className="secondary-button"
-                  onClick={() => void handleExportPdfReport(serviceExecutionRun)}
-                  type="button"
-                >
-                  {isExportingPdfReport ? "Exporting..." : "Export PDF Report"}
-                </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => void handleExportHtmlReport(serviceExecutionRun)}
+                    type="button"
+                  >
+                    {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => void handleExportPdfReport(serviceExecutionRun)}
+                    type="button"
+                  >
+                    {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
+                  </button>
               </>
             ) : null}
           </div>
@@ -1654,7 +1709,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.1 Current Release</p>
+            <p className="eyebrow">0.7.2 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button
@@ -1831,14 +1886,14 @@ function App() {
                       onClick={() => void handleExportHtmlReport(selectedHistoryRun)}
                       type="button"
                     >
-                      {isExportingReport ? "Exporting..." : "Export Selected Run"}
+                      {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
                     </button>
                     <button
                       className="secondary-button"
                       onClick={() => void handleExportPdfReport(selectedHistoryRun)}
                       type="button"
                     >
-                      {isExportingPdfReport ? "Exporting..." : "Export Selected PDF"}
+                      {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
                     </button>
                   </div>
 

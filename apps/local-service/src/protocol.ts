@@ -1,6 +1,7 @@
 import type { LocalServiceHealth, LocalServiceStatus } from "./index";
 import type { LocalServiceConfig } from "./config";
 import type { Asset, InspectionRun, InspectionTemplate } from "@opsprobe/core";
+import type { ReportAudience } from "@opsprobe/report";
 
 export interface LocalServiceRuntimeSnapshot {
   status: LocalServiceStatus;
@@ -158,6 +159,7 @@ export interface LocalDesktopSettings {
   activeAsset?: Asset;
   selectedTemplateId?: string;
   onboardingMode?: "demo" | "real";
+  reportAudience?: ReportAudience;
   historyAssetFilter?: string;
   historyDateFrom?: string;
   historyDateTo?: string;
@@ -184,4 +186,5 @@ export interface LocalFilePathRequest {
 export interface LocalHtmlReportExportRequest extends LocalFilePathRequest {
   run: InspectionRun;
   asset?: Asset;
+  audience?: ReportAudience;
 }

@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { Asset, InspectionRun } from "@opsprobe/core";
-import { buildSingleRunReportView, type ReportCheckView } from "@opsprobe/report";
+import { buildSingleRunReportView, type ReportAudience, type ReportCheckView } from "@opsprobe/report";
 
 async function loadPdfRuntime() {
   const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
@@ -44,11 +44,18 @@ function checkRows(checks: ReportCheckView[]) {
   ]);
 }
 
-export async function exportRunPdfReport(run: InspectionRun, asset: Asset | undefined, path: string) {
+export async function exportRunPdfReport(
+  run: InspectionRun,
+  asset: Asset | undefined,
+  path: string,
+  audience: ReportAudience = "operator",
+) {
   const { jsPDF, autoTable } = await loadPdfRuntime();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const view = buildSingleRunReportView(run, asset);
-  const title = asset ? `OpsProbe Report - ${asset.name}` : `OpsProbe Report - ${run.assetId}`;
+  const title = asset
+    ? `OpsProbe ${audience === "manager" ? "Summary" : "Report"} - ${asset.name}`
+    : `OpsProbe ${audience === "manager" ? "Summary" : "Report"} - ${run.assetId}`;
 
   doc.setFontSize(20);
   doc.text(title, 14, 20);
@@ -102,32 +109,64 @@ export async function exportRunPdfReport(run: InspectionRun, asset: Asset | unde
     },
   });
 
-  for (const group of view.severityGroups) {
+  if (audience === "manager") {
     doc.addPage();
     doc.setFontSize(16);
-    doc.text(`${group.severity.toUpperCase()} Results`, 14, 18);
+    doc.text("Priority Actions", 14, 18);
     doc.setFontSize(10);
-    doc.text(`${group.checks.length} item(s)`, 14, 24);
+    doc.text(`${abnormalChecks.length} abnormal item(s)`, 14, 24);
 
     autoTable(doc, {
       startY: 30,
-      head: [["Host", "Template", "Check", "Status", "Summary", "Evidence", "Suggestion"]],
-      body: checkRows(group.checks),
-      styles: { fontSize: 7.5, cellPadding: 2, overflow: "linebreak", valign: "top" },
-      headStyles: {
-        fillColor:
-          group.severity === "critical" ? [138, 31, 31] : group.severity === "warning" ? [138, 91, 0] : [46, 106, 52],
-      },
+      head: [["Host", "Check", "Severity", "Summary", "Suggested Next Step"]],
+      body:
+        abnormalChecks.length > 0
+          ? abnormalChecks.slice(0, 10).map((check) => [
+              check.assetName,
+              check.title,
+              check.severity,
+              check.summary,
+              check.remediation,
+            ])
+          : [["No priority actions", "", "", "", ""]],
+      styles: { fontSize: 8, cellPadding: 2.2, overflow: "linebreak", valign: "top" },
+      headStyles: { fillColor: [159, 75, 18] },
       columnStyles: {
         0: { cellWidth: 24 },
-        1: { cellWidth: 24 },
-        2: { cellWidth: 24 },
-        3: { cellWidth: 14 },
-        4: { cellWidth: 34 },
-        5: { cellWidth: 44 },
-        6: { cellWidth: 28 },
+        1: { cellWidth: 34 },
+        2: { cellWidth: 18 },
+        3: { cellWidth: 54 },
+        4: { cellWidth: 58 },
       },
     });
+  } else {
+    for (const group of view.severityGroups) {
+      doc.addPage();
+      doc.setFontSize(16);
+      doc.text(`${group.severity.toUpperCase()} Results`, 14, 18);
+      doc.setFontSize(10);
+      doc.text(`${group.checks.length} item(s)`, 14, 24);
+
+      autoTable(doc, {
+        startY: 30,
+        head: [["Host", "Template", "Check", "Status", "Summary", "Evidence", "Suggestion"]],
+        body: checkRows(group.checks),
+        styles: { fontSize: 7.5, cellPadding: 2, overflow: "linebreak", valign: "top" },
+        headStyles: {
+          fillColor:
+            group.severity === "critical" ? [138, 31, 31] : group.severity === "warning" ? [138, 91, 0] : [46, 106, 52],
+        },
+        columnStyles: {
+          0: { cellWidth: 24 },
+          1: { cellWidth: 24 },
+          2: { cellWidth: 24 },
+          3: { cellWidth: 14 },
+          4: { cellWidth: 34 },
+          5: { cellWidth: 44 },
+          6: { cellWidth: 28 },
+        },
+      });
+    }
   }
 
   const blob = doc.output("blob");

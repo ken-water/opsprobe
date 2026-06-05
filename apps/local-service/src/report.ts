@@ -7,16 +7,17 @@ export async function exportHtmlReport(
   request: LocalHtmlReportExportRequest,
 ): Promise<LocalServiceCommandResponse> {
   const view = buildSingleRunReportView(request.run, request.asset);
+  const audience = request.audience ?? "operator";
   const title = request.asset
-    ? `OpsProbe Report - ${request.asset.name}`
-    : `OpsProbe Report - ${request.run.assetId}`;
-  const html = renderInspectionReportHtml(view, { title });
+    ? `OpsProbe ${audience === "manager" ? "Summary" : "Report"} - ${request.asset.name}`
+    : `OpsProbe ${audience === "manager" ? "Summary" : "Report"} - ${request.run.assetId}`;
+  const html = renderInspectionReportHtml(view, { title, audience });
 
   await mkdir(dirname(request.path), { recursive: true });
   await writeFile(request.path, html, "utf8");
 
   return {
     ok: true,
-    message: `Exported HTML report to ${request.path}.`,
+    message: `Exported ${audience} HTML report to ${request.path}.`,
   };
 }
