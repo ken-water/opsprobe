@@ -37,6 +37,7 @@ export interface ReportCheckView {
   severity: CheckResult["severity"];
   summary: string;
   evidence: CheckResult["evidence"];
+  evidenceHighlight: string;
   remediation: string;
   actionFocus: string;
 }
@@ -182,6 +183,7 @@ function toReportCheckView(
   result: CheckResult,
 ): ReportCheckView {
   const actionFocus = deriveActionFocus(result);
+  const evidenceHighlight = deriveEvidenceHighlight(result);
 
   return {
     assetId: run.assetId,
@@ -199,6 +201,7 @@ function toReportCheckView(
     severity: result.severity,
     summary: result.summary,
     evidence: result.evidence,
+    evidenceHighlight,
     remediation: result.remediation,
     actionFocus,
   };
@@ -228,6 +231,17 @@ function deriveActionFocus(result: CheckResult) {
   }
 
   return "Review the finding and confirm the next operator action.";
+}
+
+function deriveEvidenceHighlight(result: CheckResult) {
+  if (result.evidence.length === 0) {
+    return "No evidence recorded.";
+  }
+
+  return result.evidence
+    .slice(0, 2)
+    .map((item) => `${item.label}: ${item.value}`)
+    .join(" | ");
 }
 
 function groupChecksBySeverity(checks: ReportCheckView[]): ReportSeverityGroup[] {
@@ -673,6 +687,7 @@ export function renderInspectionReportHtml(
                     <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
                   </div>
                   <p>${escapeHtml(check.summary)}</p>
+                  <p><strong>Evidence signal:</strong> ${escapeHtml(check.evidenceHighlight)}</p>
                   <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
                   <p><strong>Suggested next step:</strong> ${escapeHtml(check.remediation)}</p>
                 </article>`
@@ -683,6 +698,32 @@ export function renderInspectionReportHtml(
         }
       </section>`
           : `<section class="panel">
+        <p class="eyebrow">Action Queue</p>
+        ${
+          topAbnormalChecks.length > 0
+            ? `<div class="checks-grid">
+              ${topAbnormalChecks
+                .map(
+                  (check) => `
+                <article class="check-card">
+                  <div class="spaced">
+                    <div>
+                      <h3>${escapeHtml(check.title)}</h3>
+                      <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)} · ${escapeHtml(check.templateName)}</p>
+                    </div>
+                    <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
+                  </div>
+                  <p><strong>Evidence signal:</strong> ${escapeHtml(check.evidenceHighlight)}</p>
+                  <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
+                  <p><strong>Suggested next step:</strong> ${escapeHtml(check.remediation)}</p>
+                </article>`
+                )
+                .join("")}
+            </div>`
+            : "<p class=\"helper\">No operator action queue is required from this inspection run.</p>"
+        }
+      </section>
+      <section class="panel">
         <p class="eyebrow">Detailed Results</p>
         ${view.severityGroups
           .map(
@@ -708,6 +749,7 @@ export function renderInspectionReportHtml(
                     <span class="pill status-${check.status}">${escapeHtml(check.status)}</span>
                   </div>
                   <p>${escapeHtml(check.summary)}</p>
+                  <p><strong>Evidence signal:</strong> ${escapeHtml(check.evidenceHighlight)}</p>
                   <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
                   ${renderEvidence(check)}
                   <p><strong>Suggestion:</strong> ${escapeHtml(check.remediation)}</p>
