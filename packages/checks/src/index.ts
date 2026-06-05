@@ -444,6 +444,54 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.redis.runtime.info",
+    title: "Redis Runtime Configuration",
+    description: "Collects Redis version, port, uptime, and persistence signals for recurring review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.runtime.info",
+        title: "Redis Runtime Configuration",
+        status: "pass",
+        severity: "info",
+        summary: "Redis runtime configuration was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Runtime",
+            value: "redis_version, tcp_port, uptime_in_days, loading, rdb_last_bgsave_status, aof_enabled",
+          },
+        ],
+        remediation: "Review persistence mode and runtime identity if this host is expected to serve a different Redis role.",
+      };
+    },
+  },
+  {
+    id: "linux.redis.replication.info",
+    title: "Redis Replication Role",
+    description: "Collects Redis role and replication health signals where available.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.replication.info",
+        title: "Redis Replication Role",
+        status: "pass",
+        severity: "info",
+        summary: "Redis replication metadata was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Replication",
+            value: "role, connected_slaves, master_host, master_link_status",
+          },
+        ],
+        remediation: "Review unexpected replica wiring or degraded master link state before the next maintenance window.",
+      };
+    },
+  },
+  {
     id: "linux.docker.process",
     title: "Docker Daemon Status",
     description: "Checks whether the Docker daemon is running.",
@@ -661,7 +709,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
   {
     id: "template.linux.redis",
     name: "Linux Redis Baseline",
-    description: "Linux host baseline plus redis process and listener checks.",
+    description: "Linux host baseline plus Redis process, listener, runtime, and replication checks.",
     assetKind: "linux-host",
     checkIds: [
       "linux.cpu.usage",
@@ -672,6 +720,8 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.log.usage",
       "linux.redis.process",
       "linux.redis.port.6379",
+      "linux.redis.runtime.info",
+      "linux.redis.replication.info",
     ],
   },
   {

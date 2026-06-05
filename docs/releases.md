@@ -259,6 +259,8 @@ Related issues:
 - Issue 31
 - Issue 32
 - Issue 33
+- Issue 34
+- Issue 35
 
 ## Stable Milestone
 

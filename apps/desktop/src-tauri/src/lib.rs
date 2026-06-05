@@ -326,11 +326,7 @@ fn start_local_service_postgres() -> Result<Value, String> {
 
 #[tauri::command]
 fn stop_local_service_postgres() -> Result<Value, String> {
-    run_local_service_json_command(
-        "postgres-stop",
-        None,
-        "local service postgres stop command",
-    )
+    run_local_service_json_command("postgres-stop", None, "local service postgres stop command")
 }
 
 #[tauri::command]
@@ -340,7 +336,11 @@ fn get_local_service_inspection_preview(
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service preview input: {error}"))?;
 
-    run_local_service_json_command("inspect-preview", Some(payload), "local service preview command")
+    run_local_service_json_command(
+        "inspect-preview",
+        Some(payload),
+        "local service preview command",
+    )
 }
 
 #[tauri::command]
@@ -350,7 +350,11 @@ fn run_local_service_inspection(
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service run input: {error}"))?;
 
-    run_local_service_json_command("inspect-run", Some(payload), "local service inspection command")
+    run_local_service_json_command(
+        "inspect-run",
+        Some(payload),
+        "local service inspection command",
+    )
 }
 
 #[tauri::command]
@@ -371,7 +375,11 @@ fn get_local_service_inspection_history(
 
 #[tauri::command]
 fn get_local_service_schedules() -> Result<Value, String> {
-    run_local_service_json_command("schedules-list", None, "local service schedules list command")
+    run_local_service_json_command(
+        "schedules-list",
+        None,
+        "local service schedules list command",
+    )
 }
 
 #[tauri::command]
@@ -388,8 +396,9 @@ fn upsert_local_service_schedule(input: LocalServiceScheduleUpsertInput) -> Resu
 
 #[tauri::command]
 fn delete_local_service_schedule(input: LocalServiceScheduleDeleteInput) -> Result<Value, String> {
-    let payload = serde_json::to_string(&input)
-        .map_err(|error| format!("Failed to serialize local service schedule delete input: {error}"))?;
+    let payload = serde_json::to_string(&input).map_err(|error| {
+        format!("Failed to serialize local service schedule delete input: {error}")
+    })?;
 
     run_local_service_json_command(
         "schedules-delete",
@@ -457,9 +466,12 @@ fn import_local_service_config(input: LocalServiceFilePathInput) -> Result<Value
 }
 
 #[tauri::command]
-fn export_local_service_html_report(input: LocalServiceHtmlReportExportInput) -> Result<Value, String> {
-    let payload = serde_json::to_string(&input)
-        .map_err(|error| format!("Failed to serialize local service HTML report export input: {error}"))?;
+fn export_local_service_html_report(
+    input: LocalServiceHtmlReportExportInput,
+) -> Result<Value, String> {
+    let payload = serde_json::to_string(&input).map_err(|error| {
+        format!("Failed to serialize local service HTML report export input: {error}")
+    })?;
 
     run_local_service_json_command(
         "report-export-html",
@@ -479,7 +491,8 @@ fn save_export_file(input: SaveExportFileInput) -> Result<String, String> {
             .map_err(|error| format!("Failed to create export directory: {error}"))?;
     }
 
-    fs::write(&input.path, bytes).map_err(|error| format!("Failed to write export file: {error}"))?;
+    fs::write(&input.path, bytes)
+        .map_err(|error| format!("Failed to write export file: {error}"))?;
     Ok(input.path)
 }
 
@@ -568,8 +581,7 @@ fn format_ssh_failure(
         );
     }
 
-    if lower.contains("could not resolve hostname") || lower.contains("name or service not known")
-    {
+    if lower.contains("could not resolve hostname") || lower.contains("name or service not known") {
         return format!(
             "SSH could not resolve host `{host}`. Recheck the hostname or use a direct IP address if DNS is not available in this environment."
         );
@@ -1564,7 +1576,11 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
             let mut evidence = Vec::new();
             let mut role_hint = "write-capable";
 
-            for line in combined.lines().map(|line| line.trim()).filter(|line| !line.is_empty()) {
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
                 let parts = line.split_whitespace().collect::<Vec<_>>();
                 if parts.is_empty() {
                     continue;
@@ -1659,7 +1675,11 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
 
             let mut count = 0_u32;
             let mut sample = String::from("none");
-            for line in combined.lines().map(|line| line.trim()).filter(|line| !line.is_empty()) {
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
                 if let Some(value) = line.strip_prefix("count=") {
                     count = value.parse::<u32>().unwrap_or(0);
                 } else if let Some(value) = line.strip_prefix("sample=") {
@@ -1778,6 +1798,220 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                     value: "6379/tcp".into(),
                 }],
                 "If Redis should accept TCP connections, verify the bind, protected-mode, and listener settings.",
+            ))
+        }
+        "linux.redis.runtime.info" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if ! command -v redis-cli >/dev/null 2>&1; then echo missing-client; exit 0; fi; server=$(redis-cli INFO server 2>&1); server_status=$?; persistence=$(redis-cli INFO persistence 2>&1); persistence_status=$?; printf '%s\\n%s\\n' \\\"$server\\\" \\\"$persistence\\\"; if [ $server_status -ne 0 ] || [ $persistence_status -ne 0 ]; then exit 1; fi\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-client") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Redis client is not installed, so runtime configuration could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "redis-cli INFO server/persistence".into(),
+                    }],
+                    "Install redis-cli on the host if local Redis instance inspection is part of the expected workflow.",
+                ));
+            }
+
+            if combined.contains("NOAUTH")
+                || combined.contains("Authentication required")
+                || combined.contains("Could not connect to Redis")
+                || combined.contains("(error)")
+                || !output.status.success()
+            {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Redis runtime configuration could not be collected through the local client.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify local Redis socket or TCP access, authentication requirements, and redis-cli availability for the SSH user used by OpsProbe.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            let mut persistence_hint = String::from("without AOF");
+            let mut loading_hint = String::from("ready");
+
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                if let Some(value) = line.strip_prefix("redis_version:") {
+                    evidence.push(CheckEvidence {
+                        label: "Version".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("tcp_port:") {
+                    evidence.push(CheckEvidence {
+                        label: "Port".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("uptime_in_days:") {
+                    evidence.push(CheckEvidence {
+                        label: "Uptime Days".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("loading:") {
+                    if value == "1" {
+                        loading_hint = String::from("still loading");
+                    }
+                    evidence.push(CheckEvidence {
+                        label: "Loading".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("rdb_last_bgsave_status:") {
+                    evidence.push(CheckEvidence {
+                        label: "RDB Save Status".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("aof_enabled:") {
+                    if value == "1" {
+                        persistence_hint = String::from("with AOF enabled");
+                    }
+                    evidence.push(CheckEvidence {
+                        label: "AOF Enabled".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Command Output".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                format!(
+                    "Redis runtime configuration was collected successfully; the instance appears {loading_hint} and {persistence_hint}."
+                ),
+                evidence,
+                "Review persistence mode and runtime identity if this host is expected to serve a different Redis role.",
+            ))
+        }
+        "linux.redis.replication.info" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if ! command -v redis-cli >/dev/null 2>&1; then echo missing-client; exit 0; fi; redis-cli INFO replication 2>&1\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-client") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Redis client is not installed, so replication metadata could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "redis-cli INFO replication".into(),
+                    }],
+                    "Install redis-cli on the host if local Redis role inspection is part of the expected workflow.",
+                ));
+            }
+
+            if combined.contains("NOAUTH")
+                || combined.contains("Authentication required")
+                || combined.contains("Could not connect to Redis")
+                || combined.contains("(error)")
+                || !output.status.success()
+            {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Redis replication metadata could not be collected through the local client.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify local Redis socket or TCP access, authentication requirements, and redis-cli availability for the SSH user used by OpsProbe.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            let mut role = String::from("unknown");
+            let mut master_link_status = String::from("n/a");
+
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                if let Some(value) = line.strip_prefix("role:") {
+                    role = value.into();
+                    evidence.push(CheckEvidence {
+                        label: "Role".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("connected_slaves:") {
+                    evidence.push(CheckEvidence {
+                        label: "Connected Replicas".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("master_host:") {
+                    evidence.push(CheckEvidence {
+                        label: "Master Host".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("master_link_status:") {
+                    master_link_status = value.into();
+                    evidence.push(CheckEvidence {
+                        label: "Master Link".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Command Output".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            let summary = if role == "slave" || role == "replica" {
+                format!(
+                    "Redis replication metadata was collected successfully; this instance is a replica and the upstream link is {master_link_status}."
+                )
+            } else {
+                format!(
+                    "Redis replication metadata was collected successfully; this instance reports role {role}."
+                )
+            };
+
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                summary,
+                evidence,
+                "Review unexpected replica wiring or degraded master link state before the next maintenance window.",
             ))
         }
         "linux.docker.process" => {

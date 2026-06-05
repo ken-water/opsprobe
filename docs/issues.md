@@ -16,7 +16,7 @@ Release mapping:
 - `0.7.3`: structured external feedback capture
 - `0.7.4`: feedback-driven stabilization and next-stage decision
 - `0.8.0`: deeper inspection workflows after the `0.7.x` validation cycle
-  Current issues: 31, 32, 33
+  Current issues: 31, 32, 33, 34, 35
 
 ## Foundation
 
