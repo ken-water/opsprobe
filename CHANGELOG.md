@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.7.1] - 2026-06-05
+
+### Added
+
+- Desktop troubleshooting guidance panel that turns failing runtime checks into concrete repair steps
+- SSH repair guidance in the UI for common authentication, reachability, DNS, and password-helper failures
+
+### Changed
+
+- SSH connection failures and SSH-backed inspection command failures now return clearer, categorized explanations
+- Local service, managed PostgreSQL, schedule, asset, and history actions now surface readable failure messages instead of silent command rejection
+- Desktop release copy now reflects the `0.7.1` runtime-diagnostics milestone
+
+### Known Limits
+
+- Troubleshooting guidance is still rule-based and currently focuses on common local environment failures rather than every host-specific edge case
+- Deeper automated log-tail or self-healing flows remain out of scope for the open source desktop edition
+
 ## [0.7.0] - 2026-06-04
 
 ### Added

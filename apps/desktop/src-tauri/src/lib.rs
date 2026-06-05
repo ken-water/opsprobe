@@ -525,6 +525,75 @@ fn validate_ssh_input(
     Ok(())
 }
 
+fn format_ssh_failure(
+    host: &str,
+    port: u16,
+    username: &str,
+    auth_method: &str,
+    secret_ref: &str,
+    stderr: &str,
+) -> String {
+    let message = stderr.trim();
+    let lower = message.to_lowercase();
+
+    if lower.contains("permission denied") {
+        return match auth_method {
+            "private-key" => format!(
+                "SSH authentication failed for {username}@{host}:{port}. Verify that {secret_ref} is the correct private key, that it is allowed on the remote host, and that its permissions are restricted, for example with `chmod 600`."
+            ),
+            "password" => format!(
+                "SSH authentication failed for {username}@{host}:{port}. Recheck the password or confirm that password authentication is enabled on the remote host."
+            ),
+            _ => "SSH authentication failed.".into(),
+        };
+    }
+
+    if lower.contains("connection refused") {
+        return format!(
+            "SSH reached {host}:{port}, but the connection was refused. Confirm that sshd is running, listening on port {port}, and not blocked by a firewall."
+        );
+    }
+
+    if lower.contains("operation timed out") || lower.contains("connection timed out") {
+        return format!(
+            "SSH connection to {host}:{port} timed out. Verify routing, firewall rules, VPN access, and whether the host is reachable from this machine."
+        );
+    }
+
+    if lower.contains("no route to host") || lower.contains("network is unreachable") {
+        return format!(
+            "SSH cannot reach {host}:{port} from this machine. Check network path, VPN connectivity, and whether the target segment is accessible."
+        );
+    }
+
+    if lower.contains("could not resolve hostname") || lower.contains("name or service not known")
+    {
+        return format!(
+            "SSH could not resolve host `{host}`. Recheck the hostname or use a direct IP address if DNS is not available in this environment."
+        );
+    }
+
+    if lower.contains("unprotected private key file") {
+        return format!(
+            "SSH rejected the private key at {secret_ref} because its file permissions are too open. Restrict the file permissions, for example with `chmod 600`, and retry."
+        );
+    }
+
+    if lower.contains("identity file") && lower.contains("not accessible") {
+        return format!(
+            "SSH could not read the private key at {secret_ref}. Verify that the file exists and is readable by the current desktop user."
+        );
+    }
+
+    if message.is_empty() {
+        format!(
+            "SSH connectivity to {host}:{port} failed. Retry with a manual `ssh` command from the same machine to capture the underlying network or authentication error."
+        )
+    } else {
+        message.to_string()
+    }
+}
+
 fn run_ssh_command(
     host: &str,
     port: u16,
@@ -600,13 +669,14 @@ fn ssh_output(input: &RunLinuxCheckInput, remote_command: &str) -> Result<String
     }
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    let message = stderr.trim();
-
-    Err(if message.is_empty() {
-        format!("SSH command failed for {}.", input.check_id)
-    } else {
-        message.to_string()
-    })
+    Err(format_ssh_failure(
+        &input.host,
+        input.port,
+        &input.username,
+        &input.auth_method,
+        &input.secret_ref,
+        &stderr,
+    ))
 }
 
 fn tcp_listener_count(input: &RunLinuxCheckInput, port: u16) -> Result<Option<u32>, String> {
@@ -1626,15 +1696,17 @@ fn test_ssh_connection(input: SshConnectionTestInput) -> Result<SshConnectionTes
     }
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    let message = stderr.trim();
 
     Ok(SshConnectionTestResult {
         ok: false,
-        message: if message.is_empty() {
-            format!("SSH connectivity to {}:{} failed.", input.host, input.port)
-        } else {
-            message.to_string()
-        },
+        message: format_ssh_failure(
+            &input.host,
+            input.port,
+            &input.username,
+            &input.auth_method,
+            &input.secret_ref,
+            &stderr,
+        ),
     })
 }
 

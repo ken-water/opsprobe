@@ -54,9 +54,182 @@ const defaultTemplate = builtInTemplates[0];
 const defaultMigrationPath = "/tmp/opsprobe-config.json";
 const defaultReportPath = "/tmp/opsprobe-report.html";
 const defaultPdfReportPath = "/tmp/opsprobe-report.pdf";
+type ServiceHealthCheck = LocalServiceStatusResponse["snapshot"]["health"]["checks"][number];
+
+interface TroubleshootingCard {
+  key: string;
+  label: string;
+  status: "warning" | "critical";
+  detail: string;
+  actions: string[];
+}
+
+function isActionableServiceCheck(
+  check: ServiceHealthCheck,
+): check is ServiceHealthCheck & { status: "warning" | "critical" } {
+  return check.status === "warning" || check.status === "critical";
+}
 
 function templateLabel(templateId: string) {
   return builtInTemplates.find((template) => template.id === templateId)?.name ?? templateId;
+}
+
+function extractErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error.trim();
+  }
+
+  return "Unknown error.";
+}
+
+function formatActionError(action: string, error: unknown) {
+  return `${action} failed. ${extractErrorMessage(error)}`;
+}
+
+function buildServiceCheckActions(
+  check: ServiceHealthCheck,
+  response: LocalServiceStatusResponse | null,
+): string[] {
+  const port = response?.snapshot.config.postgres.port ?? 15432;
+  const paths = response?.snapshot.config.paths;
+
+  switch (check.id) {
+    case "service.process":
+      return [
+        "Use Start Service to launch the background local service.",
+        paths?.serviceStatusFile
+          ? `If it still does not stay up, inspect ${paths.serviceStatusFile} and the local service logs under ${paths.logDir}.`
+          : "If it still does not stay up, inspect the local service status file and logs under ~/.opsprobe/logs.",
+      ];
+    case "local.binary.ssh":
+      return [
+        "Install the OpenSSH client on the local machine and ensure `ssh` is in PATH.",
+        "Re-run Refresh Service Status after the shell can execute `ssh -V` successfully.",
+      ];
+    case "local.binary.sshpass":
+      return [
+        "If you want password-based SSH, install `sshpass` on the local machine.",
+        "If you do not want to install `sshpass`, switch the asset to private-key authentication.",
+      ];
+    case "local.report_dir":
+      return [
+        paths?.reportDir
+          ? `Ensure ${paths.reportDir} exists and is writable by the current desktop user.`
+          : "Ensure the configured report directory exists and is writable by the current desktop user.",
+        "Move reports to another writable directory if this machine restricts writes under the current location.",
+      ];
+    case "service.bootstrap":
+      return [
+        "Install the required PostgreSQL binaries (`postgres`, `pg_ctl`, `initdb`) for the local service runtime.",
+        "Re-open the desktop from a shell where those binaries are already available in PATH.",
+      ];
+    case "postgres.data_dir":
+      return [
+        "Use Bootstrap PostgreSQL to initialize the dedicated OpsProbe data directory.",
+        paths?.postgresDataDir
+          ? `Verify ${paths.postgresDataDir} is writable and not managed by another PostgreSQL instance.`
+          : "Verify the managed PostgreSQL data directory is writable and not managed by another PostgreSQL instance.",
+      ];
+    case "postgres.port":
+      return [
+        `Find what is already using port ${port} with \`ss -ltnp '( sport = :${port} )'\` or \`lsof -i :${port}\`.`,
+        "Stop the conflicting service or move OpsProbe to another managed PostgreSQL port before retrying start.",
+      ];
+    case "postgres.process":
+      return [
+        "Use Start PostgreSQL after bootstrap completes.",
+        paths?.postgresCtlLogFile
+          ? `If startup still fails, inspect ${paths.postgresCtlLogFile} and the PostgreSQL log directory for the first fatal error.`
+          : "If startup still fails, inspect the managed PostgreSQL control log for the first fatal error.",
+      ];
+    case "storage.backend":
+      return [
+        "OpsProbe can continue with local file storage, but history and migration should be rechecked after PostgreSQL is healthy.",
+        "Resolve PostgreSQL runtime problems first if you want the intended managed database path.",
+      ];
+    case "scheduling.local":
+      return [
+        "Review the affected asset or schedule and rerun the inspection manually to reproduce the failure.",
+        "Keep the local service running so recurring schedules can execute on time.",
+      ];
+    default:
+      if (check.id.startsWith("postgres.binary.")) {
+        return [
+          "Install the missing PostgreSQL binary and confirm it is available in PATH for the desktop process.",
+          "Restart the desktop or launch it from a shell that already exports the PostgreSQL bin directory.",
+        ];
+      }
+
+      return ["Refresh the environment status after correcting the underlying local dependency or permission problem."];
+  }
+}
+
+function buildSshTroubleshooting(result: SshConnectionTestResult | null, asset: Asset): string[] {
+  if (!result || result.ok) {
+    return [];
+  }
+
+  const message = result.message.toLowerCase();
+
+  if (message.includes("permission denied")) {
+    return [
+      `Verify the username ${asset.credential.username} and confirm the remote host accepts the selected authentication method.`,
+      asset.credential.method === "private-key"
+        ? `Check that ${asset.credential.secretRef} matches an authorized key on ${asset.host} and has restrictive permissions such as \`chmod 600\`.`
+        : "Retry with a known-good SSH password or switch to private-key mode if password auth is disabled on the host.",
+    ];
+  }
+
+  if (message.includes("connection refused")) {
+    return [
+      `Confirm that sshd is listening on ${asset.host}:${asset.port}.`,
+      "Check firewall rules, port mapping, and whether the target host uses a non-default SSH port.",
+    ];
+  }
+
+  if (message.includes("timed out") || message.includes("operation timed out")) {
+    return [
+      `Verify routing and firewall access from this machine to ${asset.host}:${asset.port}.`,
+      "Check VPN, security-group, or office-network restrictions before retrying.",
+    ];
+  }
+
+  if (message.includes("no route to host") || message.includes("network is unreachable")) {
+    return [
+      "The target host is not reachable from the current network path.",
+      "Confirm DNS/VPN/network segment access and retry from a machine that can reach the host.",
+    ];
+  }
+
+  if (message.includes("could not resolve hostname") || message.includes("name or service not known")) {
+    return [
+      `Recheck the host value \`${asset.host}\` for typos or missing DNS records.`,
+      "If DNS is not available in this environment, use a direct IP address instead of a hostname.",
+    ];
+  }
+
+  if (message.includes("sshpass")) {
+    return [
+      "Install `sshpass` if you want password mode on this machine.",
+      "Otherwise switch the asset to private-key authentication and retry the connection test.",
+    ];
+  }
+
+  if (message.includes("private key")) {
+    return [
+      `Confirm the private key path ${asset.credential.secretRef} exists and is readable by the current user.`,
+      "If the key was copied from another machine, verify permissions and file ownership before retrying.",
+    ];
+  }
+
+  return [
+    "Review the exact SSH error text above and compare it with a manual `ssh` attempt from the same machine.",
+    "If the same failure appears outside OpsProbe, fix the local network, credential, or host-side SSH issue first.",
+  ];
 }
 
 function createDemoRun(
@@ -409,6 +582,9 @@ function App() {
     try {
       const response = await invoke<LocalServiceStatusResponse>("get_local_service_status");
       setServiceResponse(response);
+    } catch (error) {
+      setServiceResponse(null);
+      setServiceMessage(formatActionError("Refreshing local service status", error));
     } finally {
       setIsRefreshingService(false);
     }
@@ -421,6 +597,8 @@ function App() {
       const message = await invoke<string>("start_local_service");
       setServiceMessage(message);
       await refreshLocalServiceHealth();
+    } catch (error) {
+      setServiceMessage(formatActionError("Starting local service", error));
     } finally {
       setIsRefreshingService(false);
     }
@@ -433,6 +611,8 @@ function App() {
       const response = await invoke<LocalServiceCommandResponse>("stop_local_service");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
+    } catch (error) {
+      setServiceMessage(formatActionError("Stopping local service", error));
     } finally {
       setIsRefreshingService(false);
     }
@@ -445,6 +625,8 @@ function App() {
       const response = await invoke<LocalServiceCommandResponse>("bootstrap_local_service_postgres");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
+    } catch (error) {
+      setServiceMessage(formatActionError("Bootstrapping managed PostgreSQL", error));
     } finally {
       setIsRefreshingService(false);
     }
@@ -457,6 +639,8 @@ function App() {
       const response = await invoke<LocalServiceCommandResponse>("start_local_service_postgres");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
+    } catch (error) {
+      setServiceMessage(formatActionError("Starting managed PostgreSQL", error));
     } finally {
       setIsRefreshingService(false);
     }
@@ -469,6 +653,8 @@ function App() {
       const response = await invoke<LocalServiceCommandResponse>("stop_local_service_postgres");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
+    } catch (error) {
+      setServiceMessage(formatActionError("Stopping managed PostgreSQL", error));
     } finally {
       setIsRefreshingService(false);
     }
@@ -505,6 +691,8 @@ function App() {
         },
       });
       setServiceInspectionRun(response.run);
+    } catch (error) {
+      setServiceMessage(formatActionError("Refreshing local service inspection preview", error));
     } finally {
       setIsRefreshingServicePreview(false);
     }
@@ -522,6 +710,8 @@ function App() {
       });
       setServiceExecutionRun(response.run);
       await refreshLocalServiceHistory();
+    } catch (error) {
+      setServiceMessage(formatActionError("Running local service inspection", error));
     } finally {
       setIsRunningServiceInspection(false);
     }
@@ -561,6 +751,8 @@ function App() {
 
         return response.runs.find((run) => run.id === current.id) ?? response.runs[0];
       });
+    } catch (error) {
+      setServiceMessage(formatActionError("Refreshing local inspection history", error));
     } finally {
       setIsRefreshingHistory(false);
     }
@@ -572,6 +764,8 @@ function App() {
     try {
       const response = await invoke<LocalInspectionScheduleListResponse>("get_local_service_schedules");
       setSchedules(response.schedules);
+    } catch (error) {
+      setServiceMessage(formatActionError("Refreshing local schedules", error));
     } finally {
       setIsRefreshingSchedules(false);
     }
@@ -583,6 +777,8 @@ function App() {
     try {
       const response = await invoke<LocalAssetListResponse>("get_local_service_assets");
       setSavedAssets(response.assets);
+    } catch (error) {
+      setServiceMessage(formatActionError("Refreshing saved assets", error));
     } finally {
       setIsRefreshingAssets(false);
     }
@@ -807,6 +1003,16 @@ function App() {
   const blockingChecks = serviceChecks.filter((check) => check.status === "critical");
   const warningChecks = serviceChecks.filter((check) => check.status === "warning");
   const assetsNeedingRebind = savedAssets.filter((savedAsset) => savedAsset.credential.bindingStatus === "rebind-required");
+  const troubleshootingCards: TroubleshootingCard[] = serviceChecks
+    .filter(isActionableServiceCheck)
+    .map((check) => ({
+      key: check.id,
+      label: check.label,
+      status: check.status,
+      detail: check.detail,
+      actions: buildServiceCheckActions(check, serviceResponse),
+    }));
+  const sshTroubleshooting = buildSshTroubleshooting(sshResult, asset);
   const firstRunChecklist = [
     {
       id: "setup.service",
@@ -874,8 +1080,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.7.0` adds a guided first-run demo path so early users can evaluate local inspection,
-          reports, and remediation output before connecting real infrastructure.
+          `0.7.1` focuses on runtime diagnostics so early users can understand dependency, port,
+          permission, and SSH failures without reading raw logs or source code.
         </p>
       </section>
 
@@ -883,19 +1089,19 @@ function App() {
         <article className="card">
           <h2>Current Focus</h2>
           <ul>
-            <li>Local service bootstrap boundary</li>
-            <li>Desktop-visible runtime health</li>
-            <li>PostgreSQL-first storage direction</li>
+            <li>Actionable dependency diagnostics</li>
+            <li>Clear SSH troubleshooting guidance</li>
+            <li>Repair advice for local service runtime issues</li>
           </ul>
         </article>
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.7.0</p>
+          <p className="version">v0.7.1</p>
           <ul>
-            <li>Guided first-run demo experience</li>
-            <li>Clear sample-versus-real inspection separation</li>
-            <li>Faster feedback capture from early community users</li>
+            <li>Better SSH failure explanations</li>
+            <li>Better local-service and PostgreSQL repair guidance</li>
+            <li>Less setup friction for early testers</li>
           </ul>
         </article>
 
@@ -919,7 +1125,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.0 Current Release</p>
+            <p className="eyebrow">0.7.1 Current Release</p>
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
@@ -958,7 +1164,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">First Run Guide</p>
+            <p className="eyebrow">0.7.1 Current Release</p>
             <h2>Minimum Local Setup</h2>
           </div>
           <div className="summary-strip">
@@ -1021,7 +1227,56 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.0 Current Release</p>
+            <p className="eyebrow">0.7.1 Current Release</p>
+            <h2>Troubleshooting Guidance</h2>
+          </div>
+          <div className="summary-strip">
+            <span>{troubleshootingCards.length} environment issues</span>
+            <span>{sshTroubleshooting.length > 0 ? "SSH guidance ready" : "SSH guidance idle"}</span>
+          </div>
+        </div>
+
+        {troubleshootingCards.length > 0 ? (
+          <div className="service-checks">
+            {troubleshootingCards.map((card) => (
+              <article className="service-card" key={`troubleshoot-${card.key}`}>
+                <div className="service-card-header">
+                  <strong>{card.label}</strong>
+                  <span className={`badge badge-${card.status}`}>{card.status}</span>
+                </div>
+                <p>{card.detail}</p>
+                <ul className="troubleshooting-list">
+                  {card.actions.map((action) => (
+                    <li key={`${card.key}-${action}`}>{action}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="helper-text">No environment problems currently need repair guidance.</p>
+        )}
+
+        {sshTroubleshooting.length > 0 ? (
+          <article className="service-card ssh-guidance-card">
+            <div className="service-card-header">
+              <strong>SSH Connection Repair Steps</strong>
+              <span className="badge badge-warning">ssh</span>
+            </div>
+            <p>{sshResult?.message}</p>
+            <ul className="troubleshooting-list">
+              {sshTroubleshooting.map((action) => (
+                <li key={`ssh-guidance-${action}`}>{action}</li>
+              ))}
+            </ul>
+          </article>
+        ) : null}
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.7.1 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -1112,7 +1367,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.0 Current Release</p>
+            <p className="eyebrow">0.7.1 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1208,7 +1463,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.0 Current Release</p>
+            <p className="eyebrow">0.7.1 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1296,7 +1551,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.0 Current Release</p>
+            <p className="eyebrow">0.7.1 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1399,7 +1654,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.0 Current Release</p>
+            <p className="eyebrow">0.7.1 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button

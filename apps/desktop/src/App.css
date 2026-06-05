@@ -336,6 +336,17 @@ body {
   color: #3d4855;
 }
 
+.troubleshooting-list {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  line-height: 1.7;
+  color: #34404c;
+}
+
+.ssh-guidance-card {
+  margin-top: 18px;
+}
+
 .service-actions {
   display: flex;
   flex-wrap: wrap;
