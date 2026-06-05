@@ -681,6 +681,19 @@ fn ssh_output(input: &RunLinuxCheckInput, remote_command: &str) -> Result<String
     ))
 }
 
+fn combined_command_output(output: &std::process::Output) -> String {
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if stdout.is_empty() {
+        stderr
+    } else if stderr.is_empty() {
+        stdout
+    } else {
+        format!("{stdout} {stderr}")
+    }
+}
+
 fn tcp_listener_count(input: &RunLinuxCheckInput, port: u16) -> Result<Option<u32>, String> {
     let output = ssh_output(
         input,
@@ -1186,15 +1199,7 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "sh -lc \"if command -v nginx >/dev/null 2>&1; then nginx -t 2>&1; else echo missing-nginx; fi\"",
             )?;
 
-            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-            let combined = if stdout.is_empty() {
-                stderr.clone()
-            } else if stderr.is_empty() {
-                stdout.clone()
-            } else {
-                format!("{} {}", stdout, stderr)
-            };
+            let combined = combined_command_output(&output);
 
             if combined.contains("missing-nginx") {
                 return Ok(normalized_result(
@@ -1234,6 +1239,212 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                     value: combined,
                 }],
                 "Run `nginx -t`, fix the reported configuration errors, and reload nginx after validation passes.",
+            ))
+        }
+        "linux.nginx.vhost.inventory" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if ! command -v nginx >/dev/null 2>&1; then echo missing-nginx; else nginx -T 2>/dev/null | awk 'BEGIN {count=0} /^[[:space:]]*server[[:space:]]*\\{/ {count++} /^[[:space:]]*server_name[[:space:]]+/ {line=$0; sub(/^[[:space:]]*server_name[[:space:]]+/, \\\"\\\", line); sub(/;[[:space:]]*$/, \\\"\\\", line); print line} END {print \\\"__COUNT__=\\\" count}' ; fi\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-nginx") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "nginx is not installed, so virtual host inventory was skipped.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "nginx -T".into(),
+                    }],
+                    "Install nginx or switch to a template that matches the services deployed on this host.",
+                ));
+            }
+
+            let lines = combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+                .collect::<Vec<_>>();
+            let server_count = lines
+                .iter()
+                .find_map(|line| line.strip_prefix("__COUNT__="))
+                .and_then(|value| value.parse::<u32>().ok())
+                .unwrap_or(0);
+            let server_names = lines
+                .iter()
+                .filter(|line| !line.starts_with("__COUNT__="))
+                .take(4)
+                .cloned()
+                .collect::<Vec<_>>();
+
+            if server_count == 0 {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "nginx configuration was read, but no server blocks were detected.".into(),
+                    vec![
+                        CheckEvidence {
+                            label: "Server Blocks".into(),
+                            value: "0".into(),
+                        },
+                        CheckEvidence {
+                            label: "Command".into(),
+                            value: "nginx -T".into(),
+                        },
+                    ],
+                    "Review the active nginx configuration and confirm the expected site inventory is loaded on this host.",
+                ));
+            }
+
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                format!(
+                    "nginx inventory includes {server_count} server block(s){}.",
+                    if server_names.is_empty() {
+                        "".into()
+                    } else {
+                        format!(" and {} named server entries", server_names.len())
+                    }
+                ),
+                vec![
+                    CheckEvidence {
+                        label: "Server Blocks".into(),
+                        value: server_count.to_string(),
+                    },
+                    CheckEvidence {
+                        label: "Named Servers".into(),
+                        value: if server_names.is_empty() {
+                            "none detected".into()
+                        } else {
+                            server_names.join(" | ")
+                        },
+                    },
+                ],
+                "Review unexpected listeners or server names before the next release window.",
+            ))
+        }
+        "linux.nginx.tls.expiry" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if ! command -v nginx >/dev/null 2>&1; then echo missing-nginx; elif ! command -v openssl >/dev/null 2>&1; then echo missing-openssl; else nginx -T 2>/dev/null | awk '/^[[:space:]]*ssl_certificate[[:space:]]+/ {path=$0; sub(/^[[:space:]]*ssl_certificate[[:space:]]+/, \\\"\\\", path); sub(/;[[:space:]]*$/, \\\"\\\", path); if (path !~ /\\$/) print path}' | sort -u | while read cert; do [ -n \\\"$cert\\\" ] || continue; if [ -f \\\"$cert\\\" ]; then end=$(openssl x509 -enddate -noout -in \\\"$cert\\\" 2>/dev/null | cut -d= -f2-); if [ -n \\\"$end\\\" ]; then epoch=$(date -d \\\"$end\\\" +%s 2>/dev/null || true); now=$(date +%s); if [ -n \\\"$epoch\\\" ]; then days=$(( (epoch - now) / 86400 )); printf '%s|%s|%s\\n' \\\"$cert\\\" \\\"$days\\\" \\\"$end\\\"; else printf '%s|parse-error|%s\\n' \\\"$cert\\\" \\\"$end\\\"; fi; else printf '%s|inspect-error|unknown\\n' \\\"$cert\\\"; fi; fi; done; fi\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-nginx") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "nginx is not installed, so TLS certificate review was skipped.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "nginx -T".into(),
+                    }],
+                    "Install nginx or switch to a template that matches the services deployed on this host.",
+                ));
+            }
+
+            if combined.contains("missing-openssl") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "openssl is not available, so nginx certificate expiry could not be reviewed.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "openssl x509 -enddate".into(),
+                    }],
+                    "Install openssl on the inspected host or use another certificate inspection path before relying on this review.",
+                ));
+            }
+
+            let rows = combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+                .collect::<Vec<_>>();
+
+            if rows.is_empty() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "No static nginx ssl_certificate directives were detected.".into(),
+                    vec![CheckEvidence {
+                        label: "Inventory".into(),
+                        value: "no ssl_certificate directives".into(),
+                    }],
+                    "If this host should terminate TLS, review the active nginx configuration and certificate loading strategy.",
+                ));
+            }
+
+            let mut status = "pass";
+            let mut severity = "info";
+            let mut summary = format!("Reviewed {} nginx certificate file(s).", rows.len());
+            let mut evidence = Vec::new();
+
+            for row in rows.iter().take(4) {
+                let mut parts = row.splitn(3, '|');
+                let cert = parts.next().unwrap_or("unknown");
+                let days = parts.next().unwrap_or("unknown");
+                let end = parts.next().unwrap_or("unknown");
+                evidence.push(CheckEvidence {
+                    label: "Certificate".into(),
+                    value: format!("{cert} expires in {days} day(s) at {end}"),
+                });
+
+                if let Ok(days_left) = days.parse::<i64>() {
+                    if days_left < 0 {
+                        status = "critical";
+                        severity = "critical";
+                        summary = "At least one nginx TLS certificate has already expired.".into();
+                    } else if days_left <= 14 && status != "critical" {
+                        status = "critical";
+                        severity = "critical";
+                        summary =
+                            "At least one nginx TLS certificate expires within 14 days.".into();
+                    } else if days_left <= 30 && status == "pass" {
+                        status = "warning";
+                        severity = "warning";
+                        summary =
+                            "At least one nginx TLS certificate expires within 30 days.".into();
+                    }
+                } else if status == "pass" {
+                    status = "warning";
+                    severity = "warning";
+                    summary =
+                        "Some nginx TLS certificates were detected, but expiry parsing was incomplete."
+                            .into();
+                }
+            }
+
+            if rows.len() > 4 {
+                evidence.push(CheckEvidence {
+                    label: "Additional Certificates".into(),
+                    value: format!("{}", rows.len() - 4),
+                });
+            }
+
+            Ok(normalized_result(
+                &input,
+                status,
+                severity,
+                summary,
+                evidence,
+                "Renew certificates before the warning window closes and confirm nginx is serving the expected certificate set after reload.",
             ))
         }
         "linux.mysql.process" => {

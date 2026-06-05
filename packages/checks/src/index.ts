@@ -276,6 +276,48 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.nginx.vhost.inventory",
+    title: "Nginx Virtual Host Inventory",
+    description: "Collects nginx server block and server_name inventory for recurring review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.vhost.inventory",
+        title: "Nginx Virtual Host Inventory",
+        status: "pass",
+        severity: "info",
+        summary: "nginx virtual host inventory was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Inventory", value: "server blocks and server_name directives" },
+        ],
+        remediation: "Review unexpected listeners or server names before the next release window.",
+      };
+    },
+  },
+  {
+    id: "linux.nginx.tls.expiry",
+    title: "Nginx TLS Certificate Expiry",
+    description: "Checks static nginx TLS certificate expiry dates for upcoming renewal risk.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.tls.expiry",
+        title: "Nginx TLS Certificate Expiry",
+        status: "warning",
+        severity: "warning",
+        summary: "nginx TLS certificate expiry should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Inventory", value: "ssl_certificate directives" },
+        ],
+        remediation: "Review certificate expiry dates and renew certificates before they reach the warning window.",
+      };
+    },
+  },
+  {
     id: "linux.mysql.process",
     title: "MySQL Process Status",
     description: "Checks whether mysql or mariadb process is running.",
@@ -535,6 +577,25 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.log.usage",
       "linux.nginx.process",
       "linux.nginx.config",
+      "linux.nginx.vhost.inventory",
+    ],
+  },
+  {
+    id: "template.linux.nginx.edge",
+    name: "Linux Nginx Edge Review",
+    description: "Deeper nginx review with inventory and TLS certificate expiry checks for recurring edge service operations.",
+    assetKind: "linux-host",
+    checkIds: [
+      "linux.cpu.usage",
+      "linux.memory.usage",
+      "linux.disk.usage",
+      "linux.load.average",
+      "linux.time.sync",
+      "linux.log.usage",
+      "linux.nginx.process",
+      "linux.nginx.config",
+      "linux.nginx.vhost.inventory",
+      "linux.nginx.tls.expiry",
     ],
   },
   {
