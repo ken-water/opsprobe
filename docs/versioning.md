@@ -62,6 +62,7 @@ Examples:
 - `0.2.0`: first runnable SSH inspection flow
 - `0.3.0`: local report export and history
 - `0.7.0` to `0.7.4`: one external-validation cycle split into several small, separately releasable milestones
+- `0.8.0`: post-validation exploration focused on deeper inspection quality and workflow fit
 
 ### Patch Version
 

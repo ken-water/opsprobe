@@ -72,6 +72,16 @@ Target releases:
 - `0.7.3`
 - `0.7.4`
 
+## Phase 5: Post-Validation Exploration
+
+- Deepen inspection coverage for real Linux service roles
+- Improve template flexibility without losing local-first simplicity
+- Keep refining recurring operations workflows before any hosted expansion
+
+Target release:
+
+- `0.8.0`
+
 ## Future Commercial Direction
 
 Potential future capabilities outside the open source scope:

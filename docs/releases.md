@@ -236,6 +236,23 @@ Exit criteria:
 - Repeated early-user pain points have been addressed or explicitly deferred
 - The next release stage is chosen with evidence instead of assumptions
 
+### `0.8.0` Exploration I: Deeper Inspection Workflows
+
+Goal:
+
+- Improve real-world inspection depth and local workflow fit after the external-validation cycle
+
+Includes:
+
+- deeper inspection coverage for common Linux service roles
+- better template flexibility for recurring operations work
+- local-first workflow polish based on the strongest validated needs from `0.7.x`
+
+Exit criteria:
+
+- OpsProbe handles more realistic service-role inspection workflows without relying on ad hoc shell habits
+- the next expansion step is based on actual usage fit rather than purely on feature breadth
+
 ## Stable Milestone
 
 ### `1.0.0`
