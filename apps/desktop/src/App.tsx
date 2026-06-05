@@ -1089,7 +1089,8 @@ function App() {
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
           `0.7.4` closes the external-validation cycle by summarizing what friction was fixed,
-          what is still deferred, and why the next step is `0.8.0` instead of `1.0.0`.
+          what is still deferred, and why the next step is a `0.8.x` exploration line instead of
+          `1.0.0`.
         </p>
       </section>
 
@@ -1168,10 +1169,10 @@ function App() {
           <article className="service-card">
             <div className="service-card-header">
               <strong>Next Stage Decision</strong>
-              <span className="badge badge-pass">0.8.0</span>
+              <span className="badge badge-pass">0.8.x</span>
             </div>
             <p>
-              OpsProbe should continue into a `0.8.0` exploration stage focused on deeper
+              OpsProbe should continue into a `0.8.x` exploration line focused on deeper
               inspection quality and local workflow reliability, not `1.0.0` yet.
             </p>
             <p className="helper-text">

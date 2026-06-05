@@ -62,7 +62,7 @@ Examples:
 - `0.2.0`: first runnable SSH inspection flow
 - `0.3.0`: local report export and history
 - `0.7.0` to `0.7.4`: one external-validation cycle split into several small, separately releasable milestones
-- `0.8.0`: post-validation exploration focused on deeper inspection quality and workflow fit
+- `0.8.0` to `0.8.x`: post-validation exploration releases focused on deeper inspection quality and workflow fit
 
 ### Patch Version
 
@@ -83,6 +83,7 @@ OpsProbe rule:
 
 - Patch versions should not change product scope
 - Patch versions should be safe upgrades for users on the same minor line
+- During `0.x`, patch versions may also be used to break a larger exploration milestone into smaller, releasable checkpoints when the product theme stays the same and the workflow remains backward-compatible enough for early users
 
 ## Pre-1.0 Rules
 
@@ -95,6 +96,7 @@ Rules:
 - Breaking changes are acceptable if clearly documented
 - Every minor release should still produce visible user value
 - Consecutive minor versions may belong to the same broader product-validation phase if each version still has a concrete user-facing milestone
+- Consecutive patch versions within the same `0.x` minor line may also be used to close bounded slices of the same exploration stage, such as `0.8.0`, `0.8.1`, and `0.8.2`
 
 ## Post-1.0 Rules
 

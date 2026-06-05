@@ -229,14 +229,14 @@ Includes:
 
 - Fixes for the most common first-user friction points
 - UX polish driven by repeated external feedback
-- Decision checkpoint for whether the next step is `0.8.0` exploration or `1.0.0` stabilization
+- Decision checkpoint for whether the next step is a `0.8.x` exploration line or `1.0.0` stabilization
 
 Exit criteria:
 
 - Repeated early-user pain points have been addressed or explicitly deferred
 - The next release stage is chosen with evidence instead of assumptions
 
-### `0.8.0` Exploration I: Deeper Inspection Workflows
+### `0.8.x` Exploration I: Deeper Inspection Workflows
 
 Goal:
 
@@ -253,6 +253,12 @@ Exit criteria:
 
 - OpsProbe handles more realistic service-role inspection workflows without relying on ad hoc shell habits
 - the next expansion step is based on actual usage fit rather than purely on feature breadth
+
+Release approach:
+
+- `0.8.0`, `0.8.1`, `0.8.2`, and later `0.8.x` patches may be used as bounded checkpoints inside this same exploration line
+- each `0.8.x` release should close a concrete slice, such as one service-role workflow, one test-coverage step, or one local workflow improvement
+- do not jump to `0.9.0` or `1.0.0` until the planned `0.8.x` exploration outcomes are actually complete
 
 Related issues:
 

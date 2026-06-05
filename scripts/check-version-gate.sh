@@ -24,21 +24,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 "${SCRIPT_DIR}/check-worktree-gate.sh"
 
-VERSION_ORDER=("0.1.0" "0.2.0" "0.3.0" "0.4.0" "0.5.0" "0.6.0" "0.7.0" "0.7.1" "0.7.2" "0.7.3" "0.7.4" "0.8.0" "1.0.0")
-TARGET_INDEX=-1
-
-for i in "${!VERSION_ORDER[@]}"; do
-  if [[ "${VERSION_ORDER[$i]}" == "${TARGET_VERSION}" ]]; then
-    TARGET_INDEX="$i"
-    break
-  fi
-done
-
-if [[ "${TARGET_INDEX}" -lt 0 ]]; then
-  echo "[fail] target version ${TARGET_VERSION} is not defined in script order" >&2
-  exit 1
-fi
-
 MILESTONES_JSON="$(gh api "repos/${REPO}/milestones?state=all&per_page=100")"
 
 failures=0
@@ -47,6 +32,33 @@ get_milestone() {
   local title="$1"
   jq -c --arg title "${title}" '.[] | select(.title == $title)' <<<"${MILESTONES_JSON}"
 }
+
+SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+$'
+
+if [[ ! "${TARGET_VERSION}" =~ ${SEMVER_REGEX} ]]; then
+  echo "[fail] target version ${TARGET_VERSION} is not a valid semver milestone title" >&2
+  exit 1
+fi
+
+mapfile -t VERSION_ORDER < <(
+  {
+    jq -r '.[].title' <<<"${MILESTONES_JSON}"
+    printf '%s\n' "${TARGET_VERSION}"
+  } | grep -E "${SEMVER_REGEX}" | sort -uV
+)
+
+TARGET_INDEX=-1
+for i in "${!VERSION_ORDER[@]}"; do
+  if [[ "${VERSION_ORDER[$i]}" == "${TARGET_VERSION}" ]]; then
+    TARGET_INDEX="$i"
+    break
+  fi
+done
+
+if [[ "${TARGET_INDEX}" -lt 0 ]]; then
+  echo "[fail] target version ${TARGET_VERSION} could not be placed in semver order" >&2
+  exit 1
+fi
 
 if [[ "${TARGET_INDEX}" -gt 0 ]]; then
   PREVIOUS_VERSION="${VERSION_ORDER[$((TARGET_INDEX - 1))]}"

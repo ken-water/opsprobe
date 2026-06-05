@@ -50,7 +50,7 @@ They were deferred because the strongest current evidence still points to improv
 
 Decision:
 
-- choose `0.8.0` exploration next
+- choose a `0.8.x` exploration line next
 - do not declare `1.0.0` yet
 
 Reason:

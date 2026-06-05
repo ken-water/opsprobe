@@ -79,9 +79,9 @@ Target releases:
 - Keep refining recurring operations workflows before any hosted expansion
 - Establish a real automated testing foundation before complexity grows further
 
-Target release:
+Target release line:
 
-- `0.8.0`
+- `0.8.x`
 
 ## Future Commercial Direction
 

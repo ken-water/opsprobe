@@ -98,9 +98,9 @@ Future release gates should gradually require:
 - smoke validation for every minor release candidate
 - functional regression coverage for the highest-value desktop workflows
 
-## 0.8.0 Planning Fit
+## 0.8.x Planning Fit
 
-The `0.8.0` stage should include test-foundation work because deeper inspection workflows will raise behavior complexity and regression risk.
+The `0.8.x` stage should include test-foundation work because deeper inspection workflows will raise behavior complexity and regression risk.
 
 Suggested first checkpoint:
 
