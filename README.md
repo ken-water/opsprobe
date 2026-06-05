@@ -67,6 +67,7 @@ See:
 - [Architecture](./docs/architecture.md)
 - [Roadmap](./docs/roadmap.md)
 - [Feedback Guide](./docs/feedback.md)
+- [Testing Strategy](./docs/testing-strategy.md)
 - [Versioning Strategy](./docs/versioning.md)
 - [Release Plan](./docs/releases.md)
 - [Validation Cycle 0.7](./docs/validation-cycle-0.7.md)

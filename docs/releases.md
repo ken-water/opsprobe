@@ -247,6 +247,7 @@ Includes:
 - deeper inspection coverage for common Linux service roles
 - better template flexibility for recurring operations work
 - local-first workflow polish based on the strongest validated needs from `0.7.x`
+- test-foundation work for unit, integration, smoke, and functional coverage growth
 
 Exit criteria:
 

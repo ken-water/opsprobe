@@ -77,6 +77,7 @@ Target releases:
 - Deepen inspection coverage for real Linux service roles
 - Improve template flexibility without losing local-first simplicity
 - Keep refining recurring operations workflows before any hosted expansion
+- Establish a real automated testing foundation before complexity grows further
 
 Target release:
 
@@ -98,3 +99,4 @@ See also:
 - [Versioning Strategy](./versioning.md)
 - [Release Plan](./releases.md)
 - [Validation Cycle 0.7](./validation-cycle-0.7.md)
+- [Testing Strategy](./testing-strategy.md)
