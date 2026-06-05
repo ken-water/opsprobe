@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.8.0] - 2026-06-05
+
+### Added
+
+- Deeper Redis workflow coverage with runtime configuration and replication-role evidence
+- Deeper Docker workflow coverage with runtime summary plus image and abnormal container inventory
+- Explicit `0.8.x` release-line planning with `0.8.1`, `0.8.2`, and `0.8.3` checkpoints and aligned GitHub milestones
+
+### Changed
+
+- Docker host template now surfaces operator-facing runtime and abnormal-container evidence instead of only daemon presence
+- Release workflow and version gate now support continuing the same exploration theme through `0.8.x` checkpoints
+- Desktop and repository release copy now reflect the start of the `0.8.x` exploration line
+
+### Known Limits
+
+- Docker inspection still depends on local `docker` CLI access on the inspected host and does not yet query remote registries or swarm state
+- Kubernetes node workflow depth, report-usefulness improvements, and functional hardening are deferred to `0.8.1+`
+
 ## [0.7.4] - 2026-06-05
 
 ### Added

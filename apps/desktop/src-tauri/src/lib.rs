@@ -2152,6 +2152,215 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "Verify docker CLI access and daemon health on the host.",
             ))
         }
+        "linux.docker.runtime.summary" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if ! command -v docker >/dev/null 2>&1; then echo missing-docker; exit 0; fi; docker info --format 'server={{.ServerVersion}} driver={{.Driver}} cgroup={{.CgroupDriver}} running={{.ContainersRunning}} stopped={{.ContainersStopped}} paused={{.ContainersPaused}} images={{.Images}}' 2>&1\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-docker") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "docker CLI is not installed, so runtime summary could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "docker info --format".into(),
+                    }],
+                    "Install Docker or use a template that matches the runtime available on this host.",
+                ));
+            }
+
+            if !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Docker runtime summary could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify docker socket access, daemon health, and SSH-user permissions for runtime inspection.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            for part in combined.split_whitespace() {
+                if let Some(value) = part.strip_prefix("server=") {
+                    evidence.push(CheckEvidence {
+                        label: "Server Version".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = part.strip_prefix("driver=") {
+                    evidence.push(CheckEvidence {
+                        label: "Storage Driver".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = part.strip_prefix("cgroup=") {
+                    evidence.push(CheckEvidence {
+                        label: "Cgroup Driver".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = part.strip_prefix("running=") {
+                    evidence.push(CheckEvidence {
+                        label: "Running Containers".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = part.strip_prefix("stopped=") {
+                    evidence.push(CheckEvidence {
+                        label: "Stopped Containers".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = part.strip_prefix("paused=") {
+                    evidence.push(CheckEvidence {
+                        label: "Paused Containers".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = part.strip_prefix("images=") {
+                    evidence.push(CheckEvidence {
+                        label: "Image Count".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Runtime".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                "Docker runtime summary was collected successfully.".into(),
+                evidence,
+                "Review runtime drift and unexpected container-count changes before the next maintenance window.",
+            ))
+        }
+        "linux.docker.image.inventory" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"if ! command -v docker >/dev/null 2>&1; then echo missing-docker; exit 0; fi; images=$(docker image ls --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | wc -l); exited=$(docker ps -a --filter status=exited --format '{{.Names}}' 2>/dev/null | wc -l); restarting=$(docker ps -a --filter status=restarting --format '{{.Names}}' 2>/dev/null | wc -l); unhealthy=$(docker ps --filter health=unhealthy --format '{{.Names}}' 2>/dev/null | head -n 5 | paste -sd ', ' -); exited_sample=$(docker ps -a --filter status=exited --format '{{.Names}}' 2>/dev/null | head -n 5 | paste -sd ', ' -); printf 'images=%s\nexited=%s\nrestarting=%s\nunhealthy=%s\nexited_sample=%s\n' \"$images\" \"$exited\" \"$restarting\" \"${unhealthy:-none}\" \"${exited_sample:-none}\"\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-docker") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "docker CLI is not installed, so image and abnormal container inventory could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "docker image ls and docker ps -a".into(),
+                    }],
+                    "Install Docker or switch to a template that matches the runtime available on this host.",
+                ));
+            }
+
+            if !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Docker image and abnormal container inventory could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify docker socket access, daemon health, and SSH-user permissions for container inventory inspection.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            let mut exited_count = 0_u32;
+            let mut restarting_count = 0_u32;
+            let mut unhealthy_sample = String::from("none");
+
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                if let Some(value) = line.strip_prefix("images=") {
+                    evidence.push(CheckEvidence {
+                        label: "Image Count".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("exited=") {
+                    exited_count = value.parse::<u32>().unwrap_or(0);
+                    evidence.push(CheckEvidence {
+                        label: "Exited Containers".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("restarting=") {
+                    restarting_count = value.parse::<u32>().unwrap_or(0);
+                    evidence.push(CheckEvidence {
+                        label: "Restarting Containers".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("unhealthy=") {
+                    unhealthy_sample = value.into();
+                    evidence.push(CheckEvidence {
+                        label: "Unhealthy Sample".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("exited_sample=") {
+                    evidence.push(CheckEvidence {
+                        label: "Exited Sample".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Inventory".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            let has_abnormal_containers =
+                exited_count > 0 || restarting_count > 0 || unhealthy_sample != "none";
+
+            let (status, severity, summary) = if has_abnormal_containers {
+                (
+                    "warning",
+                    "warning",
+                    "Docker image and abnormal container inventory was collected; exited, restarting, or unhealthy containers should be reviewed.".into(),
+                )
+            } else {
+                (
+                    "pass",
+                    "info",
+                    "Docker image and abnormal container inventory was collected successfully."
+                        .into(),
+                )
+            };
+
+            Ok(normalized_result(
+                &input,
+                status,
+                severity,
+                summary,
+                evidence,
+                "Review unexpected image growth and investigate exited, restarting, or unhealthy containers before the next release window.",
+            ))
+        }
         "linux.kubelet.process" => {
             let output = ssh_output(
                 &input,

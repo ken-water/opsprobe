@@ -1,6 +1,6 @@
 [package]
 name = "opsprobe-desktop"
-version = "0.7.4"
+version = "0.8.0"
 description = "OpsProbe open source desktop application"
 authors = ["ken-water"]
 edition = "2021"

@@ -1088,9 +1088,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.7.4` closes the external-validation cycle by summarizing what friction was fixed,
-          what is still deferred, and why the next step is a `0.8.x` exploration line instead of
-          `1.0.0`.
+          `0.8.0` starts the post-validation exploration line by deepening Docker host evidence
+          while keeping the product local-first and inspection-quality focused.
         </p>
       </section>
 
@@ -1098,19 +1097,19 @@ function App() {
         <article className="card">
           <h2>Current Focus</h2>
           <ul>
-            <li>Feedback-driven stabilization checkpoint</li>
-            <li>Explicit fixed-versus-deferred decisions</li>
-            <li>Evidence for the next product stage</li>
+            <li>Deeper Docker host inspection evidence</li>
+            <li>Higher-quality service-role workflows</li>
+            <li>Release-by-release `0.8.x` exploration checkpoints</li>
           </ul>
         </article>
 
         <article className="card">
-          <h2>Next Milestone</h2>
-          <p className="version">v0.7.4</p>
+          <h2>Current Release</h2>
+          <p className="version">v0.8.0</p>
           <ul>
-            <li>Validation-cycle closure</li>
-            <li>Stabilization checkpoint</li>
-            <li>Next-stage decision with evidence</li>
+            <li>Docker workflow depth</li>
+            <li>Deeper service-role evidence</li>
+            <li>Baseline `0.8.x` exploration release</li>
           </ul>
         </article>
 
@@ -1134,8 +1133,8 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
-            <h2>Validation Summary</h2>
+            <p className="eyebrow">0.8.0 Current Release</p>
+            <h2>Exploration Summary</h2>
           </div>
         </div>
 
@@ -1190,7 +1189,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Feedback Paths</h2>
           </div>
         </div>
@@ -1256,7 +1255,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Report Variants</h2>
           </div>
         </div>
@@ -1303,7 +1302,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
@@ -1342,7 +1341,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Minimum Local Setup</h2>
           </div>
           <div className="summary-strip">
@@ -1405,7 +1404,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Troubleshooting Guidance</h2>
           </div>
           <div className="summary-strip">
@@ -1454,7 +1453,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -1545,7 +1544,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1641,7 +1640,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1729,7 +1728,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1832,7 +1831,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.4 Current Release</p>
+            <p className="eyebrow">0.8.0 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button

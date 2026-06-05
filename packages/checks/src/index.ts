@@ -555,6 +555,54 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.docker.runtime.summary",
+    title: "Docker Runtime Summary",
+    description: "Collects Docker engine, driver, and container-count signals for recurring host review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.docker.runtime.summary",
+        title: "Docker Runtime Summary",
+        status: "pass",
+        severity: "info",
+        summary: "Docker runtime summary was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Runtime",
+            value: "server version, storage driver, cgroup driver, running/stopped containers, image count",
+          },
+        ],
+        remediation: "Review runtime drift and unexpected container-count changes before the next maintenance window.",
+      };
+    },
+  },
+  {
+    id: "linux.docker.image.inventory",
+    title: "Docker Image And Exited Container Inventory",
+    description: "Collects image count plus exited or unhealthy container samples for recurring operator review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.docker.image.inventory",
+        title: "Docker Image And Exited Container Inventory",
+        status: "warning",
+        severity: "warning",
+        summary: "Docker image and abnormal container inventory should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Inventory",
+            value: "image count, exited containers, restarting containers, unhealthy container samples",
+          },
+        ],
+        remediation: "Review unexpected image growth and investigate exited, restarting, or unhealthy containers before the next release window.",
+      };
+    },
+  },
+  {
     id: "linux.kubelet.process",
     title: "Kubelet Process Status",
     description: "Checks whether the kubelet process is running.",
@@ -727,7 +775,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
   {
     id: "template.linux.docker",
     name: "Linux Docker Host Baseline",
-    description: "Linux host baseline plus docker daemon, runtime, and container inventory checks.",
+    description: "Linux host baseline plus Docker daemon, runtime, container, and image inventory checks.",
     assetKind: "linux-host",
     checkIds: [
       "linux.cpu.usage",
@@ -739,6 +787,8 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.docker.process",
       "linux.docker.info",
       "linux.docker.containers",
+      "linux.docker.runtime.summary",
+      "linux.docker.image.inventory",
     ],
   },
   {

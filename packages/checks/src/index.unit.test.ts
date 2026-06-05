@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import { findBuiltInTemplateDefinition, resolveTemplateChecks } from "./index";
 
 describe("built-in check definitions", () => {
+  it("includes deeper Docker workflow checks in the docker template", () => {
+    const template = findBuiltInTemplateDefinition("template.linux.docker");
+
+    expect(template).toBeDefined();
+    expect(template?.checkIds).toContain("linux.docker.runtime.summary");
+    expect(template?.checkIds).toContain("linux.docker.image.inventory");
+  });
+
+  it("resolves Docker runtime and image inventory checks", () => {
+    const checks = resolveTemplateChecks("template.linux.docker");
+    const ids = checks.map((check) => check.id);
+
+    expect(ids).toContain("linux.docker.runtime.summary");
+    expect(ids).toContain("linux.docker.image.inventory");
+  });
+
   it("includes deeper Redis workflow checks in the redis template", () => {
     const template = findBuiltInTemplateDefinition("template.linux.redis");
 
