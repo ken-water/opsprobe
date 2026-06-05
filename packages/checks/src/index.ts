@@ -665,6 +665,54 @@ export const builtInLinuxChecks: CheckDefinition[] = [
       };
     },
   },
+  {
+    id: "linux.kubernetes.node.summary",
+    title: "Kubernetes Node Summary",
+    description: "Collects kubelet version, runtime endpoint, and pod-count signals from the node.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.kubernetes.node.summary",
+        title: "Kubernetes Node Summary",
+        status: "pass",
+        severity: "info",
+        summary: "Kubernetes node summary was collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Node",
+            value: "kubelet version, runtime endpoint, static pod path, running pod count, container count",
+          },
+        ],
+        remediation: "Review node runtime endpoint drift and unexpected pod-count changes before the next maintenance window.",
+      };
+    },
+  },
+  {
+    id: "linux.kubernetes.static-pod.inventory",
+    title: "Kubernetes Static Pod Inventory",
+    description: "Collects static pod manifests and critical control-plane container samples where available.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.kubernetes.static-pod.inventory",
+        title: "Kubernetes Static Pod Inventory",
+        status: "warning",
+        severity: "warning",
+        summary: "Kubernetes static pod and critical container inventory should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          {
+            label: "Inventory",
+            value: "static pod manifest count, manifest sample, critical container sample, non-running critical count",
+          },
+        ],
+        remediation: "Review missing static pod manifests or non-running critical node containers before the next release window.",
+      };
+    },
+  },
 ];
 
 export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefinition[] = [
@@ -794,7 +842,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
   {
     id: "template.linux.kubernetes",
     name: "Linux Kubernetes Node Baseline",
-    description: "Linux host baseline plus kubelet and node runtime checks.",
+    description: "Linux host baseline plus kubelet, node runtime, and static pod inventory checks.",
     assetKind: "linux-host",
     checkIds: [
       "linux.cpu.usage",
@@ -806,6 +854,8 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.kubelet.process",
       "linux.kubelet.port.10250",
       "linux.kubernetes.node.runtime",
+      "linux.kubernetes.node.summary",
+      "linux.kubernetes.static-pod.inventory",
     ],
   },
 ];

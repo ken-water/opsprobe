@@ -2489,6 +2489,203 @@ fn run_linux_check(input: RunLinuxCheckInput) -> Result<CheckResult, String> {
                 "Verify container runtime CLI access and node runtime health on this host.",
             ))
         }
+        "linux.kubernetes.node.summary" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"kubelet_version=$(kubelet --version 2>/dev/null | awk '{print $2}' | tr -d ','); runtime_endpoint=$(grep -E '^container-runtime-endpoint:' /var/lib/kubelet/kubeadm-flags.env 2>/dev/null | sed 's/.*=//' | tr -d '\\\"' | sed 's/.*container-runtime-endpoint=//'); static_path=$(grep -E '^staticPodPath:' /var/lib/kubelet/config.yaml 2>/dev/null | awk '{print $2}' | tail -n 1); if command -v crictl >/dev/null 2>&1; then pod_count=$(crictl pods -q 2>/dev/null | wc -l); container_count=$(crictl ps -a -q 2>/dev/null | wc -l); elif command -v docker >/dev/null 2>&1; then pod_count=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -c '^k8s_' || true); container_count=$(docker ps -a -q 2>/dev/null | wc -l); else echo missing-runtime; exit 0; fi; printf 'kubelet=%s\\nruntime_endpoint=%s\\nstatic_pod_path=%s\\npods=%s\\ncontainers=%s\\n' \"${kubelet_version:-unknown}\" \"${runtime_endpoint:-unknown}\" \"${static_path:-/etc/kubernetes/manifests}\" \"$pod_count\" \"$container_count\"\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-runtime") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Neither crictl nor docker CLI is available, so Kubernetes node summary could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "crictl pods or docker ps".into(),
+                    }],
+                    "Install crictl for Kubernetes nodes or ensure a supported container runtime CLI is available.",
+                ));
+            }
+
+            if !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Kubernetes node summary could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify kubelet files, container runtime CLI access, and SSH-user permissions for node inspection.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                if let Some(value) = line.strip_prefix("kubelet=") {
+                    evidence.push(CheckEvidence {
+                        label: "Kubelet Version".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("runtime_endpoint=") {
+                    evidence.push(CheckEvidence {
+                        label: "Runtime Endpoint".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("static_pod_path=") {
+                    evidence.push(CheckEvidence {
+                        label: "Static Pod Path".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("pods=") {
+                    evidence.push(CheckEvidence {
+                        label: "Pod Count".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("containers=") {
+                    evidence.push(CheckEvidence {
+                        label: "Container Count".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Node".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            Ok(normalized_result(
+                &input,
+                "pass",
+                "info",
+                "Kubernetes node summary was collected successfully.".into(),
+                evidence,
+                "Review node runtime endpoint drift and unexpected pod-count changes before the next maintenance window.",
+            ))
+        }
+        "linux.kubernetes.static-pod.inventory" => {
+            let output = run_ssh_command(
+                &input.host,
+                input.port,
+                &input.username,
+                &input.auth_method,
+                &input.secret_ref,
+                "sh -lc \"manifest_dir=$(grep -E '^staticPodPath:' /var/lib/kubelet/config.yaml 2>/dev/null | awk '{print $2}' | tail -n 1); manifest_dir=${manifest_dir:-/etc/kubernetes/manifests}; manifest_count=$(find \"$manifest_dir\" -maxdepth 1 -type f \\( -name '*.yaml' -o -name '*.yml' -o -name '*.json' \\) 2>/dev/null | wc -l); manifest_sample=$(find \"$manifest_dir\" -maxdepth 1 -type f \\( -name '*.yaml' -o -name '*.yml' -o -name '*.json' \\) 2>/dev/null | sed 's#^.*/##' | sort | head -n 5 | paste -sd ', ' -); if command -v crictl >/dev/null 2>&1; then critical_sample=$(crictl ps -a --name 'kube-apiserver|kube-controller-manager|kube-scheduler|etcd' 2>/dev/null | awk 'NR>1 {print $NF}' | head -n 5 | paste -sd ', ' -); non_running=$(crictl ps -a --name 'kube-apiserver|kube-controller-manager|kube-scheduler|etcd' 2>/dev/null | awk 'NR>1 && $3 != \"Running\" {count++} END {print count+0}'); elif command -v docker >/dev/null 2>&1; then critical_sample=$(docker ps -a --format '{{.Names}}' 2>/dev/null | grep -E 'kube-apiserver|kube-controller-manager|kube-scheduler|etcd' | head -n 5 | paste -sd ', ' -); non_running=$(docker ps -a --format '{{.Names}} {{.Status}}' 2>/dev/null | grep -E 'kube-apiserver|kube-controller-manager|kube-scheduler|etcd' | grep -vc ' Up ' || true); else echo missing-runtime; exit 0; fi; printf 'manifest_dir=%s\\nmanifest_count=%s\\nmanifest_sample=%s\\ncritical_sample=%s\\nnon_running=%s\\n' \"$manifest_dir\" \"$manifest_count\" \"${manifest_sample:-none}\" \"${critical_sample:-none}\" \"$non_running\"\"",
+            )?;
+            let combined = combined_command_output(&output);
+
+            if combined.contains("missing-runtime") {
+                return Ok(normalized_result(
+                    &input,
+                    "unknown",
+                    "warning",
+                    "Neither crictl nor docker CLI is available, so static pod inventory could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command".into(),
+                        value: "find manifests and crictl ps/docker ps".into(),
+                    }],
+                    "Install crictl for Kubernetes nodes or ensure a supported container runtime CLI is available.",
+                ));
+            }
+
+            if !output.status.success() {
+                return Ok(normalized_result(
+                    &input,
+                    "warning",
+                    "warning",
+                    "Kubernetes static pod inventory could not be collected.".into(),
+                    vec![CheckEvidence {
+                        label: "Command Output".into(),
+                        value: combined,
+                    }],
+                    "Verify static pod manifest paths, container runtime CLI access, and SSH-user permissions for node inspection.",
+                ));
+            }
+
+            let mut evidence = Vec::new();
+            let mut non_running = 0_u32;
+            let mut manifest_count = 0_u32;
+
+            for line in combined
+                .lines()
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+            {
+                if let Some(value) = line.strip_prefix("manifest_dir=") {
+                    evidence.push(CheckEvidence {
+                        label: "Manifest Directory".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("manifest_count=") {
+                    manifest_count = value.parse::<u32>().unwrap_or(0);
+                    evidence.push(CheckEvidence {
+                        label: "Manifest Count".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("manifest_sample=") {
+                    evidence.push(CheckEvidence {
+                        label: "Manifest Sample".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("critical_sample=") {
+                    evidence.push(CheckEvidence {
+                        label: "Critical Container Sample".into(),
+                        value: value.into(),
+                    });
+                } else if let Some(value) = line.strip_prefix("non_running=") {
+                    non_running = value.parse::<u32>().unwrap_or(0);
+                    evidence.push(CheckEvidence {
+                        label: "Non-Running Critical".into(),
+                        value: value.into(),
+                    });
+                }
+            }
+
+            if evidence.is_empty() {
+                evidence.push(CheckEvidence {
+                    label: "Inventory".into(),
+                    value: combined.clone(),
+                });
+            }
+
+            let (status, severity, summary) = if manifest_count == 0 || non_running > 0 {
+                (
+                    "warning",
+                    "warning",
+                    "Kubernetes static pod and critical container inventory was collected; missing manifests or non-running critical components should be reviewed.".into(),
+                )
+            } else {
+                (
+                    "pass",
+                    "info",
+                    "Kubernetes static pod and critical container inventory was collected successfully.".into(),
+                )
+            };
+
+            Ok(normalized_result(
+                &input,
+                status,
+                severity,
+                summary,
+                evidence,
+                "Review missing static pod manifests or non-running critical node containers before the next release window.",
+            ))
+        }
         _ => Ok(normalized_result(
             &input,
             "unknown",

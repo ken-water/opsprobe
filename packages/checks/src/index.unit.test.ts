@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import { findBuiltInTemplateDefinition, resolveTemplateChecks } from "./index";
 
 describe("built-in check definitions", () => {
+  it("includes deeper Kubernetes workflow checks in the kubernetes template", () => {
+    const template = findBuiltInTemplateDefinition("template.linux.kubernetes");
+
+    expect(template).toBeDefined();
+    expect(template?.checkIds).toContain("linux.kubernetes.node.summary");
+    expect(template?.checkIds).toContain("linux.kubernetes.static-pod.inventory");
+  });
+
+  it("resolves Kubernetes node summary and static pod inventory checks", () => {
+    const checks = resolveTemplateChecks("template.linux.kubernetes");
+    const ids = checks.map((check) => check.id);
+
+    expect(ids).toContain("linux.kubernetes.node.summary");
+    expect(ids).toContain("linux.kubernetes.static-pod.inventory");
+  });
+
   it("includes deeper Docker workflow checks in the docker template", () => {
     const template = findBuiltInTemplateDefinition("template.linux.docker");
 
