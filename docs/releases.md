@@ -254,6 +254,12 @@ Exit criteria:
 - OpsProbe handles more realistic service-role inspection workflows without relying on ad hoc shell habits
 - the next expansion step is based on actual usage fit rather than purely on feature breadth
 
+Related issues:
+
+- Issue 31
+- Issue 32
+- Issue 33
+
 ## Stable Milestone
 
 ### `1.0.0`
