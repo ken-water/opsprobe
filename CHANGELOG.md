@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.7.4] - 2026-06-05
+
+### Added
+
+- Validation-cycle summary panel in the desktop app to show what was addressed, what was deferred, and the next-stage decision
+- Explicit `0.7.x` decision document describing fixed friction, deferred scope, and why `0.8.0` is next instead of `1.0.0`
+
+### Changed
+
+- Repository docs now point to the completed `0.7.x` validation-cycle checkpoint
+- Desktop release copy now reflects the feedback-driven closure of the external-validation cycle
+
+### Known Limits
+
+- The decision checkpoint is documented, but it does not yet synthesize live feedback metrics automatically
+- Several broader platform requests remain intentionally deferred until local inspection depth improves further
+
 ## [0.7.3] - 2026-06-05
 
 ### Added

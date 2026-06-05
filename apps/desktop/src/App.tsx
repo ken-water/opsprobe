@@ -1088,8 +1088,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.7.3` focuses on structured feedback capture so early users can turn real inspection,
-          report, and workflow friction into actionable roadmap input.
+          `0.7.4` closes the external-validation cycle by summarizing what friction was fixed,
+          what is still deferred, and why the next step is `0.8.0` instead of `1.0.0`.
         </p>
       </section>
 
@@ -1097,19 +1097,19 @@ function App() {
         <article className="card">
           <h2>Current Focus</h2>
           <ul>
-            <li>Structured early-user feedback capture</li>
-            <li>Clear prompts for inspection, report, and workflow pain</li>
-            <li>Lower friction between product use and roadmap input</li>
+            <li>Feedback-driven stabilization checkpoint</li>
+            <li>Explicit fixed-versus-deferred decisions</li>
+            <li>Evidence for the next product stage</li>
           </ul>
         </article>
 
         <article className="card">
           <h2>Next Milestone</h2>
-          <p className="version">v0.7.3</p>
+          <p className="version">v0.7.4</p>
           <ul>
-            <li>Repository issue templates for real user needs</li>
-            <li>Feedback entry points in docs and desktop UI</li>
-            <li>More actionable outside-user signal</li>
+            <li>Validation-cycle closure</li>
+            <li>Stabilization checkpoint</li>
+            <li>Next-stage decision with evidence</li>
           </ul>
         </article>
 
@@ -1133,7 +1133,63 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
+            <h2>Validation Summary</h2>
+          </div>
+        </div>
+
+        <div className="service-checks">
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Addressed In 0.7.x</strong>
+              <span className="badge badge-pass">stabilized</span>
+            </div>
+            <ul className="troubleshooting-list">
+              <li>Demo mode reduced first-run comprehension friction.</li>
+              <li>Runtime diagnostics explain SSH, dependency, and PostgreSQL setup failures.</li>
+              <li>Operator and manager report variants cover different readers.</li>
+              <li>Structured issue templates and feedback prompts now route outside-user input.</li>
+            </ul>
+          </article>
+
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Explicitly Deferred</strong>
+              <span className="badge badge-warning">not next</span>
+            </div>
+            <ul className="troubleshooting-list">
+              <li>Web report publishing and customer login.</li>
+              <li>Notification delivery and multi-user collaboration.</li>
+              <li>Trend reporting across many runs.</li>
+              <li>In-product feedback submission backend.</li>
+            </ul>
+          </article>
+
+          <article className="service-card">
+            <div className="service-card-header">
+              <strong>Next Stage Decision</strong>
+              <span className="badge badge-pass">0.8.0</span>
+            </div>
+            <p>
+              OpsProbe should continue into a `0.8.0` exploration stage focused on deeper
+              inspection quality and local workflow reliability, not `1.0.0` yet.
+            </p>
+            <p className="helper-text">
+              Rationale: the product is more understandable now, but it still needs stronger
+              real-world inspection depth and broader outside validation before a stable milestone.
+            </p>
+          </article>
+        </div>
+
+        <p className="helper-text">
+          Decision document: <a href="https://github.com/ken-water/opsprobe/blob/main/docs/validation-cycle-0.7.md" target="_blank" rel="noreferrer">docs/validation-cycle-0.7.md</a>
+        </p>
+      </section>
+
+      <section className="run-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Feedback Paths</h2>
           </div>
         </div>
@@ -1199,7 +1255,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Report Variants</h2>
           </div>
         </div>
@@ -1246,7 +1302,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
@@ -1285,7 +1341,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Minimum Local Setup</h2>
           </div>
           <div className="summary-strip">
@@ -1348,7 +1404,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Troubleshooting Guidance</h2>
           </div>
           <div className="summary-strip">
@@ -1397,7 +1453,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -1488,7 +1544,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1584,7 +1640,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1672,7 +1728,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1775,7 +1831,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.7.3 Current Release</p>
+            <p className="eyebrow">0.7.4 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button

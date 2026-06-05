@@ -87,3 +87,4 @@ See also:
 
 - [Versioning Strategy](./versioning.md)
 - [Release Plan](./releases.md)
+- [Validation Cycle 0.7](./validation-cycle-0.7.md)

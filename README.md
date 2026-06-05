@@ -69,6 +69,7 @@ See:
 - [Feedback Guide](./docs/feedback.md)
 - [Versioning Strategy](./docs/versioning.md)
 - [Release Plan](./docs/releases.md)
+- [Validation Cycle 0.7](./docs/validation-cycle-0.7.md)
 - [Initial Issues](./docs/issues.md)
 - [Releasing Guide](./docs/releasing.md)
 - [Development Gate](./docs/development-gate.md)
@@ -111,6 +112,8 @@ opsprobe/
 ## Status
 
 OpsProbe is in the early build stage. The current focus is defining the product boundary, core architecture, and the first usable desktop workflow.
+
+The `0.7.x` external-validation cycle is now complete. The current decision is to continue into a `0.8.0` exploration stage focused on deeper inspection quality and local workflow reliability rather than declaring `1.0.0` yet.
 
 ## Roadmap Principles
 
