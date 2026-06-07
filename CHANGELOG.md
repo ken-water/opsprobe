@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.9.3] - 2026-06-07
+
+### Added
+
+- Correlated `priorityActions` in report view models that group related host and service findings into clearer remediation work items
+- Queue-style report metadata including rank, urgency, rationale, and related-signal summaries across operator HTML, manager HTML, and manager PDF exports
+- Automated multi-service correlation coverage for Nginx, MySQL, Redis, and Kubernetes report scenarios
+
+### Changed
+
+- Manager summaries now surface the lead queue item and immediate-vs-next-window priority counts instead of relying only on flat severity totals
+- Desktop and repository release copy now reflect the correlated-reporting `0.9.3` checkpoint in the `0.9.x` service-depth line
+
+### Known Limits
+
+- Correlation rules are still built from check metadata and naming conventions; they do not yet use learned weighting or historical incident outcomes
+- `0.9.3` focuses on report correlation only; install, upgrade, migration, and regression hardening remain planned for `0.9.4`
+
 ## [0.9.2] - 2026-06-07
 
 ### Added

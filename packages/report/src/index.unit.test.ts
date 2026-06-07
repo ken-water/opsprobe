@@ -336,6 +336,8 @@ describe("report view model", () => {
     expect(managerHtml).toContain("Action focus:");
     expect(managerHtml).toContain("Evidence signal:");
     expect(managerHtml).toContain("Why now:");
+    expect(managerHtml).toContain("Lead Queue Item");
+    expect(managerHtml).toContain("priority action(s) are marked immediate");
     expect(managerHtml).not.toContain("Detailed Results");
   });
 

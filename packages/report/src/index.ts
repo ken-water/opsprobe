@@ -972,12 +972,21 @@ export function renderInspectionReportHtml(
     .flatMap((group) => group.checks);
   const priorityActions = view.priorityActions.slice(0, 8);
   const recurringActions = view.recurringActions.slice(0, 8);
+  const immediatePriorityActions = view.priorityActions.filter((action) => action.urgencyLabel === "immediate");
+  const nextWindowPriorityActions = view.priorityActions.filter((action) => action.urgencyLabel === "next-window");
+  const leadPriorityAction = view.priorityActions[0];
   const criticalChecks = abnormalChecks.filter((check) => check.severity === "critical");
   const warningChecks = abnormalChecks.filter((check) => check.severity === "warning");
   const managerHighlights = [
     criticalChecks.length > 0
       ? `${criticalChecks.length} critical item(s) need immediate attention.`
       : "No critical items were detected.",
+    immediatePriorityActions.length > 0
+      ? `${immediatePriorityActions.length} priority action(s) are marked immediate.`
+      : "No priority actions are currently marked immediate.",
+    nextWindowPriorityActions.length > 0
+      ? `${nextWindowPriorityActions.length} priority action(s) fit the next maintenance window.`
+      : "No priority actions are currently queued for the next maintenance window.",
     warningChecks.length > 0
       ? `${warningChecks.length} warning item(s) should be scheduled into the next maintenance window.`
       : "No warning items were detected.",
@@ -1160,6 +1169,17 @@ export function renderInspectionReportHtml(
                   <ul class="summary-list">
                     ${managerHighlights.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
                   </ul>
+                </article>
+                <article class="check-card">
+                  <h3>Lead Queue Item</h3>
+                  ${
+                    leadPriorityAction
+                      ? `<p class="meta">P${escapeHtml(leadPriorityAction.priorityRank.toString())} · ${escapeHtml(leadPriorityAction.urgencyLabel)}</p>
+                        <p><strong>${escapeHtml(leadPriorityAction.title)}</strong></p>
+                        <p>${escapeHtml(leadPriorityAction.summary)}</p>
+                        <p><strong>Why now:</strong> ${escapeHtml(leadPriorityAction.rationale)}</p>`
+                      : "<p class=\"helper\">No priority queue items are active for this report.</p>"
+                  }
                 </article>
               </div>`
             : abnormalChecks.length > 0
