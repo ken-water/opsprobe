@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.10.1] - 2026-06-07
+
+### Added
+
+- A distinct `verification-required` credential state between imported `rebind-required` assets and fully usable `linked` assets
+- Schedule-level guardrails that block enable or resume operations until the latest saved asset has passed credential verification
+- Regression coverage for imported schedules being forced into a disabled state until rebound credentials are verified
+
+### Changed
+
+- Desktop credential edits now keep assets in a verification-pending state until a successful SSH test proves the rebound key path or password works
+- Successful SSH tests now persist the verified asset back into local storage so later schedule actions can trust the saved credential state
+- Imported schedules are now automatically disabled with an explicit verification message instead of silently resuming on unverified credentials
+
+### Known Limits
+
+- Credential verification is now enforced before recurring schedules resume, but the operator still has to drive the rebind and SSH test flow manually in the desktop UI
+- Local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms
+- `0.10.1` focuses on credential-resume safety; broader crash recovery, first-run repair, and upgrade continuity hardening remain planned for later `0.10.x` releases
+
 ## [0.10.0] - 2026-06-07
 
 ### Added

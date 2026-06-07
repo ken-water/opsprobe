@@ -114,7 +114,7 @@ opsprobe/
 
 OpsProbe is in the early build stage. The current focus is defining the product boundary, core architecture, and the first usable desktop workflow.
 
-The `0.7.x` external-validation cycle is complete, and the `0.9.x` service-depth line is also complete through `0.9.4`. OpsProbe is now on `0.10.0`, the first pre-stable hardening release focused on unifying schedules, settings, backup guidance, and storage-boundary behavior before the `1.0.0` decision is revisited.
+The `0.7.x` external-validation cycle is complete, and the `0.9.x` service-depth line is also complete through `0.9.4`. OpsProbe is now on `0.10.1`, the second pre-stable hardening release focused on making migrated credentials prove SSH access before recurring schedules can resume.
 
 ## Roadmap Principles
 

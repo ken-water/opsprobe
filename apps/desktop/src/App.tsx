@@ -1135,8 +1135,8 @@ function App() {
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
-          `0.10.0` starts the pre-stable hardening line by unifying schedules, settings,
-          and backup guidance into one clearer local runtime boundary.
+          `0.10.1` continues the pre-stable hardening line by requiring real SSH
+          verification before migrated credentials can resume recurring schedules.
         </p>
       </section>
 
@@ -1144,19 +1144,19 @@ function App() {
         <article className="card">
           <h2>Current Focus</h2>
           <ul>
-            <li>Unified local state behavior across schedules, settings, and runtime data</li>
-            <li>Clearer backup and machine-move guidance for local-first deployments</li>
-            <li>Start of the `0.10.x` pre-stable hardening line</li>
+            <li>Credential rebind now stays untrusted until a real SSH test succeeds</li>
+            <li>Recurring schedules cannot resume on saved-but-unverified credentials</li>
+            <li>Second `0.10.x` pre-stable hardening release</li>
           </ul>
         </article>
 
         <article className="card">
           <h2>Current Release</h2>
-          <p className="version">v0.10.0</p>
+          <p className="version">v0.10.1</p>
           <ul>
-            <li>Unified schedules and desktop settings storage</li>
-            <li>Legacy state migration plus storage-layout guidance</li>
-            <li>First `0.10.x` pre-stable hardening release</li>
+            <li>Verified credential state before schedule resume</li>
+            <li>Imported schedules now stay disabled until SSH validation succeeds</li>
+            <li>Second `0.10.x` pre-stable hardening release</li>
           </ul>
         </article>
 
@@ -1180,7 +1180,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Exploration Summary</h2>
           </div>
         </div>
@@ -1236,7 +1236,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Feedback Paths</h2>
           </div>
         </div>
@@ -1302,7 +1302,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Report Variants</h2>
           </div>
         </div>
@@ -1349,7 +1349,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
@@ -1388,7 +1388,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Minimum Local Setup</h2>
           </div>
           <div className="summary-strip">
@@ -1451,7 +1451,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Troubleshooting Guidance</h2>
           </div>
           <div className="summary-strip">
@@ -1500,7 +1500,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Machine Migration</h2>
           </div>
           <div className="service-actions">
@@ -1591,7 +1591,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Local Scheduling</h2>
           </div>
           <div className="service-actions">
@@ -1688,7 +1688,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Local Service Status</h2>
           </div>
           <div className="service-actions">
@@ -1776,7 +1776,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Local Service Inspection Run</h2>
           </div>
           <div className="service-actions">
@@ -1879,7 +1879,7 @@ function App() {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.0 Current Release</p>
+            <p className="eyebrow">0.10.1 Current Release</p>
             <h2>Local Service Inspection Preview</h2>
           </div>
           <button
