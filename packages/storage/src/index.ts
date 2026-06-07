@@ -484,7 +484,13 @@ export class LocalFileStorageAdapter implements StorageAdapter {
   private async readSnapshot(): Promise<FileStorageSnapshot> {
     await this.ensureFile();
     const raw = await readFile(this.filePath, "utf8");
-    return JSON.parse(raw) as FileStorageSnapshot;
+    const snapshot = JSON.parse(raw) as Partial<FileStorageSnapshot>;
+    return {
+      assets: snapshot.assets ?? [],
+      templates: snapshot.templates ?? [],
+      inspectionRuns: snapshot.inspectionRuns ?? [],
+      state: snapshot.state ?? {},
+    };
   }
 
   private async writeSnapshot(snapshot: FileStorageSnapshot) {

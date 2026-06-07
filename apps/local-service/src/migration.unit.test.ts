@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -126,6 +126,32 @@ describe("local configuration migration", () => {
 
     expect(response.package.templates).toHaveLength(builtInInspectionTemplateDefinitions.length);
     expect(response.package.templates[0]?.id).toBe(builtInInspectionTemplateDefinitions[0]?.id);
+  });
+
+  it("reads legacy file snapshots that do not yet contain unified state", async () => {
+    const { config, storage, desktopSettingsStore, scheduleStore } = await createContext();
+    await rm(join(config.paths.dataDir, "opsprobe-storage.json"), { force: true });
+    await writeFile(
+      join(config.paths.dataDir, "opsprobe-storage.json"),
+      `${JSON.stringify(
+        {
+          assets: [asset],
+          templates: [],
+          inspectionRuns: [],
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    const assets = await storage.assets.list();
+    const settings = await desktopSettingsStore.get();
+    const schedules = await scheduleStore.list();
+
+    expect(assets).toHaveLength(1);
+    expect(settings).toEqual({});
+    expect(schedules).toEqual([]);
   });
 
   it("imports rebind-required assets and skips schedules whose assets are missing", async () => {
