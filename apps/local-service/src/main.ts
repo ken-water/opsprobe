@@ -33,6 +33,7 @@ import {
 import { exportLocalConfig, importLocalConfig } from "./migration.ts";
 import { exportHtmlReport } from "./report.ts";
 import { LocalScheduleStore, LocalScheduler } from "./scheduler.ts";
+import { readPersistedServiceMode } from "./service-status.ts";
 import {
   LocalFileStorageAdapter,
   PostgresStorageAdapter,
@@ -189,7 +190,9 @@ async function writeStatusFile(mode: "starting" | "ready" | "stopped") {
 
 async function statusCommand() {
   await ensureRuntimeDirs();
-  const mode = existsSync(config.paths.servicePidFile) ? "ready" : "starting";
+  const mode = existsSync(config.paths.servicePidFile)
+    ? "ready"
+    : await readPersistedServiceMode(config.paths.serviceStatusFile);
   const response = await buildStatusResponse(mode);
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }
@@ -206,6 +209,8 @@ async function readJsonStdin<T>(): Promise<T> {
 
 async function stopCommand() {
   if (!existsSync(config.paths.servicePidFile)) {
+    await ensureRuntimeDirs();
+    await writeStatusFile("stopped");
     const response: LocalServiceCommandResponse = {
       ok: true,
       message: "Local service is already stopped.",

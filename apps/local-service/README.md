@@ -38,3 +38,9 @@ Current runtime progress:
 - the built-in Linux baseline template is persisted automatically so exports and migrations always include a usable default template
 - desktop state such as the active asset, history filters, schedule interval, and export paths is stored in `~/.opsprobe/config/desktop-settings.json`
 - schedules remain file-backed in `~/.opsprobe/config/inspection-schedules.json`, while assets/templates/runs prefer PostgreSQL and fall back to the local JSON storage adapter when PostgreSQL is not ready
+
+Current known limits before `1.0.0`:
+
+- assets, templates, and runs can migrate into PostgreSQL, but schedules and desktop settings are still file-backed instead of living in one transactional store
+- status recovery now preserves a persisted `stopped` state, but broader crash-recovery semantics are still best-effort rather than a full supervisor design
+- export and import flows protect credential secrets by forcing rebind, but they do not yet validate that replacement credentials actually work before the next scheduled run

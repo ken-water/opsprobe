@@ -116,3 +116,4 @@ Completed by `0.8.3`:
 - local-service settings and report export paths have integration coverage
 - a CLI-level functional slice now validates asset persistence, preview execution, and HTML report export
 - the smoke script now includes that functional slice before running broader build and test gates
+- migration export/import behavior and stopped-state recovery now have automated regression coverage

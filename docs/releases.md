@@ -331,4 +331,11 @@ Candidate conditions:
 - Primary inspection and report workflows are reliable
 - Versioning and upgrade expectations are clear
 
+Known blockers that should be explicitly addressed or accepted before `1.0.0`:
+
+- local migration is credible, but schedules and desktop settings are still stored separately from PostgreSQL-backed assets and runs
+- release and smoke gates are stronger now, but desktop end-to-end coverage remains thin for crash recovery, first-run repair, and upgrade continuity
+- credential rebind after migration is explicit, but OpsProbe still does not verify the rebound credential before recurring schedules resume
+- local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms
+
 `1.0.0` should not be used just because enough code exists. It should represent the first stable and externally credible open source release.

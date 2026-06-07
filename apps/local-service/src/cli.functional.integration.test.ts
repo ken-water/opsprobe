@@ -8,6 +8,7 @@ import type {
   InspectionPreviewResponse,
   LocalAssetListResponse,
   LocalServiceCommandResponse,
+  LocalServiceStatusResponse,
 } from "./protocol.ts";
 const cleanupPaths: string[] = [];
 
@@ -146,5 +147,18 @@ describe("local-service CLI functional flow", () => {
     expect(checkIds).toContain("linux.redis.blocking.risk");
     expect(checkIds).toContain("linux.redis.eviction.risk");
     expect(previewResponse.run.results.some((result) => result.title === "Redis Memory Pressure")).toBe(true);
+  });
+
+  it("persists stopped service state so later status reads do not fall back to ambiguous starting state", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "opsprobe-functional-cli-"));
+    cleanupPaths.push(homeDir);
+
+    const stopResponse = await runLocalServiceCommand<LocalServiceCommandResponse>(homeDir, "stop");
+    const statusResponse = await runLocalServiceCommand<LocalServiceStatusResponse>(homeDir, "status");
+
+    expect(stopResponse.ok).toBe(true);
+    expect(stopResponse.message).toContain("already stopped");
+    expect(statusResponse.ok).toBe(true);
+    expect(statusResponse.snapshot.status).toBe("stopped");
   });
 });
