@@ -215,7 +215,8 @@ printf '%s' "$redis_preview_json" | node --input-type=module -e '
     const required = [
       "linux.redis.memory.pressure",
       "linux.redis.persistence.risk",
-      "linux.redis.blocking.risk"
+      "linux.redis.blocking.risk",
+      "linux.redis.eviction.risk"
     ];
 
     if (!required.every((checkId) => checkIds.includes(checkId))) {

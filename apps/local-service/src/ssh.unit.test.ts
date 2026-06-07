@@ -5,6 +5,7 @@ import {
   evaluateMysqlSlowQueryRisk,
   evaluateMysqlTempDiskTableRisk,
   evaluateRedisBlockingRisk,
+  evaluateRedisEvictionRisk,
   evaluateRedisMemoryPressure,
   evaluateRedisPersistenceRisk,
 } from "./ssh";
@@ -77,5 +78,14 @@ describe("MySQL SSH evaluation helpers", () => {
 
     expect(result.status).toBe("critical");
     expect(result.summary).toContain("blocking risk is high");
+  });
+
+  it("marks redis eviction risk as critical when keys are evicted or clients rejected", () => {
+    const result = evaluateRedisEvictionRisk(
+      "evicted_keys:12\nrejected_connections:3\nconnected_clients:420\nmaxclients:1000\n",
+    );
+
+    expect(result.status).toBe("critical");
+    expect(result.summary).toContain("started evicting keys or rejecting connections");
   });
 });

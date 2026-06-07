@@ -545,6 +545,57 @@ export function evaluateRedisBlockingRisk(output: string): EvaluatedCheckDetails
   };
 }
 
+export function evaluateRedisEvictionRisk(output: string): EvaluatedCheckDetails {
+  const info = parseRedisInfo(output);
+  const evictedKeys = Number.parseInt(info.get("evicted_keys") ?? "", 10);
+  const rejectedConnections = Number.parseInt(info.get("rejected_connections") ?? "", 10);
+  const maxclients = Number.parseInt(info.get("maxclients") ?? "", 10);
+  const connectedClients = Number.parseInt(info.get("connected_clients") ?? "", 10);
+
+  if ([evictedKeys, rejectedConnections, maxclients, connectedClients].some((value) => Number.isNaN(value))) {
+    throw new Error(`Unexpected Redis eviction output: ${output}`);
+  }
+
+  const clientUtilization = maxclients > 0 ? (connectedClients / maxclients) * 100 : 0;
+  const evidence = [
+    { label: "evicted_keys", value: String(evictedKeys) },
+    { label: "rejected_connections", value: String(rejectedConnections) },
+    { label: "connected_clients", value: String(connectedClients) },
+    { label: "maxclients", value: String(maxclients) },
+    { label: "Client Utilization", value: `${clientUtilization.toFixed(1)}%` },
+  ];
+
+  if (evictedKeys > 0 || rejectedConnections > 0) {
+    return {
+      status: "critical",
+      severity: "critical",
+      summary: "Redis has already started evicting keys or rejecting connections.",
+      evidence,
+      remediation:
+        "Inspect maxmemory behavior, client surges, and whether Redis is already dropping data or refusing clients under current load.",
+    };
+  }
+
+  if (clientUtilization >= 80) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: `Redis client-count pressure is elevated at ${clientUtilization.toFixed(1)}% of maxclients.`,
+      evidence,
+      remediation:
+        "Review client churn, pooling behavior, and maxclients sizing before Redis starts refusing new connections.",
+    };
+  }
+
+  return {
+    status: "pass",
+    severity: "info",
+    summary: "Redis eviction and rejection risk is within the expected range.",
+    evidence,
+    remediation: "Continue monitoring eviction and connection-rejection counters as workload concurrency grows.",
+  };
+}
+
 async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
   switch (input.check.id) {
     case "linux.cpu.usage": {
@@ -1282,6 +1333,18 @@ async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
     case "linux.redis.blocking.risk": {
       const output = await redisInfoOutput(input.asset, "stats persistence", input.check.id);
       const evaluation = evaluateRedisBlockingRisk(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.redis.eviction.risk": {
+      const output = await redisInfoOutput(input.asset, "stats clients", input.check.id);
+      const evaluation = evaluateRedisEvictionRisk(output);
       return normalizedResult(
         input,
         evaluation.status,

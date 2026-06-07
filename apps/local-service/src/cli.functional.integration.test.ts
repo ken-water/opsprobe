@@ -140,6 +140,7 @@ describe("local-service CLI functional flow", () => {
     expect(checkIds).toContain("linux.redis.memory.pressure");
     expect(checkIds).toContain("linux.redis.persistence.risk");
     expect(checkIds).toContain("linux.redis.blocking.risk");
+    expect(checkIds).toContain("linux.redis.eviction.risk");
     expect(previewResponse.run.results.some((result) => result.title === "Redis Memory Pressure")).toBe(true);
   });
 });

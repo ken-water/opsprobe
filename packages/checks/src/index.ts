@@ -640,6 +640,27 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.redis.eviction.risk",
+    title: "Redis Eviction And Rejection Risk",
+    description: "Collects evicted key and rejected connection hints that indicate user-facing pressure.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.eviction.risk",
+        title: "Redis Eviction And Rejection Risk",
+        status: "warning",
+        severity: "warning",
+        summary: "Redis eviction or connection rejection risk should be reviewed before it impacts clients.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "evicted_keys, rejected_connections, maxclients, connected_clients" },
+        ],
+        remediation: "Review memory ceilings, client-count limits, and eviction activity before Redis starts dropping useful data or refusing clients.",
+      };
+    },
+  },
+  {
     id: "linux.docker.process",
     title: "Docker Daemon Status",
     description: "Checks whether the Docker daemon is running.",
@@ -1021,6 +1042,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.redis.memory.pressure",
       "linux.redis.persistence.risk",
       "linux.redis.blocking.risk",
+      "linux.redis.eviction.risk",
     ],
   },
   {
