@@ -9,6 +9,7 @@ import { LocalFileStorageAdapter } from "../../../packages/storage/src/index";
 import type { LocalServiceConfig } from "./config";
 import { exportLocalConfig, importLocalConfig } from "./migration";
 import { LocalScheduleStore } from "./scheduler";
+import { LocalDesktopSettingsStore } from "./settings";
 
 const cleanupPaths: string[] = [];
 
@@ -43,13 +44,15 @@ async function createContext() {
 
   const config = createConfig(rootDir);
   const storage = new LocalFileStorageAdapter(join(config.paths.dataDir, "opsprobe-storage.json"));
-  const scheduleStore = new LocalScheduleStore(config);
+  const scheduleStore = new LocalScheduleStore(config, () => storage);
+  const desktopSettingsStore = new LocalDesktopSettingsStore(config, () => storage);
   await storage.bootstrap();
 
   return {
     config,
     storage,
     scheduleStore,
+    desktopSettingsStore,
   };
 }
 
@@ -84,7 +87,7 @@ afterEach(async () => {
 
 describe("local configuration migration", () => {
   it("exports masked assets, templates, and schedules", async () => {
-    const { config, storage, scheduleStore } = await createContext();
+    const { config, storage, scheduleStore, desktopSettingsStore } = await createContext();
 
     await storage.assets.upsert(asset);
     await storage.templates.upsert(customTemplate);
@@ -94,8 +97,14 @@ describe("local configuration migration", () => {
       intervalMinutes: 15,
       enabled: true,
     });
+    await desktopSettingsStore.upsert({
+      settings: {
+        activeAsset: asset,
+        onboardingMode: "real",
+      },
+    });
 
-    const response = await exportLocalConfig(storage, scheduleStore, config);
+    const response = await exportLocalConfig(storage, scheduleStore, desktopSettingsStore, config);
 
     expect(response.ok).toBe(true);
     expect(response.package.settings.postgresPort).toBe(15432);
@@ -105,20 +114,22 @@ describe("local configuration migration", () => {
     expect(response.package.templates.map((template) => template.id)).toContain(customTemplate.id);
     expect(response.package.schedules).toHaveLength(1);
     expect(response.package.schedules[0]?.assetId).toBe(asset.id);
+    expect(response.package.settings.desktop?.activeAsset?.credential.bindingStatus).toBe("rebind-required");
+    expect("secretRef" in ((response.package.settings.desktop?.activeAsset?.credential ?? {}) as object)).toBe(false);
   });
 
   it("falls back to built-in templates when exported storage has none", async () => {
-    const { config, storage, scheduleStore } = await createContext();
+    const { config, storage, scheduleStore, desktopSettingsStore } = await createContext();
     await storage.assets.upsert(asset);
 
-    const response = await exportLocalConfig(storage, scheduleStore, config);
+    const response = await exportLocalConfig(storage, scheduleStore, desktopSettingsStore, config);
 
     expect(response.package.templates).toHaveLength(builtInInspectionTemplateDefinitions.length);
     expect(response.package.templates[0]?.id).toBe(builtInInspectionTemplateDefinitions[0]?.id);
   });
 
   it("imports rebind-required assets and skips schedules whose assets are missing", async () => {
-    const { storage, scheduleStore } = await createContext();
+    const { storage, scheduleStore, desktopSettingsStore } = await createContext();
 
     const importResponse = await importLocalConfig(
       {
@@ -160,16 +171,29 @@ describe("local configuration migration", () => {
           ],
           settings: {
             postgresPort: 15432,
+            desktop: {
+              activeAsset: {
+                ...asset,
+                credential: {
+                  method: "private-key",
+                  username: "opsprobe",
+                  bindingStatus: "rebind-required",
+                },
+              },
+              onboardingMode: "real",
+            },
           },
         },
       },
       storage,
       scheduleStore,
+      desktopSettingsStore,
     );
 
     const importedAssets = await storage.assets.list();
     const importedTemplates = await storage.templates.list();
     const importedSchedules = await scheduleStore.list();
+    const importedSettings = await desktopSettingsStore.get();
 
     expect(importResponse.ok).toBe(true);
     expect(importResponse.importedAssets).toBe(1);
@@ -180,5 +204,8 @@ describe("local configuration migration", () => {
     expect(importedTemplates.map((template) => template.id)).toContain(customTemplate.id);
     expect(importedSchedules).toHaveLength(1);
     expect(importedSchedules[0]?.asset.id).toBe(asset.id);
+    expect(importedSettings.activeAsset?.credential.bindingStatus).toBe("rebind-required");
+    expect(importedSettings.activeAsset?.credential.secretRef).toBe("");
+    expect(importedSettings.onboardingMode).toBe("real");
   });
 });

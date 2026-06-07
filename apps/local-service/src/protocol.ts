@@ -124,6 +124,7 @@ export interface LocalConfigExportPackage {
   }>;
   settings: {
     postgresPort: number;
+    desktop?: LocalDesktopSettings;
   };
 }
 

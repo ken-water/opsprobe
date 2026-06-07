@@ -14,8 +14,8 @@ Confirm that OpsProbe can:
 
 1. bootstrap its dedicated PostgreSQL data directory
 2. start and stop the managed PostgreSQL runtime
-3. prefer PostgreSQL-backed inspection run storage
-4. migrate existing file-backed inspection history into PostgreSQL
+3. prefer PostgreSQL-backed inspection run storage and state persistence
+4. migrate existing file-backed inspection history plus legacy schedule/settings state into PostgreSQL
 
 ## Preconditions
 
@@ -124,6 +124,7 @@ Expect:
 
 - `storage.backend` reports PostgreSQL
 - `storage.backend` mentions migrated file-backed inspection runs if migration occurred
+- schedules and desktop settings still load correctly after PostgreSQL becomes active
 - migrated runs appear in `npm run local-service:inspection-history`
 - migrated runs are queryable from `opsprobe_inspection_runs`
 
@@ -159,6 +160,7 @@ Issue `#21` is ready to close when all of the following are true on a real valid
 - stop succeeds
 - PostgreSQL-backed inspection run persistence succeeds
 - file-backed history migration succeeds
+- legacy schedule/settings files can be absorbed into the active state store
 - local-service status accurately reflects PostgreSQL and storage backend state
 - no manual PostgreSQL setup steps are required beyond shipping the binaries in the target distribution
 

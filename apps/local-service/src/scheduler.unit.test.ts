@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Asset } from "@opsprobe/core";
 import { LocalFileStorageAdapter } from "../../../packages/storage/src/index";
-import { LocalDesktopSettingsStore } from "./settings";
+import type { LocalServiceConfig } from "./config";
+import { LocalScheduleStore } from "./scheduler";
 
 const cleanupPaths: string[] = [];
 
@@ -33,82 +34,78 @@ function createConfig(rootDir: string): LocalServiceConfig {
   };
 }
 
-async function createStore() {
-  const rootDir = await mkdtemp(join(tmpdir(), "opsprobe-settings-test-"));
+async function createContext() {
+  const rootDir = await mkdtemp(join(tmpdir(), "opsprobe-scheduler-test-"));
   cleanupPaths.push(rootDir);
   const config = createConfig(rootDir);
   const storage = new LocalFileStorageAdapter(join(config.paths.dataDir, "opsprobe-storage.json"));
   await storage.bootstrap();
+
   return {
     config,
     storage,
-    store: new LocalDesktopSettingsStore(config, () => storage),
+    store: new LocalScheduleStore(config, () => storage),
   };
 }
 
 const asset: Asset = {
-  id: "asset-001",
-  name: "opsprobe-host",
+  id: "asset-schedule-001",
+  name: "scheduler-host",
   kind: "linux-host",
   protocol: "ssh",
-  host: "10.0.0.12",
+  host: "192.0.2.50",
   port: 22,
-  tags: ["demo"],
+  tags: ["scheduler"],
   credential: {
     method: "private-key",
-    username: "root",
-    secretRef: "/tmp/id_rsa",
+    username: "opsprobe",
+    secretRef: "/tmp/opsprobe-scheduler-id_rsa",
   },
-  createdAt: "2026-06-05T00:00:00.000Z",
-  updatedAt: "2026-06-05T00:00:00.000Z",
+  createdAt: "2026-06-07T00:00:00.000Z",
+  updatedAt: "2026-06-07T00:00:00.000Z",
 };
 
 afterEach(async () => {
   await Promise.all(cleanupPaths.splice(0).map((path) => rm(path, { recursive: true, force: true })));
 });
 
-describe("LocalDesktopSettingsStore", () => {
-  it("persists normalized settings including report audience", async () => {
-    const { store } = await createStore();
+describe("LocalScheduleStore", () => {
+  it("persists schedules into the unified storage snapshot", async () => {
+    const { storage, store } = await createContext();
 
-    const response = await store.upsert({
-      settings: {
-        activeAsset: asset,
-        reportAudience: "manager",
-        selectedTemplateId: "template.linux.nginx.edge",
-      },
-    });
-
-    expect(response.settings.reportAudience).toBe("manager");
-    expect(response.settings.activeAsset?.name).toBe("opsprobe-host");
-    expect(response.settings.activeAsset).not.toBe(asset);
-  });
-
-  it("writes desktop settings to disk", async () => {
-    const { storage, store } = await createStore();
     await store.upsert({
-      settings: {
-        activeAsset: asset,
-        onboardingMode: "demo",
-      },
+      asset,
+      templateId: "template.linux-baseline",
+      intervalMinutes: 15,
+      enabled: true,
     });
 
     const raw = await readFile((storage as { filePath: string }).filePath, "utf8");
 
     expect(raw).toContain("\"state\"");
-    expect(raw).toContain("\"desktop-settings\"");
-    expect(raw).toContain("\"onboardingMode\": \"demo\"");
+    expect(raw).toContain("\"inspection-schedules\"");
+    expect(raw).toContain("\"scheduler-host\"");
   });
 
-  it("migrates legacy desktop settings into the active state store", async () => {
-    const { config, storage, store } = await createStore();
+  it("migrates legacy schedule files into the active state store", async () => {
+    const { config, storage, store } = await createContext();
     await mkdir(config.paths.configDir, { recursive: true });
     await writeFile(
-      config.paths.desktopSettingsFile,
+      config.paths.schedulesFile,
       `${JSON.stringify(
         {
-          activeAsset: asset,
-          onboardingMode: "demo",
+          schedules: [
+            {
+              id: "schedule-legacy-001",
+              asset,
+              templateId: "template.linux-baseline",
+              intervalMinutes: 10,
+              enabled: true,
+              nextRunAt: "2026-06-07T01:10:00.000Z",
+              createdAt: "2026-06-07T01:00:00.000Z",
+              updatedAt: "2026-06-07T01:00:00.000Z",
+            },
+          ],
         },
         null,
         2,
@@ -116,11 +113,11 @@ describe("LocalDesktopSettingsStore", () => {
       "utf8",
     );
 
-    const settings = await store.get();
-    const persisted = await storage.state.get<{ onboardingMode: string }>("desktop-settings");
+    const schedules = await store.list();
+    const persisted = await storage.state.get<{ schedules: Array<{ id: string }> }>("inspection-schedules");
 
-    expect(settings.onboardingMode).toBe("demo");
-    expect(settings.activeAsset?.id).toBe(asset.id);
-    expect(persisted?.onboardingMode).toBe("demo");
+    expect(schedules).toHaveLength(1);
+    expect(schedules[0]?.id).toBe("schedule-legacy-001");
+    expect(persisted?.schedules[0]?.id).toBe("schedule-legacy-001");
   });
 });

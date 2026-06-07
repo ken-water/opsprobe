@@ -1,5 +1,6 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import type { Asset } from "@opsprobe/core";
+import type { StorageAdapter } from "../../../packages/storage/src/index.ts";
 import type { LocalServiceConfig } from "./config.ts";
 import type {
   LocalDesktopSettings,
@@ -8,6 +9,7 @@ import type {
 } from "./protocol.ts";
 
 const EMPTY_DESKTOP_SETTINGS: LocalDesktopSettings = {};
+const DESKTOP_SETTINGS_STATE_KEY = "desktop-settings";
 
 function cloneAsset(asset: Asset): Asset {
   return JSON.parse(JSON.stringify(asset)) as Asset;
@@ -31,20 +33,27 @@ function normalizeSettings(settings: LocalDesktopSettings): LocalDesktopSettings
 
 export class LocalDesktopSettingsStore {
   private readonly config: LocalServiceConfig;
+  private readonly getStorage: () => StorageAdapter;
 
-  constructor(config: LocalServiceConfig) {
+  constructor(config: LocalServiceConfig, getStorage: () => StorageAdapter) {
     this.config = config;
+    this.getStorage = getStorage;
   }
 
   async get(): Promise<LocalDesktopSettings> {
-    await mkdir(this.config.paths.configDir, { recursive: true });
-
-    try {
-      const raw = await readFile(this.config.paths.desktopSettingsFile, "utf8");
-      return normalizeSettings(JSON.parse(raw) as LocalDesktopSettings);
-    } catch {
-      return EMPTY_DESKTOP_SETTINGS;
+    const persisted = await this.getStorage().state.get<LocalDesktopSettings>(DESKTOP_SETTINGS_STATE_KEY);
+    if (persisted) {
+      return normalizeSettings(persisted);
     }
+
+    const migrated = await this.readLegacySettings();
+    if (migrated) {
+      const normalized = normalizeSettings(migrated);
+      await this.getStorage().state.set(DESKTOP_SETTINGS_STATE_KEY, normalized);
+      return normalized;
+    }
+
+    return EMPTY_DESKTOP_SETTINGS;
   }
 
   async getResponse(): Promise<LocalDesktopSettingsResponse> {
@@ -62,17 +71,23 @@ export class LocalDesktopSettingsStore {
       ...request.settings,
     });
 
-    await mkdir(this.config.paths.configDir, { recursive: true });
-    await writeFile(
-      this.config.paths.desktopSettingsFile,
-      `${JSON.stringify(next, null, 2)}\n`,
-      "utf8",
-    );
+    await this.getStorage().state.set(DESKTOP_SETTINGS_STATE_KEY, next);
 
     return {
       ok: true,
       settings: next,
       source: "local-service",
     };
+  }
+
+  private async readLegacySettings(): Promise<LocalDesktopSettings | null> {
+    await mkdir(this.config.paths.configDir, { recursive: true });
+
+    try {
+      const raw = await readFile(this.config.paths.desktopSettingsFile, "utf8");
+      return JSON.parse(raw) as LocalDesktopSettings;
+    } catch {
+      return null;
+    }
   }
 }

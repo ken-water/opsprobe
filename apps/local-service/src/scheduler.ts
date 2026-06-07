@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import type { Asset } from "@opsprobe/core";
 import { builtInInspectionTemplateDefinitions, findBuiltInTemplateDefinition } from "@opsprobe/checks";
 import type { StorageAdapter } from "../../../packages/storage/src/index.ts";
@@ -15,6 +15,8 @@ import type {
 interface ScheduleSnapshot {
   schedules: LocalInspectionSchedule[];
 }
+
+const SCHEDULES_STATE_KEY = "inspection-schedules";
 
 function emptyScheduleSnapshot(): ScheduleSnapshot {
   return {
@@ -47,9 +49,11 @@ function cloneAsset(asset: Asset): Asset {
 
 export class LocalScheduleStore {
   private readonly config: LocalServiceConfig;
+  private readonly getStorage: () => StorageAdapter;
 
-  constructor(config: LocalServiceConfig) {
+  constructor(config: LocalServiceConfig, getStorage: () => StorageAdapter) {
     this.config = config;
+    this.getStorage = getStorage;
   }
 
   async list(): Promise<LocalInspectionSchedule[]> {
@@ -150,22 +154,37 @@ export class LocalScheduleStore {
   }
 
   private async readSnapshot(): Promise<ScheduleSnapshot> {
-    await mkdir(this.config.paths.configDir, { recursive: true });
+    const persisted = await this.getStorage().state.get<ScheduleSnapshot>(SCHEDULES_STATE_KEY);
+    if (persisted) {
+      return {
+        schedules: (persisted.schedules ?? []).map(normalizeSchedule),
+      };
+    }
 
+    const migrated = await this.readLegacySnapshot();
+    if (migrated) {
+      const normalized = {
+        schedules: migrated.schedules.map(normalizeSchedule),
+      };
+      await this.getStorage().state.set(SCHEDULES_STATE_KEY, normalized);
+      return normalized;
+    }
+
+    return emptyScheduleSnapshot();
+  }
+
+  private async readLegacySnapshot(): Promise<ScheduleSnapshot | null> {
+    await mkdir(this.config.paths.configDir, { recursive: true });
     try {
       const raw = await readFile(this.config.paths.schedulesFile, "utf8");
-      const snapshot = JSON.parse(raw) as ScheduleSnapshot;
-      return {
-        schedules: snapshot.schedules.map(normalizeSchedule),
-      };
+      return JSON.parse(raw) as ScheduleSnapshot;
     } catch {
-      return emptyScheduleSnapshot();
+      return null;
     }
   }
 
   private async writeSnapshot(snapshot: ScheduleSnapshot) {
-    await mkdir(this.config.paths.configDir, { recursive: true });
-    await writeFile(this.config.paths.schedulesFile, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+    await this.getStorage().state.set(SCHEDULES_STATE_KEY, snapshot);
   }
 }
 

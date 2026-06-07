@@ -3,11 +3,13 @@ import { createInspectionTemplate, type Asset, type InspectionTemplate } from "@
 import type { StorageAdapter } from "../../../packages/storage/src/index.ts";
 import type { LocalServiceConfig } from "./config.ts";
 import { LocalScheduleStore } from "./scheduler.ts";
+import { LocalDesktopSettingsStore } from "./settings.ts";
 import type {
   LocalConfigExportPackage,
   LocalConfigExportResponse,
   LocalConfigImportRequest,
   LocalConfigImportResponse,
+  LocalDesktopSettings,
   LocalInspectionSchedule,
   PortableAsset,
 } from "./protocol.ts";
@@ -35,15 +37,31 @@ function rebindAsset(asset: PortableAsset): Asset {
   };
 }
 
+function maskSettings(settings: LocalDesktopSettings): LocalDesktopSettings {
+  return {
+    ...settings,
+    activeAsset: settings.activeAsset ? maskAsset(settings.activeAsset) : undefined,
+  };
+}
+
+function rebindSettings(settings: LocalDesktopSettings): LocalDesktopSettings {
+  return {
+    ...settings,
+    activeAsset: settings.activeAsset ? rebindAsset(settings.activeAsset as PortableAsset) : undefined,
+  };
+}
+
 export async function exportLocalConfig(
   storage: StorageAdapter,
   scheduleStore: LocalScheduleStore,
+  desktopSettingsStore: LocalDesktopSettingsStore,
   config: LocalServiceConfig,
 ): Promise<LocalConfigExportResponse> {
-  const [assets, templates, schedules] = await Promise.all([
+  const [assets, templates, schedules, desktop] = await Promise.all([
     storage.assets.list(),
     storage.templates.list(),
     scheduleStore.list(),
+    desktopSettingsStore.get(),
   ]);
   const exportedTemplates =
     templates.length > 0
@@ -74,6 +92,7 @@ export async function exportLocalConfig(
       schedules: portableSchedules,
       settings: {
         postgresPort: config.postgres.port,
+        desktop: maskSettings(desktop),
       },
     },
     source: "local-service",
@@ -108,6 +127,7 @@ export async function importLocalConfig(
   request: LocalConfigImportRequest,
   storage: StorageAdapter,
   scheduleStore: LocalScheduleStore,
+  desktopSettingsStore: LocalDesktopSettingsStore,
 ): Promise<LocalConfigImportResponse> {
   const assets = request.package.assets.map(rebindAsset);
   const assetsById = new Map<string, Asset>(assets.map((asset) => [asset.id, asset]));
@@ -129,6 +149,12 @@ export async function importLocalConfig(
 
     await scheduleStore.saveImported(importedSchedule);
     importedSchedules += 1;
+  }
+
+  if (request.package.settings.desktop) {
+    await desktopSettingsStore.upsert({
+      settings: rebindSettings(request.package.settings.desktop),
+    });
   }
 
   return {

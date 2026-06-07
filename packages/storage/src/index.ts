@@ -28,6 +28,11 @@ export interface InspectionRunRepository {
   listRecent(limit: number): Promise<InspectionRun[]>;
 }
 
+export interface StateRepository {
+  get<T>(key: string): Promise<T | null>;
+  set<T>(key: string, value: T): Promise<void>;
+}
+
 export interface StorageAdapter {
   bootstrap(): Promise<StorageBootstrapResult>;
   health(): Promise<StorageHealth>;
@@ -35,6 +40,7 @@ export interface StorageAdapter {
   assets: AssetRepository;
   templates: TemplateRepository;
   inspectionRuns: InspectionRunRepository;
+  state: StateRepository;
 }
 
 export interface PostgresStorageConfig {
@@ -48,12 +54,14 @@ interface FileStorageSnapshot {
   assets: Asset[];
   templates: InspectionTemplate[];
   inspectionRuns: InspectionRun[];
+  state: Record<string, unknown>;
 }
 
 const EMPTY_FILE_STORAGE_SNAPSHOT: FileStorageSnapshot = {
   assets: [],
   templates: [],
   inspectionRuns: [],
+  state: {},
 };
 
 export class StubPostgresStorageAdapter implements StorageAdapter {
@@ -81,6 +89,15 @@ export class StubPostgresStorageAdapter implements StorageAdapter {
     },
     async listRecent() {
       return [];
+    },
+  };
+
+  readonly state: StateRepository = {
+    async get() {
+      return null;
+    },
+    async set() {
+      return;
     },
   };
 
@@ -249,6 +266,42 @@ export class PostgresStorageAdapter implements StorageAdapter {
     },
   };
 
+  readonly state: StateRepository = {
+    get: async (key) => {
+      const result = await this.pool.query<{ payload: unknown }>(
+        `
+          select payload
+          from opsprobe_state
+          where key = $1
+        `,
+        [key],
+      );
+
+      const row = result.rows[0];
+      if (!row) {
+        return null;
+      }
+
+      return typeof row.payload === "string" ? (JSON.parse(row.payload) as unknown) : row.payload;
+    },
+    set: async (key, value) => {
+      await this.pool.query(
+        `
+          insert into opsprobe_state (
+            key,
+            updated_at,
+            payload
+          )
+          values ($1, now(), $2::jsonb)
+          on conflict (key) do update set
+            updated_at = excluded.updated_at,
+            payload = excluded.payload
+        `,
+        [key, JSON.stringify(value)],
+      );
+    },
+  };
+
   async bootstrap(): Promise<StorageBootstrapResult> {
     await this.pool.query(`
       create table if not exists opsprobe_assets (
@@ -280,6 +333,14 @@ export class PostgresStorageAdapter implements StorageAdapter {
     `);
 
     await this.pool.query(`
+      create table if not exists opsprobe_state (
+        key text primary key,
+        updated_at timestamptz not null,
+        payload jsonb not null
+      )
+    `);
+
+    await this.pool.query(`
       create index if not exists idx_opsprobe_assets_updated_at
       on opsprobe_assets (updated_at desc)
     `);
@@ -292,6 +353,11 @@ export class PostgresStorageAdapter implements StorageAdapter {
     await this.pool.query(`
       create index if not exists idx_opsprobe_inspection_runs_created_at
       on opsprobe_inspection_runs (created_at desc)
+    `);
+
+    await this.pool.query(`
+      create index if not exists idx_opsprobe_state_updated_at
+      on opsprobe_state (updated_at desc)
     `);
 
     return {
@@ -365,6 +431,23 @@ export class LocalFileStorageAdapter implements StorageAdapter {
       });
     },
     listRecent: async (limit) => (await this.readSnapshot()).inspectionRuns.slice(0, limit),
+  };
+
+  readonly state: StateRepository = {
+    get: async (key) => {
+      const snapshot = await this.readSnapshot();
+      return (snapshot.state[key] as unknown | undefined) ?? null;
+    },
+    set: async (key, value) => {
+      const snapshot = await this.readSnapshot();
+      await this.writeSnapshot({
+        ...snapshot,
+        state: {
+          ...snapshot.state,
+          [key]: value,
+        },
+      });
+    },
   };
 
   async bootstrap(): Promise<StorageBootstrapResult> {

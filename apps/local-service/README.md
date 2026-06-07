@@ -36,11 +36,14 @@ Current runtime progress:
 - inspection persistence now prefers PostgreSQL when the managed runtime is ready, and clearly falls back to the local file adapter when PostgreSQL is unavailable
 - when PostgreSQL becomes available, existing file-backed inspection run history is migrated into PostgreSQL automatically via idempotent upserts
 - the built-in Linux baseline template is persisted automatically so exports and migrations always include a usable default template
-- desktop state such as the active asset, history filters, schedule interval, and export paths is stored in `~/.opsprobe/config/desktop-settings.json`
-- schedules remain file-backed in `~/.opsprobe/config/inspection-schedules.json`, while assets/templates/runs prefer PostgreSQL and fall back to the local JSON storage adapter when PostgreSQL is not ready
+- schedules and desktop state now use the same active storage boundary as assets, templates, and runs
+- legacy `~/.opsprobe/config/desktop-settings.json` and `~/.opsprobe/config/inspection-schedules.json` files are migrated into the active state store automatically when detected
 
 Current known limits before `1.0.0`:
 
-- assets, templates, and runs can migrate into PostgreSQL, but schedules and desktop settings are still file-backed instead of living in one transactional store
 - status recovery now preserves a persisted `stopped` state, but broader crash-recovery semantics are still best-effort rather than a full supervisor design
 - export and import flows protect credential secrets by forcing rebind, but they do not yet validate that replacement credentials actually work before the next scheduled run
+
+See also:
+
+- [Storage Layout](../../docs/storage-layout.md)

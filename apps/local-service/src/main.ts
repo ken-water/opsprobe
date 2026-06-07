@@ -8,6 +8,7 @@ import type {
   InspectionExecutionRequest,
   LocalAssetListResponse,
   LocalAssetUpsertRequest,
+  LocalDesktopSettings,
   LocalDesktopSettingsResponse,
   LocalDesktopSettingsUpsertRequest,
   LocalConfigExportResponse,
@@ -47,11 +48,13 @@ const bootstrap = new ManagedLocalServiceBootstrap(config);
 const fileStorage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprobe-storage.json`);
 let storage: StorageAdapter = fileStorage;
 let storageBackendMessage = "Local file storage adapter is active.";
-const scheduleStore = new LocalScheduleStore(config);
-const desktopSettingsStore = new LocalDesktopSettingsStore(config);
+const scheduleStore = new LocalScheduleStore(config, () => storage);
+const desktopSettingsStore = new LocalDesktopSettingsStore(config, () => storage);
 const builtInTemplates = builtInInspectionTemplateDefinitions.map((definition) =>
   createInspectionTemplate(definition),
 );
+const DESKTOP_SETTINGS_STATE_KEY = "desktop-settings";
+const SCHEDULES_STATE_KEY = "inspection-schedules";
 
 async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter) {
   await fileStorage.bootstrap();
@@ -74,6 +77,43 @@ async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter
   return runs.length;
 }
 
+async function migrateLegacyStateIntoStorage(targetStorage: StorageAdapter) {
+  const existingSettings = await targetStorage.state.get<LocalDesktopSettings>(DESKTOP_SETTINGS_STATE_KEY);
+  if (!existingSettings) {
+    try {
+      const raw = await readFile(config.paths.desktopSettingsFile, "utf8");
+      await targetStorage.state.set(DESKTOP_SETTINGS_STATE_KEY, JSON.parse(raw) as LocalDesktopSettings);
+    } catch {
+      // Ignore missing legacy desktop settings.
+    }
+  }
+
+  const existingSchedules = await targetStorage.state.get<{ schedules: LocalInspectionSchedule[] }>(SCHEDULES_STATE_KEY);
+  if (!existingSchedules) {
+    try {
+      const raw = await readFile(config.paths.schedulesFile, "utf8");
+      await targetStorage.state.set(
+        SCHEDULES_STATE_KEY,
+        JSON.parse(raw) as { schedules: LocalInspectionSchedule[] },
+      );
+    } catch {
+      // Ignore missing legacy schedule snapshot.
+    }
+  }
+}
+
+async function migrateFileStateToPostgres(postgresStorage: PostgresStorageAdapter) {
+  const fileSettings = await fileStorage.state.get<LocalDesktopSettings>(DESKTOP_SETTINGS_STATE_KEY);
+  if (fileSettings) {
+    await postgresStorage.state.set(DESKTOP_SETTINGS_STATE_KEY, fileSettings);
+  }
+
+  const fileSchedules = await fileStorage.state.get<{ schedules: LocalInspectionSchedule[] }>(SCHEDULES_STATE_KEY);
+  if (fileSchedules) {
+    await postgresStorage.state.set(SCHEDULES_STATE_KEY, fileSchedules);
+  }
+}
+
 async function selectStorageAdapter() {
   const health = await bootstrap.ensureRuntime();
 
@@ -90,11 +130,13 @@ async function selectStorageAdapter() {
       const postgresHealth = await postgresStorage.health();
       if (postgresHealth.status === "pass") {
         const migratedRuns = await migrateFileRunsToPostgres(postgresStorage);
+        await migrateLegacyStateIntoStorage(fileStorage);
+        await migrateFileStateToPostgres(postgresStorage);
         storage = postgresStorage;
         storageBackendMessage =
           migratedRuns > 0
-            ? `${postgresHealth.detail} Migrated ${migratedRuns} file-backed inspection runs into PostgreSQL.`
-            : postgresHealth.detail;
+            ? `${postgresHealth.detail} Migrated ${migratedRuns} file-backed inspection runs into PostgreSQL and unified schedules/settings into the active state store.`
+            : `${postgresHealth.detail} Schedules and desktop settings now share the active state store with runtime data.`;
         return;
       }
       storageBackendMessage = `Falling back to local file storage: ${postgresHealth.detail}`;
@@ -107,6 +149,7 @@ async function selectStorageAdapter() {
   }
 
   await fileStorage.bootstrap();
+  await migrateLegacyStateIntoStorage(fileStorage);
   storage = fileStorage;
 }
 
@@ -264,6 +307,8 @@ async function startPostgresCommand() {
     message: await bootstrap.startPostgres(),
   };
 
+  await selectStorageAdapter();
+
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }
 
@@ -283,10 +328,12 @@ async function stopPostgresCommand() {
 async function serveCommand() {
   await ensureRuntimeDirs();
   await writeFile(config.paths.servicePidFile, `${process.pid}\n`, "utf8");
-  const scheduler = new LocalScheduler(scheduleStore, storage);
+  let scheduler = new LocalScheduler(scheduleStore, storage);
 
   try {
     await bootstrap.startPostgres();
+    await selectStorageAdapter();
+    scheduler = new LocalScheduler(scheduleStore, storage);
   } catch {
     // Keep local-service alive even when managed PostgreSQL is not ready.
   }
@@ -421,7 +468,12 @@ async function main() {
   if (mode === "config-export") {
     await ensureRuntimeDirs();
     const request = await readJsonStdin<LocalFilePathRequest>();
-    const response: LocalConfigExportResponse = await exportLocalConfig(storage, scheduleStore, config);
+    const response: LocalConfigExportResponse = await exportLocalConfig(
+      storage,
+      scheduleStore,
+      desktopSettingsStore,
+      config,
+    );
     await writeFile(request.path, `${JSON.stringify(response.package, null, 2)}\n`, "utf8");
     const commandResponse: LocalServiceCommandResponse = {
       ok: true,
@@ -439,6 +491,7 @@ async function main() {
       { package: JSON.parse(raw) as LocalConfigImportRequest["package"] },
       storage,
       scheduleStore,
+      desktopSettingsStore,
     );
     process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
     return;

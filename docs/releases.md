@@ -373,7 +373,7 @@ Candidate conditions:
 
 Known blockers that should be explicitly addressed or accepted before `1.0.0`:
 
-- local migration is credible, but schedules and desktop settings are still stored separately from PostgreSQL-backed assets and runs; see Issue 50
+- local migration is credible, but the new unified schedules/settings storage boundary still needs release validation and operator-facing backup guidance; see Issue 50
 - release and smoke gates are stronger now, but desktop end-to-end coverage remains thin for crash recovery, first-run repair, and upgrade continuity; see Issue 52
 - credential rebind after migration is explicit, but OpsProbe still does not verify the rebound credential before recurring schedules resume; see Issue 51
 - local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms; see Issue 53
