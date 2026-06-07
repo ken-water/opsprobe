@@ -113,11 +113,14 @@ function buildImportedSchedule(
     asset,
     templateId: schedule.templateId ?? builtInInspectionTemplateDefinitions[0].id,
     intervalMinutes: schedule.intervalMinutes,
-    enabled: schedule.enabled,
+    enabled: asset.credential.bindingStatus === "linked" ? schedule.enabled : false,
     nextRunAt: schedule.nextRunAt,
     lastRunAt: schedule.lastRunAt,
     lastRunStatus: schedule.lastRunStatus,
-    lastError: schedule.lastError,
+    lastError:
+      asset.credential.bindingStatus === "linked"
+        ? schedule.lastError
+        : "Credential verification is required before this schedule can resume.",
     createdAt: schedule.createdAt,
     updatedAt: schedule.updatedAt,
   };

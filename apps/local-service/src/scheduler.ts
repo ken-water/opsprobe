@@ -17,6 +17,8 @@ interface ScheduleSnapshot {
 }
 
 const SCHEDULES_STATE_KEY = "inspection-schedules";
+const CREDENTIAL_REVALIDATION_MESSAGE =
+  "Credential verification is required before this schedule can resume.";
 
 function emptyScheduleSnapshot(): ScheduleSnapshot {
   return {
@@ -47,6 +49,10 @@ function cloneAsset(asset: Asset): Asset {
   return JSON.parse(JSON.stringify(asset)) as Asset;
 }
 
+function credentialReadyForSchedules(asset: Asset) {
+  return asset.credential.bindingStatus === "linked" && asset.credential.secretRef.trim().length > 0;
+}
+
 export class LocalScheduleStore {
   private readonly config: LocalServiceConfig;
   private readonly getStorage: () => StorageAdapter;
@@ -73,11 +79,17 @@ export class LocalScheduleStore {
     const timestamp = nowIso();
     const existing = request.id ? snapshot.schedules.find((item) => item.id === request.id) : undefined;
     const intervalMinutes = Math.max(5, Math.floor(request.intervalMinutes));
+    const asset = await this.resolveLatestAsset(request.asset);
+    const requestedEnabled = request.enabled ?? existing?.enabled ?? true;
+
+    if (requestedEnabled && !credentialReadyForSchedules(asset)) {
+      throw new Error(CREDENTIAL_REVALIDATION_MESSAGE);
+    }
 
     const schedule: LocalInspectionSchedule = existing
       ? {
           ...existing,
-          asset: cloneAsset(request.asset),
+          asset: cloneAsset(asset),
           templateId: request.templateId,
           intervalMinutes,
           enabled: request.enabled ?? existing.enabled,
@@ -88,13 +100,13 @@ export class LocalScheduleStore {
               : existing.enabled || request.enabled !== false
                 ? existing.nextRunAt
                 : computeNextRunAt(intervalMinutes),
-          lastError: existing.lastError,
+          lastError: request.enabled === true ? undefined : existing.lastError,
           lastRunAt: existing.lastRunAt,
           lastRunStatus: existing.lastRunStatus,
         }
       : {
           id: request.id ?? createScheduleId(),
-          asset: cloneAsset(request.asset),
+          asset: cloneAsset(asset),
           templateId: request.templateId,
           intervalMinutes,
           enabled: request.enabled ?? true,
@@ -132,10 +144,18 @@ export class LocalScheduleStore {
 
   async saveImported(schedule: LocalInspectionSchedule) {
     const snapshot = await this.readSnapshot();
+    const asset = await this.resolveLatestAsset(schedule.asset);
+    const requiresVerification = !credentialReadyForSchedules(asset);
+    const importedSchedule: LocalInspectionSchedule = {
+      ...schedule,
+      asset,
+      enabled: requiresVerification ? false : schedule.enabled,
+      lastError: requiresVerification ? CREDENTIAL_REVALIDATION_MESSAGE : schedule.lastError,
+    };
     const existing = snapshot.schedules.some((item) => item.id === schedule.id);
     snapshot.schedules = existing
-      ? snapshot.schedules.map((item) => (item.id === schedule.id ? schedule : item))
-      : [...snapshot.schedules, schedule];
+      ? snapshot.schedules.map((item) => (item.id === schedule.id ? importedSchedule : item))
+      : [...snapshot.schedules, importedSchedule];
     await this.writeSnapshot(snapshot);
   }
 
@@ -186,6 +206,11 @@ export class LocalScheduleStore {
   private async writeSnapshot(snapshot: ScheduleSnapshot) {
     await this.getStorage().state.set(SCHEDULES_STATE_KEY, snapshot);
   }
+
+  private async resolveLatestAsset(asset: Asset): Promise<Asset> {
+    const assets = await this.getStorage().assets.list();
+    return assets.find((candidate) => candidate.id === asset.id) ?? asset;
+  }
 }
 
 export class LocalScheduler {
@@ -212,10 +237,27 @@ export class LocalScheduler {
 
     for (const schedule of dueSchedules) {
       this.runningScheduleIds.add(schedule.id);
+      let latestAsset = schedule.asset;
       try {
+        const assets = await this.storage.assets.list();
+        latestAsset = assets.find((candidate) => candidate.id === schedule.asset.id) ?? schedule.asset;
+
+        if (!credentialReadyForSchedules(latestAsset)) {
+          await this.store.save({
+            ...schedule,
+            asset: latestAsset,
+            enabled: false,
+            lastRunAt: nowIso(),
+            lastRunStatus: "failed",
+            lastError: CREDENTIAL_REVALIDATION_MESSAGE,
+            updatedAt: nowIso(),
+          });
+          continue;
+        }
+
         const response = await buildInspectionExecution(
           {
-            asset: schedule.asset,
+            asset: latestAsset,
             templateId: schedule.templateId,
             trigger: "scheduled",
             taskId: `task-schedule-${schedule.id}-${Date.now()}`,
@@ -225,6 +267,7 @@ export class LocalScheduler {
 
         await this.store.save({
           ...schedule,
+          asset: latestAsset,
           nextRunAt: computeNextRunAt(schedule.intervalMinutes),
           lastRunAt: response.run.createdAt,
           lastRunStatus: response.run.status,
@@ -235,6 +278,7 @@ export class LocalScheduler {
         const message = error instanceof Error ? error.message : "Scheduled run failed.";
         await this.store.save({
           ...schedule,
+          asset: latestAsset,
           nextRunAt: computeNextRunAt(schedule.intervalMinutes),
           lastRunAt: nowIso(),
           lastRunStatus: "failed",

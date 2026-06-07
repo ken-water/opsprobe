@@ -68,6 +68,7 @@ const asset: Asset = {
     method: "private-key",
     username: "opsprobe",
     secretRef: "/tmp/opsprobe-migration-id_rsa",
+    bindingStatus: "linked",
   },
   createdAt: "2026-06-07T00:00:00.000Z",
   updatedAt: "2026-06-07T00:00:00.000Z",
@@ -230,6 +231,8 @@ describe("local configuration migration", () => {
     expect(importedTemplates.map((template) => template.id)).toContain(customTemplate.id);
     expect(importedSchedules).toHaveLength(1);
     expect(importedSchedules[0]?.asset.id).toBe(asset.id);
+    expect(importedSchedules[0]?.enabled).toBe(false);
+    expect(importedSchedules[0]?.lastError).toContain("Credential verification is required");
     expect(importedSettings.activeAsset?.credential.bindingStatus).toBe("rebind-required");
     expect(importedSettings.activeAsset?.credential.secretRef).toBe("");
     expect(importedSettings.onboardingMode).toBe("real");

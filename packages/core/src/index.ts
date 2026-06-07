@@ -5,7 +5,7 @@ export interface AssetCredential {
   method: AuthenticationMethod;
   username: string;
   secretRef: string;
-  bindingStatus?: "linked" | "rebind-required";
+  bindingStatus?: "linked" | "rebind-required" | "verification-required";
 }
 
 export interface Asset extends Timestamped {

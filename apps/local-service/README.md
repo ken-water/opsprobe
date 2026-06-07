@@ -42,7 +42,7 @@ Current runtime progress:
 Current known limits before `1.0.0`:
 
 - status recovery now preserves a persisted `stopped` state, but broader crash-recovery semantics are still best-effort rather than a full supervisor design
-- export and import flows protect credential secrets by forcing rebind, but they do not yet validate that replacement credentials actually work before the next scheduled run
+- export and import flows now block recurring schedules until rebound credentials pass SSH validation, but broader credential-repair UX is still desktop-driven rather than fully workflow-guided
 
 See also:
 

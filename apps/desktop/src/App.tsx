@@ -354,6 +354,16 @@ class TauriRunnerAdapter {
   }
 }
 
+function nextCredentialBindingStatus(
+  credential: Asset["credential"],
+): NonNullable<Asset["credential"]["bindingStatus"]> {
+  if (credential.secretRef.trim().length === 0) {
+    return "rebind-required";
+  }
+
+  return credential.bindingStatus === "linked" ? "linked" : "verification-required";
+}
+
 function App() {
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
@@ -490,14 +500,22 @@ function App() {
   function patchCredential(patch: Partial<Asset["credential"]>) {
     setAsset((current) => ({
       ...current,
-      credential: {
-        ...current.credential,
-        ...patch,
-        bindingStatus:
-          patch.secretRef !== undefined || patch.method !== undefined || patch.username !== undefined
-            ? "linked"
-            : current.credential.bindingStatus,
-      },
+      credential: (() => {
+        const nextCredential = {
+          ...current.credential,
+          ...patch,
+        };
+
+        return {
+          ...nextCredential,
+          bindingStatus:
+            patch.secretRef !== undefined || patch.method !== undefined || patch.username !== undefined
+              ? nextCredential.secretRef.trim().length > 0
+                ? "verification-required"
+                : "rebind-required"
+              : nextCredential.bindingStatus,
+        };
+      })(),
       updatedAt: new Date().toISOString(),
     }));
   }
@@ -800,7 +818,7 @@ function App() {
         ...asset,
         credential: {
           ...asset.credential,
-          bindingStatus: asset.credential.secretRef.trim().length > 0 ? "linked" : asset.credential.bindingStatus,
+          bindingStatus: nextCredentialBindingStatus(asset.credential),
         },
       };
       setAsset(assetToSave);
@@ -1011,6 +1029,9 @@ function App() {
   const blockingChecks = serviceChecks.filter((check) => check.status === "critical");
   const warningChecks = serviceChecks.filter((check) => check.status === "warning");
   const assetsNeedingRebind = savedAssets.filter((savedAsset) => savedAsset.credential.bindingStatus === "rebind-required");
+  const assetsNeedingVerification = savedAssets.filter(
+    (savedAsset) => savedAsset.credential.bindingStatus === "verification-required",
+  );
   const troubleshootingCards: TroubleshootingCard[] = serviceChecks
     .filter(isActionableServiceCheck)
     .map((check) => ({
@@ -1040,14 +1061,21 @@ function App() {
     },
     {
       id: "setup.rebind",
-      label: "Rebind imported credentials",
-      done: assetsNeedingRebind.length === 0,
-      action: assetsNeedingRebind.length > 0 ? () => void handleLoadAsset(assetsNeedingRebind[0]) : undefined,
+      label: "Rebind and verify credentials",
+      done: assetsNeedingRebind.length === 0 && assetsNeedingVerification.length === 0,
+      action:
+        assetsNeedingRebind.length > 0
+          ? () => void handleLoadAsset(assetsNeedingRebind[0])
+          : assetsNeedingVerification.length > 0
+            ? () => void handleLoadAsset(assetsNeedingVerification[0])
+            : undefined,
       actionLabel: "Load First Asset",
       detail:
         assetsNeedingRebind.length > 0
           ? `${assetsNeedingRebind.length} imported assets still need a local key path or password.`
-          : "No imported assets are waiting for credential rebind.",
+          : assetsNeedingVerification.length > 0
+            ? `${assetsNeedingVerification.length} saved assets still need a successful SSH test before schedules can resume.`
+            : "No imported assets are waiting for credential rebind or verification.",
     },
     {
       id: "setup.reports",
@@ -1071,6 +1099,25 @@ function App() {
         input: sshInput,
       });
       setSshResult(result);
+      if (result.ok) {
+        const verifiedAsset: Asset = {
+          ...asset,
+          credential: {
+            ...asset.credential,
+            bindingStatus: "linked",
+          },
+          updatedAt: new Date().toISOString(),
+        };
+        setAsset(verifiedAsset);
+        await invoke<LocalServiceCommandResponse>("upsert_local_service_asset", {
+          input: {
+            asset: verifiedAsset,
+          },
+        }).catch(() => {
+          // Keep SSH verification feedback even if persistence is temporarily unavailable.
+        });
+        await refreshSavedAssets();
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "SSH test failed.";
       setSshResult({
@@ -1504,7 +1551,7 @@ function App() {
 
         <p className="helper-text">
           Exported packages exclude secret values. Imported assets are marked for credential rebind
-          before use on the new machine.
+          before use on the new machine. After rebinding, run a successful SSH test before resuming schedules.
         </p>
 
         {savedAssets.length > 0 ? (
@@ -1590,7 +1637,8 @@ function App() {
 
         <p className="helper-text">
           Schedules are stored locally by the service and executed by the background process. Keep
-          the local service running for recurring inspections.
+          the local service running for recurring inspections. Assets with `verification-required`
+          credentials cannot resume schedules until SSH validation succeeds.
         </p>
 
         {schedules.length > 0 ? (

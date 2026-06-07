@@ -60,6 +60,7 @@ const asset: Asset = {
     method: "private-key",
     username: "opsprobe",
     secretRef: "/tmp/opsprobe-scheduler-id_rsa",
+    bindingStatus: "linked",
   },
   createdAt: "2026-06-07T00:00:00.000Z",
   updatedAt: "2026-06-07T00:00:00.000Z",
@@ -70,6 +71,25 @@ afterEach(async () => {
 });
 
 describe("LocalScheduleStore", () => {
+  it("rejects enabling schedules until credentials are verified", async () => {
+    const { store } = await createContext();
+
+    await expect(
+      store.upsert({
+        asset: {
+          ...asset,
+          credential: {
+            ...asset.credential,
+            bindingStatus: "verification-required",
+          },
+        },
+        templateId: "template.linux-baseline",
+        intervalMinutes: 15,
+        enabled: true,
+      }),
+    ).rejects.toThrow("Credential verification is required before this schedule can resume.");
+  });
+
   it("persists schedules into the unified storage snapshot", async () => {
     const { storage, store } = await createContext();
 
@@ -119,5 +139,32 @@ describe("LocalScheduleStore", () => {
     expect(schedules).toHaveLength(1);
     expect(schedules[0]?.id).toBe("schedule-legacy-001");
     expect(persisted?.schedules[0]?.id).toBe("schedule-legacy-001");
+  });
+
+  it("disables imported schedules until credentials are revalidated", async () => {
+    const { store } = await createContext();
+
+    await store.saveImported({
+      id: "schedule-import-verify-001",
+      asset: {
+        ...asset,
+        credential: {
+          ...asset.credential,
+          bindingStatus: "rebind-required",
+          secretRef: "",
+        },
+      },
+      templateId: "template.linux-baseline",
+      intervalMinutes: 15,
+      enabled: true,
+      nextRunAt: "2026-06-07T01:10:00.000Z",
+      createdAt: "2026-06-07T01:00:00.000Z",
+      updatedAt: "2026-06-07T01:00:00.000Z",
+    });
+
+    const schedules = await store.list();
+
+    expect(schedules[0]?.enabled).toBe(false);
+    expect(schedules[0]?.lastError).toContain("Credential verification is required");
   });
 });
