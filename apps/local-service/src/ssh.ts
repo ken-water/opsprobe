@@ -154,6 +154,37 @@ function parseMysqlKeyValueRows(output: string) {
   );
 }
 
+async function redisInfoOutput(asset: Asset, section: string, checkId: string): Promise<string> {
+  const output = await sshOutput(
+    asset,
+    `sh -lc "if ! command -v redis-cli >/dev/null 2>&1; then echo __opsprobe_missing_redis_cli__; exit 0; fi; result=$(redis-cli INFO ${section} 2>&1); status=$?; if [ $status -ne 0 ]; then printf '__opsprobe_redis_info_failed__\\n%s\\n' \"$result\"; exit 0; fi; printf '%s\\n' \"$result\""` ,
+    checkId,
+  );
+
+  if (output.startsWith("__opsprobe_missing_redis_cli__")) {
+    throw new Error("redis-cli is not available on the host.");
+  }
+
+  if (output.startsWith("__opsprobe_redis_info_failed__")) {
+    const detail = output.split("\n").slice(1).join(" ").trim();
+    throw new Error(detail || "Redis INFO query failed.");
+  }
+
+  return output;
+}
+
+function parseRedisInfo(output: string) {
+  return new Map(
+    output
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0 && !line.startsWith("#"))
+      .map((line) => line.split(":", 2))
+      .filter((parts) => parts.length === 2)
+      .map(([key, value]) => [key, value] as const),
+  );
+}
+
 export function evaluateMysqlConnectionPressure(output: string): EvaluatedCheckDetails {
   const rows = parseMysqlKeyValueRows(output);
   const threadsConnected = Number.parseInt(rows.get("Threads_connected") ?? "", 10);
@@ -359,6 +390,158 @@ export function evaluateMysqlTempDiskTableRisk(output: string): EvaluatedCheckDe
     summary: "MySQL temporary table spill-to-disk risk is within the expected range.",
     evidence,
     remediation: "Continue monitoring temporary table spill behavior as workload shape changes.",
+  };
+}
+
+export function evaluateRedisMemoryPressure(output: string): EvaluatedCheckDetails {
+  const info = parseRedisInfo(output);
+  const usedMemory = Number.parseInt(info.get("used_memory") ?? "", 10);
+  const maxmemory = Number.parseInt(info.get("maxmemory") ?? "", 10);
+  const peakMemory = Number.parseInt(info.get("used_memory_peak") ?? "", 10);
+  const policy = info.get("maxmemory_policy") ?? "unknown";
+
+  if ([usedMemory, peakMemory].some((value) => Number.isNaN(value))) {
+    throw new Error(`Unexpected Redis memory output: ${output}`);
+  }
+
+  const hasMemoryLimit = !Number.isNaN(maxmemory) && maxmemory > 0;
+  const utilization = hasMemoryLimit ? (usedMemory / maxmemory) * 100 : 0;
+  const evidence = [
+    { label: "used_memory", value: String(usedMemory) },
+    { label: "used_memory_peak", value: String(peakMemory) },
+    { label: "maxmemory", value: hasMemoryLimit ? String(maxmemory) : "0" },
+    { label: "maxmemory_policy", value: policy },
+    { label: "Utilization", value: hasMemoryLimit ? `${utilization.toFixed(1)}%` : "unbounded" },
+  ];
+
+  if (!hasMemoryLimit) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: "Redis has no maxmemory limit configured.",
+      evidence,
+      remediation: "Set maxmemory and an intentional eviction policy if this Redis instance should not grow without bounds.",
+    };
+  }
+
+  if (utilization >= 90) {
+    return {
+      status: "critical",
+      severity: "critical",
+      summary: `Redis memory pressure is high at ${utilization.toFixed(1)}% of maxmemory.`,
+      evidence,
+      remediation: "Review dataset growth, eviction behavior, and memory sizing before Redis starts rejecting writes or evicting unexpectedly.",
+    };
+  }
+
+  if (utilization >= 75) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: `Redis memory pressure is elevated at ${utilization.toFixed(1)}% of maxmemory.`,
+      evidence,
+      remediation: "Review dataset growth and eviction posture before Redis memory utilization approaches the configured ceiling.",
+    };
+  }
+
+  return {
+    status: "pass",
+    severity: "info",
+    summary: `Redis memory pressure is within range at ${utilization.toFixed(1)}% of maxmemory.`,
+    evidence,
+    remediation: "Continue monitoring Redis memory growth as workload shape changes.",
+  };
+}
+
+export function evaluateRedisPersistenceRisk(output: string): EvaluatedCheckDetails {
+  const info = parseRedisInfo(output);
+  const aofEnabled = (info.get("aof_enabled") ?? "unknown").toLowerCase();
+  const rdbStatus = (info.get("rdb_last_bgsave_status") ?? "unknown").toLowerCase();
+  const aofStatus = (info.get("aof_last_write_status") ?? "unknown").toLowerCase();
+  const changesSinceSave = Number.parseInt(info.get("rdb_changes_since_last_save") ?? "", 10);
+
+  if (Number.isNaN(changesSinceSave)) {
+    throw new Error(`Unexpected Redis persistence output: ${output}`);
+  }
+
+  const evidence = [
+    { label: "aof_enabled", value: aofEnabled },
+    { label: "rdb_last_bgsave_status", value: rdbStatus },
+    { label: "aof_last_write_status", value: aofStatus },
+    { label: "rdb_changes_since_last_save", value: String(changesSinceSave) },
+  ];
+
+  if (rdbStatus === "err" || aofStatus === "err") {
+    return {
+      status: "critical",
+      severity: "critical",
+      summary: "Redis persistence has recent save or write failures.",
+      evidence,
+      remediation: "Inspect Redis persistence errors, disk health, and background save or AOF write failures before relying on this node for recovery.",
+    };
+  }
+
+  if (aofEnabled !== "1" && changesSinceSave >= 10000) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: "Redis has accumulated many unsaved changes without AOF enabled.",
+      evidence,
+      remediation: "Review save cadence and whether AOF or more frequent snapshots are needed for the expected recovery objective.",
+    };
+  }
+
+  return {
+    status: "pass",
+    severity: "info",
+    summary: "Redis persistence posture is within the expected range.",
+    evidence,
+    remediation: "Continue reviewing Redis save cadence and persistence mode against recovery expectations.",
+  };
+}
+
+export function evaluateRedisBlockingRisk(output: string): EvaluatedCheckDetails {
+  const info = parseRedisInfo(output);
+  const blockedClients = Number.parseInt(info.get("blocked_clients") ?? "", 10);
+  const opsPerSec = Number.parseInt(info.get("instantaneous_ops_per_sec") ?? "", 10);
+  const latestForkUsec = Number.parseInt(info.get("latest_fork_usec") ?? "", 10);
+
+  if ([blockedClients, opsPerSec, latestForkUsec].some((value) => Number.isNaN(value))) {
+    throw new Error(`Unexpected Redis blocking output: ${output}`);
+  }
+
+  const evidence = [
+    { label: "blocked_clients", value: String(blockedClients) },
+    { label: "instantaneous_ops_per_sec", value: String(opsPerSec) },
+    { label: "latest_fork_usec", value: String(latestForkUsec) },
+  ];
+
+  if (blockedClients >= 5 || latestForkUsec >= 1_000_000) {
+    return {
+      status: "critical",
+      severity: "critical",
+      summary: "Redis blocking risk is high.",
+      evidence,
+      remediation: "Inspect blocked clients, slow commands, and fork stalls before Redis responsiveness impacts dependent applications.",
+    };
+  }
+
+  if (blockedClients > 0 || latestForkUsec >= 250_000) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: "Redis blocking risk is elevated.",
+      evidence,
+      remediation: "Review blocked clients, persistence fork overhead, and expensive commands if Redis latency has started to drift.",
+    };
+  }
+
+  return {
+    status: "pass",
+    severity: "info",
+    summary: "Redis blocking risk is within the expected range.",
+    evidence,
+    remediation: "Continue monitoring blocked client count and fork overhead during busy periods.",
   };
 }
 
@@ -938,6 +1121,167 @@ async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
         input.check.id,
       );
       const evaluation = evaluateMysqlTempDiskTableRisk(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.redis.process": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"pgrep -x redis-server >/dev/null && echo running || echo stopped\"",
+        input.check.id,
+      );
+
+      if (output === "running") {
+        return normalizedResult(
+          input,
+          "pass",
+          "info",
+          "redis-server is running.",
+          [{ label: "Process", value: "redis-server" }],
+          "No action required.",
+        );
+      }
+
+      return normalizedResult(
+        input,
+        "critical",
+        "critical",
+        "redis-server is not running.",
+        [{ label: "Process", value: "redis-server" }],
+        "Start Redis and verify service-manager or container restart expectations before dependent applications reconnect.",
+      );
+    }
+    case "linux.redis.port.6379": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if command -v ss >/dev/null 2>&1; then ss -ltn '( sport = :6379 )' | tail -n +2 | wc -l; elif command -v netstat >/dev/null 2>&1; then netstat -ltn | awk '$4 ~ /:6379$/ {count++} END {print count+0}'; else echo unsupported; fi\"",
+        input.check.id,
+      );
+
+      if (output === "unsupported") {
+        return normalizedResult(
+          input,
+          "unknown",
+          "warning",
+          "Redis listener state could not be collected because ss/netstat is unavailable.",
+          [{ label: "Collector", value: "missing ss/netstat" }],
+          "Install iproute2 or net-tools to allow listener inspection.",
+        );
+      }
+
+      const listeners = Number.parseInt(output, 10);
+      if (Number.isNaN(listeners)) {
+        throw new Error(`Unable to parse Redis listener output: ${output}`);
+      }
+
+      if (listeners > 0) {
+        return normalizedResult(
+          input,
+          "pass",
+          "info",
+          "Port 6379 is listening.",
+          [{ label: "Port", value: "6379/tcp" }],
+          "No action required.",
+        );
+      }
+
+      return normalizedResult(
+        input,
+        "critical",
+        "critical",
+        "Port 6379 is not listening.",
+        [{ label: "Port", value: "6379/tcp" }],
+        "Verify bind configuration, protected-mode expectations, and whether Redis should accept TCP traffic on this host.",
+      );
+    }
+    case "linux.redis.runtime.info": {
+      const output = await redisInfoOutput(input.asset, "server persistence", input.check.id);
+      const info = parseRedisInfo(output);
+      const evidence = [
+        { label: "redis_version", value: info.get("redis_version") ?? "unknown" },
+        { label: "tcp_port", value: info.get("tcp_port") ?? "unknown" },
+        { label: "uptime_in_days", value: info.get("uptime_in_days") ?? "unknown" },
+        { label: "loading", value: info.get("loading") ?? "unknown" },
+        { label: "aof_enabled", value: info.get("aof_enabled") ?? "unknown" },
+        { label: "rdb_last_bgsave_status", value: info.get("rdb_last_bgsave_status") ?? "unknown" },
+      ];
+
+      return normalizedResult(
+        input,
+        "pass",
+        "info",
+        "Redis runtime configuration was collected successfully.",
+        evidence,
+        "Review runtime identity, port, and persistence posture if this host is expected to serve a different Redis role.",
+      );
+    }
+    case "linux.redis.replication.info": {
+      const output = await redisInfoOutput(input.asset, "replication", input.check.id);
+      const info = parseRedisInfo(output);
+      const role = info.get("role") ?? "unknown";
+      const masterLinkStatus = info.get("master_link_status") ?? "not-reported";
+      const connectedSlaves = info.get("connected_slaves") ?? "0";
+      const masterHost = info.get("master_host") ?? "standalone-or-primary";
+      const evidence = [
+        { label: "role", value: role },
+        { label: "connected_slaves", value: connectedSlaves },
+        { label: "master_host", value: masterHost },
+        { label: "master_link_status", value: masterLinkStatus },
+      ];
+
+      if (role === "slave" && masterLinkStatus !== "up") {
+        return normalizedResult(
+          input,
+          "critical",
+          "critical",
+          "Redis replica link is degraded.",
+          evidence,
+          "Inspect upstream reachability, auth configuration, and replication backlog state before relying on this replica.",
+        );
+      }
+
+      return normalizedResult(
+        input,
+        "pass",
+        "info",
+        "Redis replication metadata was collected successfully.",
+        evidence,
+        "Review unexpected replica wiring or degraded master link state before the next maintenance window.",
+      );
+    }
+    case "linux.redis.memory.pressure": {
+      const output = await redisInfoOutput(input.asset, "memory", input.check.id);
+      const evaluation = evaluateRedisMemoryPressure(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.redis.persistence.risk": {
+      const output = await redisInfoOutput(input.asset, "persistence", input.check.id);
+      const evaluation = evaluateRedisPersistenceRisk(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.redis.blocking.risk": {
+      const output = await redisInfoOutput(input.asset, "stats persistence", input.check.id);
+      const evaluation = evaluateRedisBlockingRisk(output);
       return normalizedResult(
         input,
         evaluation.status,

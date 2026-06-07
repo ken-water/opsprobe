@@ -4,6 +4,9 @@ import {
   evaluateMysqlReplicationHints,
   evaluateMysqlSlowQueryRisk,
   evaluateMysqlTempDiskTableRisk,
+  evaluateRedisBlockingRisk,
+  evaluateRedisMemoryPressure,
+  evaluateRedisPersistenceRisk,
 } from "./ssh";
 
 describe("MySQL SSH evaluation helpers", () => {
@@ -47,5 +50,32 @@ describe("MySQL SSH evaluation helpers", () => {
     expect(result.status).toBe("critical");
     expect(result.summary).toContain("spill-to-disk risk is high");
     expect(result.evidence.some((item) => item.label === "Disk Spill Ratio" && item.value === "30.0%")).toBe(true);
+  });
+
+  it("marks redis memory pressure as warning when maxmemory is not configured", () => {
+    const result = evaluateRedisMemoryPressure(
+      "used_memory:524288000\nused_memory_peak:734003200\nmaxmemory:0\nmaxmemory_policy:noeviction\n",
+    );
+
+    expect(result.status).toBe("warning");
+    expect(result.summary).toContain("no maxmemory limit");
+  });
+
+  it("marks redis persistence risk as critical when recent persistence failed", () => {
+    const result = evaluateRedisPersistenceRisk(
+      "aof_enabled:1\nrdb_last_bgsave_status:err\naof_last_write_status:ok\nrdb_changes_since_last_save:250\n",
+    );
+
+    expect(result.status).toBe("critical");
+    expect(result.summary).toContain("recent save or write failures");
+  });
+
+  it("marks redis blocking risk as critical when blocked clients and fork time are high", () => {
+    const result = evaluateRedisBlockingRisk(
+      "blocked_clients:6\ninstantaneous_ops_per_sec:2500\nlatest_fork_usec:1200000\n",
+    );
+
+    expect(result.status).toBe("critical");
+    expect(result.summary).toContain("blocking risk is high");
   });
 });

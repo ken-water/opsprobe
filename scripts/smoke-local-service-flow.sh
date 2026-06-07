@@ -176,3 +176,50 @@ printf '%s' "$mysql_preview_json" | node --input-type=module -e '
     }
   });
 '
+
+redis_preview_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts inspect-preview <<'EOF'
+{
+  "asset": {
+    "id": "asset-smoke-001",
+    "name": "smoke-preview-host",
+    "kind": "linux-host",
+    "protocol": "ssh",
+    "host": "192.0.2.20",
+    "port": 22,
+    "tags": ["smoke", "preview"],
+    "credential": {
+      "method": "private-key",
+      "username": "opsprobe",
+      "secretRef": "/tmp/opsprobe-smoke-id_rsa"
+    },
+    "createdAt": "2026-06-05T00:00:00.000Z",
+    "updatedAt": "2026-06-05T00:00:00.000Z"
+  },
+  "templateId": "template.linux.redis"
+}
+EOF
+)"
+
+printf '%s' "$redis_preview_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || !response.run || !Array.isArray(response.run.results)) {
+      process.exit(1);
+    }
+
+    const checkIds = response.run.results.map((result) => result.checkId);
+    const required = [
+      "linux.redis.memory.pressure",
+      "linux.redis.persistence.risk",
+      "linux.redis.blocking.risk"
+    ];
+
+    if (!required.every((checkId) => checkIds.includes(checkId))) {
+      process.exit(1);
+    }
+  });
+'

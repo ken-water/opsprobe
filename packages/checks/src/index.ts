@@ -577,6 +577,69 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.redis.memory.pressure",
+    title: "Redis Memory Pressure",
+    description: "Collects Redis memory usage, maxmemory posture, and eviction-policy hints.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.memory.pressure",
+        title: "Redis Memory Pressure",
+        status: "warning",
+        severity: "warning",
+        summary: "Redis memory pressure should be reviewed before it impacts latency or writes.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "used_memory, maxmemory, maxmemory_policy, used_memory_peak" },
+        ],
+        remediation: "Review maxmemory sizing, eviction policy, and workload growth if Redis memory usage remains elevated.",
+      };
+    },
+  },
+  {
+    id: "linux.redis.persistence.risk",
+    title: "Redis Persistence Risk",
+    description: "Collects Redis RDB or AOF persistence posture and recent save status hints.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.persistence.risk",
+        title: "Redis Persistence Risk",
+        status: "warning",
+        severity: "warning",
+        summary: "Redis persistence posture should be reviewed for recoverability expectations.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "aof_enabled, rdb_last_bgsave_status, rdb_changes_since_last_save, aof_last_write_status" },
+        ],
+        remediation: "Review save behavior, AOF posture, and recent persistence failures before relying on this node for recovery.",
+      };
+    },
+  },
+  {
+    id: "linux.redis.blocking.risk",
+    title: "Redis Blocking Risk",
+    description: "Collects blocked client and command-processing risk hints for recurring operational review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.redis.blocking.risk",
+        title: "Redis Blocking Risk",
+        status: "warning",
+        severity: "warning",
+        summary: "Redis blocking risk should be reviewed if clients or operations are stalling.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "blocked_clients, instantaneous_ops_per_sec, latest_fork_usec" },
+        ],
+        remediation: "Review blocked clients, slow commands, and fork-related pressure if Redis responsiveness has degraded.",
+      };
+    },
+  },
+  {
     id: "linux.docker.process",
     title: "Docker Daemon Status",
     description: "Checks whether the Docker daemon is running.",
@@ -942,7 +1005,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
   {
     id: "template.linux.redis",
     name: "Linux Redis Baseline",
-    description: "Linux host baseline plus Redis process, listener, runtime, and replication checks.",
+    description: "Linux host baseline plus Redis process, listener, runtime, replication, memory, persistence, and blocking-risk checks.",
     assetKind: "linux-host",
     checkIds: [
       "linux.cpu.usage",
@@ -955,6 +1018,9 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.redis.port.6379",
       "linux.redis.runtime.info",
       "linux.redis.replication.info",
+      "linux.redis.memory.pressure",
+      "linux.redis.persistence.risk",
+      "linux.redis.blocking.risk",
     ],
   },
   {

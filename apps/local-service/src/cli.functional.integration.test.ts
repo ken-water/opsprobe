@@ -121,4 +121,25 @@ describe("local-service CLI functional flow", () => {
     expect(checkIds).toContain("linux.mysql.temp-disk-table.risk");
     expect(previewResponse.run.results.some((result) => result.title === "MySQL Connection Pressure")).toBe(true);
   });
+
+  it("previews the redis template with deeper memory, persistence, and blocking checks", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "opsprobe-functional-cli-"));
+    cleanupPaths.push(homeDir);
+
+    await runLocalServiceCommand<LocalServiceCommandResponse>(homeDir, "assets-upsert", {
+      asset,
+    });
+
+    const previewResponse = await runLocalServiceCommand<InspectionPreviewResponse>(homeDir, "inspect-preview", {
+      asset,
+      templateId: "template.linux.redis",
+    });
+
+    const checkIds = previewResponse.run.results.map((result) => result.checkId);
+    expect(previewResponse.ok).toBe(true);
+    expect(checkIds).toContain("linux.redis.memory.pressure");
+    expect(checkIds).toContain("linux.redis.persistence.risk");
+    expect(checkIds).toContain("linux.redis.blocking.risk");
+    expect(previewResponse.run.results.some((result) => result.title === "Redis Memory Pressure")).toBe(true);
+  });
 });

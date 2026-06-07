@@ -44,6 +44,9 @@ describe("built-in check definitions", () => {
     expect(template).toBeDefined();
     expect(template?.checkIds).toContain("linux.redis.runtime.info");
     expect(template?.checkIds).toContain("linux.redis.replication.info");
+    expect(template?.checkIds).toContain("linux.redis.memory.pressure");
+    expect(template?.checkIds).toContain("linux.redis.persistence.risk");
+    expect(template?.checkIds).toContain("linux.redis.blocking.risk");
   });
 
   it("resolves Redis runtime and replication checks", () => {
@@ -52,6 +55,9 @@ describe("built-in check definitions", () => {
 
     expect(ids).toContain("linux.redis.runtime.info");
     expect(ids).toContain("linux.redis.replication.info");
+    expect(ids).toContain("linux.redis.memory.pressure");
+    expect(ids).toContain("linux.redis.persistence.risk");
+    expect(ids).toContain("linux.redis.blocking.risk");
   });
 
   it("includes deeper MySQL workflow checks in the mysql template", () => {
