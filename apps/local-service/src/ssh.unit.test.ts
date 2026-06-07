@@ -4,6 +4,7 @@ import {
   evaluateMysqlReplicationHints,
   evaluateMysqlSlowQueryRisk,
   evaluateMysqlTempDiskTableRisk,
+  evaluateNginxConfigDriftHints,
   evaluateNginxLogRisk,
   evaluateNginxTlsPosture,
   evaluateRedisBlockingRisk,
@@ -107,5 +108,14 @@ describe("MySQL SSH evaluation helpers", () => {
 
     expect(result.status).toBe("warning");
     expect(result.summary).toContain("stapling posture should be reviewed");
+  });
+
+  it("marks nginx config drift hints as warning when recent config changes exist", () => {
+    const result = evaluateNginxConfigDriftHints(
+      "2026-06-07 11:20 /etc/nginx/conf.d/site.conf\n2026-06-07 10:45 /etc/nginx/nginx.conf\n",
+    );
+
+    expect(result.status).toBe("warning");
+    expect(result.summary).toContain("config changes should be reviewed");
   });
 });

@@ -81,7 +81,8 @@ printf '%s' "$preview_json" | node --input-type=module -e '
     const required = [
       "linux.nginx.upstream.hints",
       "linux.nginx.log.risk",
-      "linux.nginx.tls.posture"
+      "linux.nginx.tls.posture",
+      "linux.nginx.config.drift.hints"
     ];
 
     if (!required.every((checkId) => checkIds.includes(checkId))) {

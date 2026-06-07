@@ -684,6 +684,31 @@ export function evaluateNginxTlsPosture(output: string): EvaluatedCheckDetails {
   };
 }
 
+export function evaluateNginxConfigDriftHints(output: string): EvaluatedCheckDetails {
+  const lines = output
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length === 0 || (lines.length === 1 && lines[0] === "clean")) {
+    return {
+      status: "pass",
+      severity: "info",
+      summary: "No recent Nginx config drift hints were detected.",
+      evidence: [{ label: "Recent Config Changes", value: "clean" }],
+      remediation: "Continue reviewing config-file change history during planned rollouts and emergency fixes.",
+    };
+  }
+
+  return {
+    status: "warning",
+    severity: "warning",
+    summary: "Recent Nginx config changes should be reviewed for unexpected drift.",
+    evidence: [{ label: "Recent Config Changes", value: lines.slice(0, 3).join(" | ") }],
+    remediation: "Review recent config-file changes and confirm they match the intended rollout or maintenance activity.",
+  };
+}
+
 async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
   switch (input.check.id) {
     case "linux.cpu.usage": {
@@ -1229,6 +1254,22 @@ async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
         input.check.id,
       );
       const evaluation = evaluateNginxTlsPosture(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.nginx.config.drift.hints": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if [ -d /etc/nginx ]; then find /etc/nginx -type f \\( -name '*.conf' -o -path '/etc/nginx/sites-*/*' \\) -mtime -7 -printf '%TY-%Tm-%Td %TH:%TM %p\\n' | sort -r | head -n 10; else echo clean; fi\"",
+        input.check.id,
+      );
+      const evaluation = evaluateNginxConfigDriftHints(output || "clean");
       return normalizedResult(
         input,
         evaluation.status,

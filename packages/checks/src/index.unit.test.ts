@@ -45,6 +45,7 @@ describe("built-in check definitions", () => {
     expect(template?.checkIds).toContain("linux.nginx.upstream.hints");
     expect(template?.checkIds).toContain("linux.nginx.log.risk");
     expect(template?.checkIds).toContain("linux.nginx.tls.posture");
+    expect(template?.checkIds).toContain("linux.nginx.config.drift.hints");
     expect(template?.checkIds).toContain("linux.nginx.tls.expiry");
   });
 
@@ -55,6 +56,7 @@ describe("built-in check definitions", () => {
     expect(ids).toContain("linux.nginx.upstream.hints");
     expect(ids).toContain("linux.nginx.log.risk");
     expect(ids).toContain("linux.nginx.tls.posture");
+    expect(ids).toContain("linux.nginx.config.drift.hints");
     expect(ids).toContain("linux.nginx.tls.expiry");
   });
 

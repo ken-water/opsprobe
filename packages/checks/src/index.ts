@@ -381,6 +381,27 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.nginx.config.drift.hints",
+    title: "Nginx Config Drift Hints",
+    description: "Collects recent Nginx config file changes so operators can spot unexpected drift faster.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.config.drift.hints",
+        title: "Nginx Config Drift Hints",
+        status: "warning",
+        severity: "warning",
+        summary: "Recent Nginx config changes should be reviewed for unexpected drift.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "recently modified nginx config files under /etc/nginx" },
+        ],
+        remediation: "Review recent config-file changes and confirm they match the intended rollout or maintenance activity.",
+      };
+    },
+  },
+  {
     id: "linux.mysql.process",
     title: "MySQL Process Status",
     description: "Checks whether mysql or mariadb process is running.",
@@ -1064,6 +1085,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.nginx.upstream.hints",
       "linux.nginx.log.risk",
       "linux.nginx.tls.posture",
+      "linux.nginx.config.drift.hints",
       "linux.nginx.tls.expiry",
     ],
   },

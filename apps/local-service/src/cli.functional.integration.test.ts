@@ -101,6 +101,7 @@ describe("local-service CLI functional flow", () => {
     expect(previewResponse.run.results.map((result) => result.checkId)).toContain("linux.nginx.upstream.hints");
     expect(previewResponse.run.results.map((result) => result.checkId)).toContain("linux.nginx.log.risk");
     expect(previewResponse.run.results.map((result) => result.checkId)).toContain("linux.nginx.tls.posture");
+    expect(previewResponse.run.results.map((result) => result.checkId)).toContain("linux.nginx.config.drift.hints");
   });
 
   it("previews the mysql template with deeper connection, replication, and slow-query checks", async () => {
