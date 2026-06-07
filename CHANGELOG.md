@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.9.0] - 2026-06-07
+
+### Added
+
+- Deeper MySQL inspection workflow coverage for connection pressure, replication hints, slow-query posture, and temporary disk-table spill risk
+- Real SSH execution paths for MySQL process, listener, runtime, schema inventory, and the new MySQL depth checks
+- CLI functional and smoke validation that directly exercises the MySQL preview template path
+
+### Changed
+
+- Desktop and repository release copy now reflect the start of the `0.9.x` service-depth line
+- MySQL template coverage now goes beyond process and port presence into recurring operational review signals
+
+### Known Limits
+
+- MySQL checks remain host-side and local-client driven; they do not yet use a dedicated OpsProbe credential or remote API path
+- `0.9.0` focuses on MySQL depth only; Redis, Nginx, and broader correlated reporting remain planned for `0.9.1+`
+
 ## [0.8.3] - 2026-06-05
 
 ### Added
