@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.9.2] - 2026-06-07
+
+### Added
+
+- Deeper Nginx inspection workflow coverage for upstream hints, error-log risk, TLS posture, and recent config-drift hints
+- Real SSH execution paths for Nginx process, config validation, virtual-host inventory, and the new Nginx operational checks
+- CLI functional and smoke validation that directly exercises the Nginx edge preview template path
+
+### Changed
+
+- Desktop and repository release copy now reflect the Nginx-focused `0.9.2` checkpoint in the `0.9.x` service-depth line
+- Nginx template coverage now goes beyond process and syntax validation into recurring edge, TLS, and config-review signals
+
+### Known Limits
+
+- Nginx checks remain host-side and config-file oriented; they do not yet probe live upstream health over HTTP or HTTPS
+- `0.9.2` focuses on Nginx depth only; correlated reporting and release hardening remain planned for `0.9.3+`
+
 ## [0.9.1] - 2026-06-07
 
 ### Added

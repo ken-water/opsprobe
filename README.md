@@ -114,7 +114,7 @@ opsprobe/
 
 OpsProbe is in the early build stage. The current focus is defining the product boundary, core architecture, and the first usable desktop workflow.
 
-The `0.7.x` external-validation cycle is now complete. OpsProbe is now in the `0.9.x` service-depth line, with `0.9.1` focused on a deeper Redis inspection workflow before declaring `1.0.0`.
+The `0.7.x` external-validation cycle is now complete. OpsProbe is now in the `0.9.x` service-depth line, with `0.9.2` focused on a deeper Nginx inspection workflow before declaring `1.0.0`.
 
 ## Roadmap Principles
 
