@@ -66,6 +66,30 @@ preview_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-se
 EOF
 )"
 
+printf '%s' "$preview_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || !response.run || !Array.isArray(response.run.results)) {
+      process.exit(1);
+    }
+
+    const checkIds = response.run.results.map((result) => result.checkId);
+    const required = [
+      "linux.nginx.upstream.hints",
+      "linux.nginx.log.risk",
+      "linux.nginx.tls.posture"
+    ];
+
+    if (!required.every((checkId) => checkIds.includes(checkId))) {
+      process.exit(1);
+    }
+  });
+'
+
 report_path="$tmp_home/preview-operator-report.html"
 printf '%s' "$preview_json" | REPORT_PATH="$report_path" SMOKE_HOME="$tmp_home" node --input-type=module -e '
   import { readFileSync } from "node:fs";

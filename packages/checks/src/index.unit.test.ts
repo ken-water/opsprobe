@@ -38,6 +38,26 @@ describe("built-in check definitions", () => {
     expect(ids).toContain("linux.docker.image.inventory");
   });
 
+  it("includes deeper Nginx workflow checks in the nginx edge template", () => {
+    const template = findBuiltInTemplateDefinition("template.linux.nginx.edge");
+
+    expect(template).toBeDefined();
+    expect(template?.checkIds).toContain("linux.nginx.upstream.hints");
+    expect(template?.checkIds).toContain("linux.nginx.log.risk");
+    expect(template?.checkIds).toContain("linux.nginx.tls.posture");
+    expect(template?.checkIds).toContain("linux.nginx.tls.expiry");
+  });
+
+  it("resolves Nginx upstream, log, and TLS depth checks", () => {
+    const checks = resolveTemplateChecks("template.linux.nginx.edge");
+    const ids = checks.map((check) => check.id);
+
+    expect(ids).toContain("linux.nginx.upstream.hints");
+    expect(ids).toContain("linux.nginx.log.risk");
+    expect(ids).toContain("linux.nginx.tls.posture");
+    expect(ids).toContain("linux.nginx.tls.expiry");
+  });
+
   it("includes deeper Redis workflow checks in the redis template", () => {
     const template = findBuiltInTemplateDefinition("template.linux.redis");
 

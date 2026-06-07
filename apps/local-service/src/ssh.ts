@@ -596,6 +596,94 @@ export function evaluateRedisEvictionRisk(output: string): EvaluatedCheckDetails
   };
 }
 
+export function evaluateNginxLogRisk(output: string): EvaluatedCheckDetails {
+  const lines = output
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length === 0 || (lines.length === 1 && lines[0] === "clean")) {
+    return {
+      status: "pass",
+      severity: "info",
+      summary: "No recent high-signal Nginx error log activity was detected.",
+      evidence: [{ label: "Recent Error Entries", value: "clean" }],
+      remediation: "Continue monitoring recent Nginx error-log activity during deploys and traffic changes.",
+    };
+  }
+
+  if (lines.length >= 5) {
+    return {
+      status: "critical",
+      severity: "critical",
+      summary: "Recent Nginx error log activity is high.",
+      evidence: [{ label: "Recent Error Entries", value: lines.slice(0, 3).join(" | ") }],
+      remediation: "Inspect repeated upstream failures, permission errors, or TLS handshake problems before they turn into a broader outage.",
+    };
+  }
+
+  return {
+    status: "warning",
+    severity: "warning",
+    summary: "Recent Nginx error log activity should be reviewed.",
+    evidence: [{ label: "Recent Error Entries", value: lines.slice(0, 3).join(" | ") }],
+    remediation: "Review recent upstream failures, permission errors, or TLS handshake problems before they accumulate into user-facing incidents.",
+  };
+}
+
+export function evaluateNginxTlsPosture(output: string): EvaluatedCheckDetails {
+  const hasTls12Or13 = /(TLSv1\.2|TLSv1\.3)/.test(output);
+  const hasListen443 = /listen_443:(present|yes)/.test(output);
+  const hasStapling = /ssl_stapling:(on|present)/.test(output);
+  const evidence = output
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .slice(0, 6)
+    .map((line) => {
+      const [label, value] = line.split(":", 2);
+      return { label, value: value ?? "" };
+    });
+
+  if (!hasListen443) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: "Nginx TLS listener coverage should be reviewed.",
+      evidence,
+      remediation: "Confirm whether this edge host is expected to terminate HTTPS and whether the intended TLS listeners are present.",
+    };
+  }
+
+  if (!hasTls12Or13) {
+    return {
+      status: "critical",
+      severity: "critical",
+      summary: "Nginx TLS protocol posture is weak or missing expected modern protocols.",
+      evidence,
+      remediation: "Review ssl_protocols and edge policy so TLS 1.2 or TLS 1.3 is available for intended client traffic.",
+    };
+  }
+
+  if (!hasStapling) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: "Nginx TLS stapling posture should be reviewed.",
+      evidence,
+      remediation: "Review ssl_stapling posture and certificate-response caching if this host serves production HTTPS traffic.",
+    };
+  }
+
+  return {
+    status: "pass",
+    severity: "info",
+    summary: "Nginx TLS posture is within the expected range.",
+    evidence,
+    remediation: "Continue reviewing TLS protocol and stapling posture as certificate or edge policy changes.",
+  };
+}
+
 async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
   switch (input.check.id) {
     case "linux.cpu.usage": {
@@ -989,6 +1077,192 @@ async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
         `/var/log usage is within range at ${usage.toFixed(1)}%.`,
         evidence,
         "Review log rotation, retention, and oversized log files in /var/log.",
+      );
+    }
+    case "linux.nginx.process": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"pgrep -x nginx >/dev/null && echo running || echo stopped\"",
+        input.check.id,
+      );
+
+      if (output === "running") {
+        return normalizedResult(
+          input,
+          "pass",
+          "info",
+          "nginx is running.",
+          [{ label: "Process", value: "nginx" }],
+          "No action required.",
+        );
+      }
+
+      return normalizedResult(
+        input,
+        "critical",
+        "critical",
+        "nginx is not running.",
+        [{ label: "Process", value: "nginx" }],
+        "Start nginx and confirm the service is enabled or supervised before routing traffic back to this host.",
+      );
+    }
+    case "linux.nginx.config": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if command -v nginx >/dev/null 2>&1; then nginx -t 2>&1; else echo missing-nginx; fi\"",
+        input.check.id,
+      );
+
+      if (output === "missing-nginx") {
+        return normalizedResult(
+          input,
+          "critical",
+          "critical",
+          "nginx binary is not available on the host.",
+          [{ label: "Command", value: "nginx -t" }],
+          "Install nginx or confirm that this host is expected to serve traffic through a different web stack.",
+        );
+      }
+
+      if (/test is successful/i.test(output)) {
+        return normalizedResult(
+          input,
+          "pass",
+          "info",
+          "nginx configuration test passed.",
+          [{ label: "Command", value: "nginx -t" }],
+          "No action required.",
+        );
+      }
+
+      return normalizedResult(
+        input,
+        "critical",
+        "critical",
+        "nginx configuration test failed.",
+        [{ label: "Command Output", value: output.split("\n").slice(-1)[0] ?? output }],
+        "Review the failing nginx configuration file and test again before reloading the service.",
+      );
+    }
+    case "linux.nginx.vhost.inventory": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if command -v nginx >/dev/null 2>&1; then nginx -T 2>/dev/null | awk '/server_name|listen / {print}' | head -n 20; else echo missing-nginx; fi\"",
+        input.check.id,
+      );
+
+      if (output === "missing-nginx") {
+        return normalizedResult(
+          input,
+          "critical",
+          "critical",
+          "nginx binary is not available on the host.",
+          [{ label: "Inventory", value: "nginx -T unavailable" }],
+          "Install nginx or confirm that this host is expected to serve traffic through a different web stack.",
+        );
+      }
+
+      const lines = output.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
+      return normalizedResult(
+        input,
+        "pass",
+        "info",
+        "nginx virtual host inventory was collected successfully.",
+        [
+          { label: "Inventory Count", value: String(lines.length) },
+          { label: "Inventory Sample", value: lines.slice(0, 3).join(" | ") || "none" },
+        ],
+        "Review unexpected listeners or server names before the next release window.",
+      );
+    }
+    case "linux.nginx.upstream.hints": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if command -v nginx >/dev/null 2>&1; then nginx -T 2>/dev/null | awk '/upstream |proxy_pass |fastcgi_pass / {print}' | head -n 20; else echo missing-nginx; fi\"",
+        input.check.id,
+      );
+
+      if (output === "missing-nginx") {
+        return normalizedResult(
+          input,
+          "critical",
+          "critical",
+          "nginx binary is not available on the host.",
+          [{ label: "Signals", value: "nginx -T unavailable" }],
+          "Install nginx or confirm that this host is expected to serve traffic through a different web stack.",
+        );
+      }
+
+      const lines = output.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
+      return normalizedResult(
+        input,
+        "pass",
+        "info",
+        "Nginx upstream configuration hints were collected successfully.",
+        [
+          { label: "Upstream Count", value: String(lines.length) },
+          { label: "Upstream Sample", value: lines.slice(0, 3).join(" | ") || "none" },
+        ],
+        "Review unexpected upstream targets, stale backends, or missing load-balancing intent before the next rollout.",
+      );
+    }
+    case "linux.nginx.log.risk": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if [ -f /var/log/nginx/error.log ]; then tail -n 20 /var/log/nginx/error.log | grep -Ei 'crit|error|emerg|alert|upstream|SSL|handshake' || echo clean; else echo clean; fi\"",
+        input.check.id,
+      );
+      const evaluation = evaluateNginxLogRisk(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.nginx.tls.posture": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if command -v nginx >/dev/null 2>&1; then nginx -T 2>/dev/null | awk '/ssl_protocols|ssl_stapling|ssl_ciphers|listen 443/ {print}' | sed 's/listen 443/listen_443:present/; s/ssl_protocols/ssl_protocols:/; s/ssl_stapling/ssl_stapling:/; s/ssl_ciphers/ssl_ciphers:/' | head -n 20; else echo listen_443:missing; fi\"",
+        input.check.id,
+      );
+      const evaluation = evaluateNginxTlsPosture(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.nginx.tls.expiry": {
+      const output = await sshOutput(
+        input.asset,
+        "sh -lc \"if command -v nginx >/dev/null 2>&1; then nginx -T 2>/dev/null | awk '/ssl_certificate / {print $2}' | head -n 5 | tr '\\n' ' '; else echo missing-nginx; fi\"",
+        input.check.id,
+      );
+
+      if (output === "missing-nginx") {
+        return normalizedResult(
+          input,
+          "critical",
+          "critical",
+          "nginx binary is not available on the host.",
+          [{ label: "Inventory", value: "nginx -T unavailable" }],
+          "Install nginx or confirm that this host is expected to serve traffic through a different web stack.",
+        );
+      }
+
+      return normalizedResult(
+        input,
+        "warning",
+        "warning",
+        "nginx TLS certificate expiry should be reviewed.",
+        [{ label: "Certificate Inventory", value: output || "no ssl_certificate directives found" }],
+        "Review certificate expiry dates and renew certificates before they reach the warning window.",
       );
     }
     case "linux.mysql.process": {

@@ -318,6 +318,69 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.nginx.upstream.hints",
+    title: "Nginx Upstream Configuration Hints",
+    description: "Collects upstream block and proxy_pass hints for recurring reverse-proxy review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.upstream.hints",
+        title: "Nginx Upstream Configuration Hints",
+        status: "pass",
+        severity: "info",
+        summary: "Nginx upstream configuration hints were collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "upstream blocks, proxy_pass targets, fastcgi_pass targets" },
+        ],
+        remediation: "Review unexpected upstream targets, stale backends, or missing load-balancing intent before the next rollout.",
+      };
+    },
+  },
+  {
+    id: "linux.nginx.log.risk",
+    title: "Nginx Error Log Risk",
+    description: "Collects recent error-log hints so operators can spot failing requests and upstream trouble faster.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.log.risk",
+        title: "Nginx Error Log Risk",
+        status: "warning",
+        severity: "warning",
+        summary: "Recent Nginx error-log activity should be reviewed.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "recent error-level log lines from nginx error.log locations" },
+        ],
+        remediation: "Review recent upstream failures, permission errors, and TLS handshake problems before they accumulate into user-facing incidents.",
+      };
+    },
+  },
+  {
+    id: "linux.nginx.tls.posture",
+    title: "Nginx TLS Posture",
+    description: "Collects TLS protocol and stapling hints from Nginx configuration for recurring edge-service review.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.nginx.tls.posture",
+        title: "Nginx TLS Posture",
+        status: "warning",
+        severity: "warning",
+        summary: "Nginx TLS posture should be reviewed for edge-facing services.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "ssl_protocols, ssl_stapling, ssl_ciphers, listen 443 presence" },
+        ],
+        remediation: "Review TLS protocol policy, stapling posture, and edge listener coverage if this host serves production HTTPS traffic.",
+      };
+    },
+  },
+  {
     id: "linux.mysql.process",
     title: "MySQL Process Status",
     description: "Checks whether mysql or mariadb process is running.",
@@ -986,7 +1049,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
   {
     id: "template.linux.nginx.edge",
     name: "Linux Nginx Edge Review",
-    description: "Deeper nginx review with inventory and TLS certificate expiry checks for recurring edge service operations.",
+    description: "Deeper nginx review with upstream, log, TLS posture, and certificate-expiry checks for recurring edge service operations.",
     assetKind: "linux-host",
     checkIds: [
       "linux.cpu.usage",
@@ -998,6 +1061,9 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.nginx.process",
       "linux.nginx.config",
       "linux.nginx.vhost.inventory",
+      "linux.nginx.upstream.hints",
+      "linux.nginx.log.risk",
+      "linux.nginx.tls.posture",
       "linux.nginx.tls.expiry",
     ],
   },

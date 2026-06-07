@@ -4,6 +4,8 @@ import {
   evaluateMysqlReplicationHints,
   evaluateMysqlSlowQueryRisk,
   evaluateMysqlTempDiskTableRisk,
+  evaluateNginxLogRisk,
+  evaluateNginxTlsPosture,
   evaluateRedisBlockingRisk,
   evaluateRedisEvictionRisk,
   evaluateRedisMemoryPressure,
@@ -87,5 +89,23 @@ describe("MySQL SSH evaluation helpers", () => {
 
     expect(result.status).toBe("critical");
     expect(result.summary).toContain("started evicting keys or rejecting connections");
+  });
+
+  it("marks nginx log risk as warning when recent error lines exist", () => {
+    const result = evaluateNginxLogRisk(
+      "2026/06/07 10:00:01 [error] upstream timed out\n2026/06/07 10:00:02 [error] SSL_do_handshake() failed\n",
+    );
+
+    expect(result.status).toBe("warning");
+    expect(result.summary).toContain("error log activity should be reviewed");
+  });
+
+  it("marks nginx TLS posture as warning when stapling is missing", () => {
+    const result = evaluateNginxTlsPosture(
+      "listen_443:present\nssl_protocols: TLSv1.2 TLSv1.3\nssl_ciphers: HIGH:!aNULL\n",
+    );
+
+    expect(result.status).toBe("warning");
+    expect(result.summary).toContain("stapling posture should be reviewed");
   });
 });
