@@ -319,6 +319,46 @@ Related issues:
 - Issue 45
 - Issue 46
 
+## `0.10.x` Exploration III: Pre-Stable Hardening
+
+Goal:
+
+- close the known credibility gaps that still block or weaken a defensible `1.0.0` decision
+
+Includes:
+
+- stronger runtime-state boundaries for schedules and desktop settings
+- safer recurring-schedule behavior after credential rebind or migration
+- more evidence for crash recovery, first-run repair, and upgrade continuity
+- clearer local runtime supervision and machine-replacement expectations
+
+Exit criteria:
+
+- the storage boundary is either improved materially or documented clearly enough to defend for `1.0.0`
+- recurring schedules do not silently trust rebound credentials without revalidation
+- recovery-sensitive workflows have stronger validation evidence than the `0.9.4` baseline
+- local runtime supervision and machine-move expectations are honest, documented, and reviewable in the stable decision
+
+Release approach:
+
+- `0.10.0` through `0.10.3` each close one bounded pre-stable credibility gap
+- every `0.10.x` release must still ship concrete user-facing trust improvements, not only internal refactors
+- do not resume the `1.0.0` decision until the `0.10.x` line is either complete or explicitly cut short with written justification
+
+Planned checkpoints:
+
+- `0.10.0`: runtime-state boundary hardening for schedules, settings, backup, and machine-move expectations
+- `0.10.1`: rebound credential verification before recurring schedules resume
+- `0.10.2`: recovery and upgrade continuity evidence for crash, first-run repair, and upgrade-sensitive flows
+- `0.10.3`: local runtime supervision hardening and honest operator guidance for restart and machine replacement
+
+Related issues:
+
+- Issue 50
+- Issue 51
+- Issue 52
+- Issue 53
+
 ## Stable Milestone
 
 ### `1.0.0`
@@ -333,10 +373,10 @@ Candidate conditions:
 
 Known blockers that should be explicitly addressed or accepted before `1.0.0`:
 
-- local migration is credible, but schedules and desktop settings are still stored separately from PostgreSQL-backed assets and runs
-- release and smoke gates are stronger now, but desktop end-to-end coverage remains thin for crash recovery, first-run repair, and upgrade continuity
-- credential rebind after migration is explicit, but OpsProbe still does not verify the rebound credential before recurring schedules resume
-- local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms
+- local migration is credible, but schedules and desktop settings are still stored separately from PostgreSQL-backed assets and runs; see Issue 50
+- release and smoke gates are stronger now, but desktop end-to-end coverage remains thin for crash recovery, first-run repair, and upgrade continuity; see Issue 52
+- credential rebind after migration is explicit, but OpsProbe still does not verify the rebound credential before recurring schedules resume; see Issue 51
+- local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms; see Issue 53
 
 Required review artifact:
 

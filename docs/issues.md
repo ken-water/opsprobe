@@ -28,6 +28,12 @@ Release mapping:
   `0.9.2`: Issue 44
   `0.9.3`: Issue 46
   `0.9.4`: Issue 45
+- `0.10.x`: pre-stable hardening line after the `0.9.x` service-depth cycle
+  Current issue line:
+  `0.10.0`: Issue 50
+  `0.10.1`: Issue 51
+  `0.10.2`: Issue 52
+  `0.10.3`: Issue 53
 - `1.0.0`: stable-release decision line
   Current issue line:
   `1.0.0`: Issue 47

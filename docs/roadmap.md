@@ -109,6 +109,24 @@ Current planned checkpoints:
 - `0.9.3`: host-and-service correlated reporting
 - `0.9.4`: installation, upgrade, and regression hardening
 
+## Phase 7: Pre-Stable Hardening
+
+- tighten the runtime data boundary before the first stable release
+- make migration and credential recovery safer for recurring schedules
+- increase evidence for crash recovery, first-run repair, and upgrade continuity
+- make local runtime supervision and machine-replacement guidance honest and repeatable
+
+Target release line:
+
+- `0.10.x`
+
+Current planned checkpoints:
+
+- `0.10.0`: schedules, settings, backup, and storage-boundary hardening
+- `0.10.1`: credential revalidation before recurring schedules resume
+- `0.10.2`: crash recovery, first-run repair, and upgrade continuity evidence
+- `0.10.3`: local runtime supervision and machine-move trust
+
 ## Future Commercial Direction
 
 Potential future capabilities outside the open source scope:
@@ -124,7 +142,7 @@ Potential future capabilities outside the open source scope:
 
 ### `1.0.0` Stable Decision
 
-- Do not treat `1.0.0` as the automatic next coding milestone after `0.9.4`
+- Do not treat `1.0.0` as the automatic next coding milestone after `0.10.x`
 - Use `Issue 47` to decide whether current blockers must be fixed first or can be explicitly accepted
 - Require a defensible stable-release rationale, not just another finished release
 
