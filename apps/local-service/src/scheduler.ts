@@ -16,9 +16,11 @@ interface ScheduleSnapshot {
   schedules: LocalInspectionSchedule[];
 }
 
-const EMPTY_SCHEDULE_SNAPSHOT: ScheduleSnapshot = {
-  schedules: [],
-};
+function emptyScheduleSnapshot(): ScheduleSnapshot {
+  return {
+    schedules: [],
+  };
+}
 
 function normalizeSchedule(schedule: LocalInspectionSchedule): LocalInspectionSchedule {
   return {
@@ -157,7 +159,7 @@ export class LocalScheduleStore {
         schedules: snapshot.schedules.map(normalizeSchedule),
       };
     } catch {
-      return EMPTY_SCHEDULE_SNAPSHOT;
+      return emptyScheduleSnapshot();
     }
   }
 

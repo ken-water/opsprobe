@@ -1,0 +1,184 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import type { Asset, InspectionTemplate } from "@opsprobe/core";
+import { createInspectionTemplate } from "@opsprobe/core";
+import { builtInInspectionTemplateDefinitions } from "@opsprobe/checks";
+import { LocalFileStorageAdapter } from "../../../packages/storage/src/index";
+import type { LocalServiceConfig } from "./config";
+import { exportLocalConfig, importLocalConfig } from "./migration";
+import { LocalScheduleStore } from "./scheduler";
+
+const cleanupPaths: string[] = [];
+
+function createConfig(rootDir: string): LocalServiceConfig {
+  return {
+    paths: {
+      rootDir,
+      configDir: join(rootDir, "config"),
+      desktopSettingsFile: join(rootDir, "config", "desktop-settings.json"),
+      schedulesFile: join(rootDir, "config", "inspection-schedules.json"),
+      dataDir: join(rootDir, "data"),
+      reportDir: join(rootDir, "reports"),
+      logDir: join(rootDir, "logs"),
+      runtimeDir: join(rootDir, "runtime"),
+      postgresDataDir: join(rootDir, "data", "postgres"),
+      postgresLogDir: join(rootDir, "logs", "postgres"),
+      postgresCtlLogFile: join(rootDir, "logs", "postgres", "managed-postgres.log"),
+      postgresPidFile: join(rootDir, "data", "postgres", "postmaster.pid"),
+      servicePidFile: join(rootDir, "runtime", "local-service.pid"),
+      serviceStatusFile: join(rootDir, "runtime", "local-service-status.json"),
+    },
+    postgres: {
+      port: 15432,
+      version: null,
+    },
+  };
+}
+
+async function createContext() {
+  const rootDir = await mkdtemp(join(tmpdir(), "opsprobe-migration-test-"));
+  cleanupPaths.push(rootDir);
+
+  const config = createConfig(rootDir);
+  const storage = new LocalFileStorageAdapter(join(config.paths.dataDir, "opsprobe-storage.json"));
+  const scheduleStore = new LocalScheduleStore(config);
+  await storage.bootstrap();
+
+  return {
+    config,
+    storage,
+    scheduleStore,
+  };
+}
+
+const asset: Asset = {
+  id: "asset-migrate-001",
+  name: "migration-host-01",
+  kind: "linux-host",
+  protocol: "ssh",
+  host: "192.0.2.40",
+  port: 22,
+  tags: ["migration"],
+  credential: {
+    method: "private-key",
+    username: "opsprobe",
+    secretRef: "/tmp/opsprobe-migration-id_rsa",
+  },
+  createdAt: "2026-06-07T00:00:00.000Z",
+  updatedAt: "2026-06-07T00:00:00.000Z",
+};
+
+const customTemplate: InspectionTemplate = createInspectionTemplate({
+  id: "template.custom.migration",
+  name: "Custom Migration Review",
+  description: "Custom export and import test template.",
+  assetKind: "linux-host",
+  checkIds: ["linux.cpu.usage", "linux.log.usage"],
+});
+
+afterEach(async () => {
+  await Promise.all(cleanupPaths.splice(0).map((path) => rm(path, { recursive: true, force: true })));
+});
+
+describe("local configuration migration", () => {
+  it("exports masked assets, templates, and schedules", async () => {
+    const { config, storage, scheduleStore } = await createContext();
+
+    await storage.assets.upsert(asset);
+    await storage.templates.upsert(customTemplate);
+    await scheduleStore.upsert({
+      asset,
+      templateId: customTemplate.id,
+      intervalMinutes: 15,
+      enabled: true,
+    });
+
+    const response = await exportLocalConfig(storage, scheduleStore, config);
+
+    expect(response.ok).toBe(true);
+    expect(response.package.settings.postgresPort).toBe(15432);
+    expect(response.package.assets).toHaveLength(1);
+    expect("secretRef" in (response.package.assets[0]?.credential ?? {})).toBe(false);
+    expect(response.package.assets[0]?.credential.bindingStatus).toBe("rebind-required");
+    expect(response.package.templates.map((template) => template.id)).toContain(customTemplate.id);
+    expect(response.package.schedules).toHaveLength(1);
+    expect(response.package.schedules[0]?.assetId).toBe(asset.id);
+  });
+
+  it("falls back to built-in templates when exported storage has none", async () => {
+    const { config, storage, scheduleStore } = await createContext();
+    await storage.assets.upsert(asset);
+
+    const response = await exportLocalConfig(storage, scheduleStore, config);
+
+    expect(response.package.templates).toHaveLength(builtInInspectionTemplateDefinitions.length);
+    expect(response.package.templates[0]?.id).toBe(builtInInspectionTemplateDefinitions[0]?.id);
+  });
+
+  it("imports rebind-required assets and skips schedules whose assets are missing", async () => {
+    const { storage, scheduleStore } = await createContext();
+
+    const importResponse = await importLocalConfig(
+      {
+        package: {
+          version: 1,
+          exportedAt: "2026-06-07T01:00:00.000Z",
+          assets: [
+            {
+              ...asset,
+              credential: {
+                method: "private-key",
+                username: "opsprobe",
+                bindingStatus: "rebind-required",
+              },
+            },
+          ],
+          templates: [customTemplate],
+          schedules: [
+            {
+              id: "schedule-import-001",
+              assetId: asset.id,
+              templateId: customTemplate.id,
+              intervalMinutes: 10,
+              enabled: true,
+              nextRunAt: "2026-06-07T01:10:00.000Z",
+              createdAt: "2026-06-07T01:00:00.000Z",
+              updatedAt: "2026-06-07T01:00:00.000Z",
+            },
+            {
+              id: "schedule-import-002",
+              assetId: "missing-asset",
+              templateId: customTemplate.id,
+              intervalMinutes: 10,
+              enabled: true,
+              nextRunAt: "2026-06-07T01:10:00.000Z",
+              createdAt: "2026-06-07T01:00:00.000Z",
+              updatedAt: "2026-06-07T01:00:00.000Z",
+            },
+          ],
+          settings: {
+            postgresPort: 15432,
+          },
+        },
+      },
+      storage,
+      scheduleStore,
+    );
+
+    const importedAssets = await storage.assets.list();
+    const importedTemplates = await storage.templates.list();
+    const importedSchedules = await scheduleStore.list();
+
+    expect(importResponse.ok).toBe(true);
+    expect(importResponse.importedAssets).toBe(1);
+    expect(importResponse.importedTemplates).toBe(1);
+    expect(importResponse.importedSchedules).toBe(1);
+    expect(importedAssets[0]?.credential.bindingStatus).toBe("rebind-required");
+    expect(importedAssets[0]?.credential.secretRef).toBe("");
+    expect(importedTemplates.map((template) => template.id)).toContain(customTemplate.id);
+    expect(importedSchedules).toHaveLength(1);
+    expect(importedSchedules[0]?.asset.id).toBe(asset.id);
+  });
+});
