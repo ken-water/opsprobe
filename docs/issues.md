@@ -21,6 +21,13 @@ Release mapping:
   `0.8.1`: Issues 37, 39, 40
   `0.8.2`: Issues 36, 41
   `0.8.3`: Issue 38
+- `0.9.x`: service-depth and operator-trust line after `0.8.x`
+  Current issue line:
+  `0.9.0`: Issue 43
+  `0.9.1`: Issue 42
+  `0.9.2`: Issue 44
+  `0.9.3`: Issue 46
+  `0.9.4`: Issue 45
 
 ## Foundation
 

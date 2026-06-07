@@ -90,6 +90,25 @@ Current planned checkpoints:
 - `0.8.2`: report and remediation usefulness
 - `0.8.3`: functional coverage and release hardening
 
+## Phase 6: Service Depth And Operator Trust
+
+- Deepen built-in inspection workflows for the most common SMB service roles
+- Make remediation advice more evidence-driven for database and web-service operations
+- Strengthen cross-signal reports so host and service findings lead to clearer action order
+- Keep expanding automated coverage around local-service workflows, installation, and upgrade safety
+
+Target release line:
+
+- `0.9.x`
+
+Current planned checkpoints:
+
+- `0.9.0`: MySQL deep inspection workflow
+- `0.9.1`: Redis deep inspection workflow
+- `0.9.2`: Nginx deep inspection workflow
+- `0.9.3`: host-and-service correlated reporting
+- `0.9.4`: installation, upgrade, and regression hardening
+
 ## Future Commercial Direction
 
 Potential future capabilities outside the open source scope:

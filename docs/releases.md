@@ -278,6 +278,47 @@ Related issues:
 - Issue 37
 - Issue 38
 
+### `0.9.x` Exploration II: Service Depth And Operator Trust
+
+Goal:
+
+- turn the validated local-first workflow into a more credible day-to-day inspection tool for SMB operators
+
+Includes:
+
+- deeper MySQL, Redis, and Nginx service-role inspection coverage
+- stronger evidence-to-remediation mapping for common operational failures
+- better report correlation across host and service findings
+- more release hardening for install, upgrade, and migration confidence
+
+Exit criteria:
+
+- OpsProbe can inspect the most common SMB Linux service roles with more than process-level signals
+- reports help operators prioritize repair work across host and service context
+- installation and release validation are strong enough to support wider open-source adoption
+
+Release approach:
+
+- `0.9.0` through `0.9.4` should each close a bounded workflow slice while keeping the same local-first product direction
+- every `0.9.x` release should be backed by issue, milestone, release notes, and validation evidence before the next one starts
+- do not jump to `1.0.0` until the `0.9.x` line proves both operational usefulness and release discipline
+
+Planned checkpoints:
+
+- `0.9.0`: MySQL deep inspection workflow, including instance state, connection pressure, replication hints, and slow-query risk signals
+- `0.9.1`: Redis deep inspection workflow, including persistence, replication, memory pressure, and blocking-risk signals
+- `0.9.2`: Nginx deep inspection workflow, including upstream health hints, TLS posture, config drift, and log-oriented troubleshooting signals
+- `0.9.3`: correlated reporting across host and service findings so operators get clearer priority actions instead of isolated check lists
+- `0.9.4`: install, upgrade, migration, and regression hardening before deciding whether `1.0.0` is credible
+
+Related issues:
+
+- Issue 42
+- Issue 43
+- Issue 44
+- Issue 45
+- Issue 46
+
 ## Stable Milestone
 
 ### `1.0.0`

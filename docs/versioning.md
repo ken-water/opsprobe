@@ -63,6 +63,7 @@ Examples:
 - `0.3.0`: local report export and history
 - `0.7.0` to `0.7.4`: one external-validation cycle split into several small, separately releasable milestones
 - `0.8.0` to `0.8.x`: post-validation exploration releases focused on deeper inspection quality and workflow fit
+- `0.9.0` to `0.9.x`: service-depth releases focused on operator trust, stronger built-in workflows, and release credibility
 
 ### Patch Version
 
