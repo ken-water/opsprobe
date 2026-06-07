@@ -1,7 +1,7 @@
 {
   "name": "opsprobe",
   "private": true,
-  "version": "0.9.4",
+  "version": "0.10.0",
   "workspaces": [
     "apps/*",
     "packages/*"

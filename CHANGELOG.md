@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.10.0] - 2026-06-07
+
+### Added
+
+- A shared local state repository in the storage layer so schedules and desktop settings can live in the same active storage boundary as assets, templates, and inspection runs
+- Automatic migration from legacy `desktop-settings.json` and `inspection-schedules.json` files into the active state store
+- Storage-layout documentation covering backup scope, machine replacement, and the difference between active runtime state and exported reports
+- Unit coverage for unified settings and schedule persistence plus migration from legacy file-backed state
+
+### Changed
+
+- Local config export and import now include desktop settings while still masking and rebinding credential-backed assets
+- PostgreSQL activation now migrates unified state alongside file-backed inspection history instead of leaving schedules and settings behind
+- Desktop and repository release copy now reflect the pre-stable storage-boundary hardening `0.10.0` checkpoint
+
+### Known Limits
+
+- Credential rebind after migration is still explicit, but OpsProbe does not yet verify rebound credentials before recurring schedules resume
+- Local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms
+- `0.10.0` improves the storage boundary first; broader crash recovery, first-run repair, and upgrade continuity hardening remain planned for later `0.10.x` releases
+
 ## [0.9.4] - 2026-06-07
 
 ### Added
