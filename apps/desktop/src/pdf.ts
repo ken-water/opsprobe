@@ -119,25 +119,27 @@ export async function exportRunPdfReport(
 
     autoTable(doc, {
       startY: 30,
-      head: [["Host", "Priority Action", "Severity", "Related Signals", "Suggested Next Step"]],
+      head: [["Rank", "Host", "Priority Action", "Urgency", "Related Signals", "Suggested Next Step"]],
       body:
         priorityActions.length > 0
           ? priorityActions.map((action) => [
+              `P${action.priorityRank}`,
               action.assetName,
               action.title,
-              action.severity,
+              `${action.severity} / ${action.urgencyLabel}`,
               `${action.relatedCheckCount} signal(s): ${action.relatedCheckTitles.join(", ")}`,
               action.remediation,
             ])
-          : [["No priority actions", "", "", "", ""]],
+          : [["", "No priority actions", "", "", "", ""]],
       styles: { fontSize: 8, cellPadding: 2.2, overflow: "linebreak", valign: "top" },
       headStyles: { fillColor: [159, 75, 18] },
       columnStyles: {
-        0: { cellWidth: 24 },
-        1: { cellWidth: 34 },
-        2: { cellWidth: 18 },
-        3: { cellWidth: 54 },
-        4: { cellWidth: 58 },
+        0: { cellWidth: 12 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 38 },
+        3: { cellWidth: 24 },
+        4: { cellWidth: 44 },
+        5: { cellWidth: 48 },
       },
     });
   } else {

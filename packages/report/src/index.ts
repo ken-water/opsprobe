@@ -89,8 +89,12 @@ export interface ReportPriorityActionView {
   host: string;
   severity: CheckResult["severity"];
   correlationKind: "host-service" | "service-cluster" | "host-cluster" | "single";
+  priorityRank: number;
+  priorityScore: number;
+  urgencyLabel: "immediate" | "next-window" | "planned";
   title: string;
   summary: string;
+  rationale: string;
   actionFocus: string;
   remediation: string;
   relatedCheckCount: number;
@@ -441,6 +445,80 @@ function combineRemediation(checks: ReportCheckView[]) {
   return actions.join(" Then ");
 }
 
+function formatConcernPhrase(concern: CheckCorrelationMetadata["concern"]) {
+  switch (concern) {
+    case "capacity":
+      return "capacity pressure";
+    case "storage":
+      return "storage pressure";
+    case "availability":
+      return "availability risk";
+    case "configuration":
+      return "configuration drift";
+    case "tls":
+      return "TLS risk";
+    case "runtime":
+      return "runtime drift";
+    case "pressure":
+      return "node pressure";
+    default:
+      return "operational risk";
+  }
+}
+
+function priorityConcernWeight(concern: CheckCorrelationMetadata["concern"]) {
+  switch (concern) {
+    case "availability":
+      return 20;
+    case "tls":
+      return 18;
+    case "pressure":
+      return 16;
+    case "storage":
+      return 14;
+    case "capacity":
+      return 12;
+    case "configuration":
+      return 8;
+    case "runtime":
+      return 6;
+    default:
+      return 4;
+  }
+}
+
+function computePriorityScore(
+  checks: ReportCheckView[],
+  correlationKind: ReportPriorityActionView["correlationKind"],
+  concern: CheckCorrelationMetadata["concern"],
+) {
+  const severity = highestSeverity(checks);
+  const severityScore = severity === "critical" ? 100 : severity === "warning" ? 60 : 0;
+  const correlationScore =
+    correlationKind === "host-service"
+      ? 28
+      : correlationKind === "service-cluster"
+        ? 18
+        : correlationKind === "host-cluster"
+          ? 12
+          : 0;
+  const relatedScore = Math.min(checks.length, 4) * 5;
+
+  return severityScore + correlationScore + relatedScore + priorityConcernWeight(concern);
+}
+
+function deriveUrgencyLabel(priorityScore: number): ReportPriorityActionView["urgencyLabel"] {
+  if (priorityScore >= 110) {
+    return "immediate";
+  }
+
+  if (priorityScore >= 75) {
+    return "next-window";
+  }
+
+  return "planned";
+}
+
 function buildPriorityActionView(
   checks: ReportCheckView[],
   correlationKind: ReportPriorityActionView["correlationKind"],
@@ -458,19 +536,37 @@ function buildPriorityActionView(
   const serviceSignalCount = metadata.filter(({ meta }) => meta.layer === "service").length;
   const serviceLabel = services[0] ?? "service";
   const concernLabel = concerns[0] ?? "operational";
+  const dominantConcern = metadata[0]?.meta.concern ?? "general";
+  const concernPhrase = formatConcernPhrase(dominantConcern);
+  const priorityScore = computePriorityScore(checks, correlationKind, dominantConcern);
+  const urgencyLabel = deriveUrgencyLabel(priorityScore);
 
   let title = first.title;
   let summary = first.summary;
+  let rationale =
+    checks.length > 1
+      ? `${checks.length} related signals are pointing at the same underlying problem.`
+      : "A direct abnormal finding needs follow-up.";
 
   if (correlationKind === "host-service") {
-    title = `Correlate host ${concernLabel} risk with ${serviceLabel}`;
-    summary = `${hostSignalCount} host signal(s) and ${serviceSignalCount} ${serviceLabel} signal(s) point to the same ${concernLabel} problem on this asset.`;
+    title = `Stabilize ${serviceLabel} by addressing host ${concernPhrase}`;
+    summary = `${hostSignalCount} host signal(s) and ${serviceSignalCount} ${serviceLabel} signal(s) suggest the service is being affected by the same host-side ${concernLabel} issue.`;
+    rationale = `Cross-layer evidence links host ${concernLabel} findings to active ${serviceLabel} symptoms, so this should be treated as one repair track.`;
   } else if (correlationKind === "service-cluster") {
-    title = `Prioritize ${serviceLabel} ${concernLabel} follow-up`;
-    summary = `${serviceSignalCount} related ${serviceLabel} finding(s) should be handled together instead of as isolated checks.`;
+    title = `Handle related ${serviceLabel} ${concernPhrase} together`;
+    summary = `${serviceSignalCount} related ${serviceLabel} finding(s) should be worked as one queue item instead of isolated follow-ups.`;
+    rationale = `Multiple service-side findings point to the same ${concernLabel} theme, so separate remediation would duplicate work.`;
   } else if (correlationKind === "host-cluster") {
-    title = `Stabilize host ${concernLabel} findings`;
-    summary = `${hostSignalCount} host-level finding(s) indicate a shared ${concernLabel} problem that should be handled together.`;
+    title = `Resolve shared host ${concernPhrase}`;
+    summary = `${hostSignalCount} host-level finding(s) indicate one shared ${concernLabel} problem that should be handled together.`;
+    rationale = `The affected checks are all host-side, so one host remediation pass should clear several findings at once.`;
+  } else {
+    title = `Direct action: ${first.title}`;
+    summary = first.summary;
+    rationale =
+      first.severity === "critical"
+        ? "This is a standalone critical finding, so it stays in the queue even without correlated host or service evidence."
+        : "This finding does not yet cluster with other checks, but it still needs direct follow-up.";
   }
 
   return {
@@ -479,8 +575,12 @@ function buildPriorityActionView(
     host: first.host,
     severity: highestSeverity(checks),
     correlationKind,
+    priorityRank: 0,
+    priorityScore,
+    urgencyLabel,
     title,
     summary,
+    rationale,
     actionFocus: combineActionFocus(checks),
     remediation: combineRemediation(checks),
     relatedCheckCount: checks.length,
@@ -600,10 +700,9 @@ function buildPriorityActions(checks: ReportCheckView[]): ReportPriorityActionVi
     single: 3,
   };
 
-  return actions.sort((left, right) => {
-    const severityDelta = severityRank(left.severity) - severityRank(right.severity);
-    if (severityDelta !== 0) {
-      return severityDelta;
+  const sortedActions = actions.sort((left, right) => {
+    if (right.priorityScore !== left.priorityScore) {
+      return right.priorityScore - left.priorityScore;
     }
 
     if (correlationRank[left.correlationKind] !== correlationRank[right.correlationKind]) {
@@ -616,6 +715,11 @@ function buildPriorityActions(checks: ReportCheckView[]): ReportPriorityActionVi
 
     return right.latestCollectedAt.localeCompare(left.latestCollectedAt);
   });
+
+  return sortedActions.map((action, index) => ({
+    ...action,
+    priorityRank: index + 1,
+  }));
 }
 
 function buildRecurringActions(checks: ReportCheckView[]): ReportRecurringActionView[] {
@@ -966,6 +1070,18 @@ export function renderInspectionReportHtml(
         background: #e2e7ed;
         color: #495663;
       }
+      .urgency-immediate {
+        background: #ffe1d6;
+        color: #9a3412;
+      }
+      .urgency-next-window {
+        background: #fff0cc;
+        color: #8a5b00;
+      }
+      .urgency-planned {
+        background: #dcefdc;
+        color: #2e6a34;
+      }
       .meta {
         color: #475463;
         font-size: 0.95rem;
@@ -1143,11 +1259,15 @@ export function renderInspectionReportHtml(
                   <div class="spaced">
                     <div>
                       <h3>${escapeHtml(action.title)}</h3>
-                      <p class="meta">${escapeHtml(action.assetName)} · ${escapeHtml(action.host)} · ${escapeHtml(action.relatedCheckCount.toString())} related signal(s)</p>
+                      <p class="meta">P${escapeHtml(action.priorityRank.toString())} · ${escapeHtml(action.assetName)} · ${escapeHtml(action.host)} · ${escapeHtml(action.relatedCheckCount.toString())} related signal(s)</p>
                     </div>
-                    <span class="pill severity-${action.severity}">${escapeHtml(action.severity)}</span>
+                    <div class="spaced">
+                      <span class="pill severity-${action.severity}">${escapeHtml(action.severity)}</span>
+                      <span class="pill urgency-${action.urgencyLabel}">${escapeHtml(action.urgencyLabel)}</span>
+                    </div>
                   </div>
                   <p>${escapeHtml(action.summary)}</p>
+                  <p><strong>Why now:</strong> ${escapeHtml(action.rationale)}</p>
                   <p><strong>Related checks:</strong> ${escapeHtml(action.relatedCheckTitles.join(", "))}</p>
                   <p><strong>Evidence signal:</strong> ${escapeHtml(action.evidenceHighlights.join(" | "))}</p>
                   <p><strong>Action focus:</strong> ${escapeHtml(action.actionFocus)}</p>
@@ -1171,11 +1291,15 @@ export function renderInspectionReportHtml(
                   <div class="spaced">
                     <div>
                       <h3>${escapeHtml(action.title)}</h3>
-                      <p class="meta">${escapeHtml(action.assetName)} · ${escapeHtml(action.host)} · ${escapeHtml(action.relatedCheckCount.toString())} related signal(s)</p>
+                      <p class="meta">P${escapeHtml(action.priorityRank.toString())} · ${escapeHtml(action.assetName)} · ${escapeHtml(action.host)} · ${escapeHtml(action.relatedCheckCount.toString())} related signal(s)</p>
                     </div>
-                    <span class="pill severity-${action.severity}">${escapeHtml(action.severity)}</span>
+                    <div class="spaced">
+                      <span class="pill severity-${action.severity}">${escapeHtml(action.severity)}</span>
+                      <span class="pill urgency-${action.urgencyLabel}">${escapeHtml(action.urgencyLabel)}</span>
+                    </div>
                   </div>
                   <p>${escapeHtml(action.summary)}</p>
+                  <p><strong>Why now:</strong> ${escapeHtml(action.rationale)}</p>
                   <p><strong>Related checks:</strong> ${escapeHtml(action.relatedCheckTitles.join(", "))}</p>
                   <p><strong>Evidence signal:</strong> ${escapeHtml(action.evidenceHighlights.join(" | "))}</p>
                   <p><strong>Action focus:</strong> ${escapeHtml(action.actionFocus)}</p>

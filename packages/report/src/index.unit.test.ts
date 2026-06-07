@@ -308,6 +308,8 @@ describe("report view model", () => {
       "Renew certificates before expiry and reload nginx.",
     );
     expect(view.severityGroups[0]?.checks[0]?.evidenceHighlight).toContain("Certificate:");
+    expect(view.priorityActions[0]?.priorityRank).toBe(1);
+    expect(view.priorityActions[0]?.urgencyLabel).toBe("immediate");
   });
 
   it("renders distinct operator and manager report variants", () => {
@@ -326,11 +328,14 @@ describe("report view model", () => {
     expect(operatorHtml).toContain("Action Queue");
     expect(operatorHtml).toContain("Action focus:");
     expect(operatorHtml).toContain("Evidence signal:");
+    expect(operatorHtml).toContain("Why now:");
+    expect(operatorHtml).toContain("P1");
     expect(operatorHtml).toContain("Suggestion:");
     expect(managerHtml).toContain("Executive Summary");
     expect(managerHtml).toContain("Priority Actions");
     expect(managerHtml).toContain("Action focus:");
     expect(managerHtml).toContain("Evidence signal:");
+    expect(managerHtml).toContain("Why now:");
     expect(managerHtml).not.toContain("Detailed Results");
   });
 
@@ -363,13 +368,14 @@ describe("report view model", () => {
     const correlatedAction = view.priorityActions.find((action) => action.correlationKind === "host-service");
 
     expect(view.priorityActions).toHaveLength(2);
-    expect(correlatedAction?.title).toContain("Correlate host storage and log risk with Nginx edge service");
+    expect(correlatedAction?.title).toContain("Stabilize Nginx edge service by addressing host storage pressure");
     expect(correlatedAction?.relatedCheckCount).toBe(3);
     expect(correlatedAction?.relatedCheckTitles).toContain("Disk Usage");
     expect(correlatedAction?.relatedCheckTitles).toContain("Nginx Error Log Risk");
+    expect(correlatedAction?.rationale).toContain("Cross-layer evidence links host storage and log findings");
     expect(managerHtml).toContain("Related checks:");
     expect(managerHtml).toContain("3 related signal(s)");
-    expect(managerHtml).toContain("Correlate host storage and log risk with Nginx edge service");
+    expect(managerHtml).toContain("Stabilize Nginx edge service by addressing host storage pressure");
   });
 
   it("groups mysql service signals into combined capacity and storage actions", () => {
@@ -381,11 +387,12 @@ describe("report view model", () => {
     const hostServiceAction = view.priorityActions.find((action) => action.correlationKind === "host-service");
     const storageAction = view.priorityActions.find((action) => action.relatedCheckTitles.includes("MySQL Temp Disk Table Risk"));
 
-    expect(hostServiceAction?.title).toContain("Correlate host capacity risk with MySQL service");
+    expect(hostServiceAction?.title).toContain("Stabilize MySQL service by addressing host capacity pressure");
     expect(hostServiceAction?.relatedCheckTitles).toContain("CPU Usage");
     expect(hostServiceAction?.relatedCheckTitles).toContain("MySQL Connection Pressure");
     expect(hostServiceAction?.relatedCheckTitles).toContain("MySQL Slow Query Risk");
     expect(storageAction?.correlationKind).toBe("single");
+    expect(storageAction?.title).toContain("Direct action:");
   });
 
   it("groups redis host and service pressure into one action queue item", () => {
@@ -400,8 +407,9 @@ describe("report view model", () => {
     const hostServiceAction = view.priorityActions.find((action) => action.correlationKind === "host-service");
 
     expect(view.priorityActions).toHaveLength(1);
-    expect(hostServiceAction?.title).toContain("Correlate host capacity risk with Redis service");
+    expect(hostServiceAction?.title).toContain("Stabilize Redis service by addressing host capacity pressure");
     expect(hostServiceAction?.relatedCheckCount).toBe(3);
+    expect(hostServiceAction?.priorityRank).toBe(1);
     expect(operatorHtml).toContain("redis-cache-01");
     expect(operatorHtml).toContain("Redis service");
   });
@@ -418,7 +426,7 @@ describe("report view model", () => {
     );
 
     expect(view.priorityActions).toHaveLength(2);
-    expect(availabilityAction?.title).toContain("Prioritize Kubernetes node availability follow-up");
+    expect(availabilityAction?.title).toContain("Handle related Kubernetes node availability risk together");
     expect(availabilityAction?.relatedCheckTitles).toContain("Kubernetes Static Pod Inventory");
     expect(availabilityAction?.relatedCheckTitles).toContain("Kubelet Health Summary");
     expect(pressureAction?.correlationKind).toBe("single");
