@@ -60,6 +60,9 @@ describe("built-in check definitions", () => {
     expect(template).toBeDefined();
     expect(template?.checkIds).toContain("linux.mysql.runtime.info");
     expect(template?.checkIds).toContain("linux.mysql.schema.inventory");
+    expect(template?.checkIds).toContain("linux.mysql.connection.pressure");
+    expect(template?.checkIds).toContain("linux.mysql.replication.hints");
+    expect(template?.checkIds).toContain("linux.mysql.slow-query.risk");
   });
 
   it("resolves MySQL runtime and schema inventory checks", () => {
@@ -68,5 +71,8 @@ describe("built-in check definitions", () => {
 
     expect(ids).toContain("linux.mysql.runtime.info");
     expect(ids).toContain("linux.mysql.schema.inventory");
+    expect(ids).toContain("linux.mysql.connection.pressure");
+    expect(ids).toContain("linux.mysql.replication.hints");
+    expect(ids).toContain("linux.mysql.slow-query.risk");
   });
 });

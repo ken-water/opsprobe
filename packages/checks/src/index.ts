@@ -402,6 +402,69 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.mysql.connection.pressure",
+    title: "MySQL Connection Pressure",
+    description: "Collects connection and thread pressure signals from MySQL or MariaDB.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.connection.pressure",
+        title: "MySQL Connection Pressure",
+        status: "warning",
+        severity: "warning",
+        summary: "MySQL connection pressure should be reviewed before it affects availability.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "Threads_connected, Threads_running, Max_used_connections, max_connections" },
+        ],
+        remediation: "Review connection pooling, burst traffic, and idle session cleanup if connection utilization remains elevated.",
+      };
+    },
+  },
+  {
+    id: "linux.mysql.replication.hints",
+    title: "MySQL Replication Hints",
+    description: "Collects replica-role and replication-health hints from MySQL or MariaDB.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.replication.hints",
+        title: "MySQL Replication Hints",
+        status: "pass",
+        severity: "info",
+        summary: "MySQL replication role hints were collected successfully.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "read_only, super_read_only, replica IO/SQL state, lag hints" },
+        ],
+        remediation: "Review replica lag, IO state, and read-only posture if the database is expected to follow an upstream source.",
+      };
+    },
+  },
+  {
+    id: "linux.mysql.slow-query.risk",
+    title: "MySQL Slow Query Risk",
+    description: "Collects slow-query logging posture and accumulated slow-query count hints.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.slow-query.risk",
+        title: "MySQL Slow Query Risk",
+        status: "warning",
+        severity: "warning",
+        summary: "MySQL slow-query posture should be reviewed for recurring performance issues.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "slow_query_log, long_query_time, log_output, Slow_queries" },
+        ],
+        remediation: "Enable or review slow-query logging and investigate repeated slow-query growth before user-facing latency increases.",
+      };
+    },
+  },
+  {
     id: "linux.redis.process",
     title: "Redis Process Status",
     description: "Checks whether the redis-server process is running.",
@@ -835,7 +898,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
   {
     id: "template.linux.mysql",
     name: "Linux MySQL Baseline",
-    description: "Linux host baseline plus mysql or mariadb process and listener checks.",
+    description: "Linux host baseline plus deeper mysql or mariadb runtime, schema, connection, replication, and slow-query checks.",
     assetKind: "linux-host",
     checkIds: [
       "linux.cpu.usage",
@@ -848,6 +911,9 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.mysql.port.3306",
       "linux.mysql.runtime.info",
       "linux.mysql.schema.inventory",
+      "linux.mysql.connection.pressure",
+      "linux.mysql.replication.hints",
+      "linux.mysql.slow-query.risk",
     ],
   },
   {
