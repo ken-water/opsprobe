@@ -66,6 +66,7 @@ For every new version:
 ```bash
 ./scripts/check-worktree-gate.sh
 ./scripts/check-version-gate.sh 0.2.0
+./scripts/check-release-readiness.sh 0.2.0
 ```
 
 ## Expected Output

@@ -21,6 +21,8 @@ OpsProbe releases should be created with all three artifacts aligned:
    - `CHANGELOG.md`
 3. Verify the release scope matches the current milestone in [releases.md](./releases.md)
 4. Run build and validation commands
+   - `./scripts/smoke-release-candidate.sh`
+   - `./scripts/check-release-readiness.sh <target-version>`
 5. Commit with a release-oriented message
 6. Create an annotated tag
 7. Push branch and tags
@@ -28,6 +30,19 @@ OpsProbe releases should be created with all three artifacts aligned:
 9. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
 
 If step 1 is skipped, development should not continue into another issue.
+
+## Release Readiness Gate
+
+Before publishing a release, OpsProbe also requires a release-readiness gate:
+
+- version files must all align to the target release
+- `release-notes/v<target-version>.md` must exist
+- `CHANGELOG.md`, `README.md`, and desktop release copy must reference the target release
+- the release-candidate smoke script must have completed for the same target version
+
+Use:
+
+`./scripts/check-release-readiness.sh <target-version>`
 
 ## Tag Format
 
