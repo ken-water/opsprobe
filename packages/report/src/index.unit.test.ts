@@ -72,6 +72,58 @@ const repeatedRun: InspectionRun = {
   updatedAt: "2026-06-05T05:00:00.000Z",
 };
 
+const correlatedRun: InspectionRun = {
+  ...run,
+  id: "run-nginx-003",
+  createdAt: "2026-06-05T06:00:00.000Z",
+  updatedAt: "2026-06-05T06:00:00.000Z",
+  summary: {
+    total: 4,
+    passed: 0,
+    warning: 3,
+    critical: 1,
+    unknown: 0,
+  },
+  results: [
+    {
+      checkId: "linux.disk.usage",
+      title: "Disk Usage",
+      status: "warning",
+      severity: "warning",
+      summary: "Disk usage is elevated and should be reviewed.",
+      evidence: [{ label: "Usage", value: "91%" }],
+      remediation: "Review filesystem growth and cleanup opportunities.",
+    },
+    {
+      checkId: "linux.log.usage",
+      title: "Log Directory Usage",
+      status: "warning",
+      severity: "warning",
+      summary: "/var/log usage is elevated and should be reviewed.",
+      evidence: [{ label: "Usage", value: "88%" }],
+      remediation: "Review log rotation and oversized files in /var/log.",
+    },
+    {
+      checkId: "linux.nginx.log.risk",
+      title: "Nginx Error Log Risk",
+      status: "warning",
+      severity: "warning",
+      summary: "Recent nginx error-log activity should be reviewed.",
+      evidence: [{ label: "Signals", value: "upstream timed out, permission denied" }],
+      remediation: "Review recent upstream failures and repeated edge errors.",
+    },
+    {
+      checkId: "linux.nginx.tls.expiry",
+      title: "Nginx TLS Certificate Expiry",
+      status: "critical",
+      severity: "critical",
+      summary: "A certificate expires within 7 days.",
+      evidence: [{ label: "Certificate", value: "/etc/nginx/certs/site.pem expires in 7 day(s)" }],
+      remediation: "Renew certificates before expiry and reload nginx.",
+    },
+  ],
+};
+
 describe("report view model", () => {
   it("builds grouped host and severity summaries for a single run", () => {
     const view = buildSingleRunReportView(run, asset);
@@ -126,5 +178,26 @@ describe("report view model", () => {
     expect(operatorHtml).toContain("Recurring Actions");
     expect(operatorHtml).toContain("2x");
     expect(operatorHtml).toContain("Last seen 2026-06-05T05:00:00.000Z");
+  });
+
+  it("builds correlated priority actions from host and service findings", () => {
+    const view = buildInspectionReportView({
+      runs: [correlatedRun],
+      assets: [asset],
+    });
+    const managerHtml = renderInspectionReportHtml(view, {
+      title: "Manager Report",
+      audience: "manager",
+    });
+    const correlatedAction = view.priorityActions.find((action) => action.correlationKind === "host-service");
+
+    expect(view.priorityActions).toHaveLength(2);
+    expect(correlatedAction?.title).toContain("Correlate host storage and log risk with Nginx edge service");
+    expect(correlatedAction?.relatedCheckCount).toBe(3);
+    expect(correlatedAction?.relatedCheckTitles).toContain("Disk Usage");
+    expect(correlatedAction?.relatedCheckTitles).toContain("Nginx Error Log Risk");
+    expect(managerHtml).toContain("Related checks:");
+    expect(managerHtml).toContain("3 related signal(s)");
+    expect(managerHtml).toContain("Correlate host storage and log risk with Nginx edge service");
   });
 });

@@ -82,6 +82,7 @@ export async function exportRunPdfReport(
   const abnormalChecks = view.severityGroups
     .filter((group) => group.severity !== "info")
     .flatMap((group) => group.checks);
+  const priorityActions = view.priorityActions.slice(0, 10);
 
   autoTable(doc, {
     startY: (doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY
@@ -118,15 +119,15 @@ export async function exportRunPdfReport(
 
     autoTable(doc, {
       startY: 30,
-      head: [["Host", "Check", "Severity", "Summary", "Suggested Next Step"]],
+      head: [["Host", "Priority Action", "Severity", "Related Signals", "Suggested Next Step"]],
       body:
-        abnormalChecks.length > 0
-          ? abnormalChecks.slice(0, 10).map((check) => [
-              check.assetName,
-              check.title,
-              check.severity,
-              check.summary,
-              check.remediation,
+        priorityActions.length > 0
+          ? priorityActions.map((action) => [
+              action.assetName,
+              action.title,
+              action.severity,
+              `${action.relatedCheckCount} signal(s): ${action.relatedCheckTitles.join(", ")}`,
+              action.remediation,
             ])
           : [["No priority actions", "", "", "", ""]],
       styles: { fontSize: 8, cellPadding: 2.2, overflow: "linebreak", valign: "top" },

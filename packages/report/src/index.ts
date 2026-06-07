@@ -83,6 +83,22 @@ export interface ReportRecurringActionView {
   remediation: string;
 }
 
+export interface ReportPriorityActionView {
+  assetId: string;
+  assetName: string;
+  host: string;
+  severity: CheckResult["severity"];
+  correlationKind: "host-service" | "service-cluster" | "host-cluster" | "single";
+  title: string;
+  summary: string;
+  actionFocus: string;
+  remediation: string;
+  relatedCheckCount: number;
+  relatedCheckTitles: string[];
+  evidenceHighlights: string[];
+  latestCollectedAt: string;
+}
+
 export interface InspectionReportView {
   generatedAt: string;
   hosts: ReportHostView[];
@@ -90,6 +106,7 @@ export interface InspectionReportView {
   overallSeveritySummary: ReportSeveritySummary;
   severityGroups: ReportSeverityGroup[];
   recurringActions: ReportRecurringActionView[];
+  priorityActions: ReportPriorityActionView[];
 }
 
 export type ReportAudience = "operator" | "manager";
@@ -114,6 +131,20 @@ interface TemplateSnapshot {
   id: string;
   name: string;
   description: string;
+}
+
+interface CheckCorrelationMetadata {
+  layer: "host" | "service";
+  service: "host" | "nginx" | "mysql" | "redis" | "docker" | "kubernetes";
+  concern:
+    | "capacity"
+    | "storage"
+    | "availability"
+    | "configuration"
+    | "tls"
+    | "runtime"
+    | "pressure"
+    | "general";
 }
 
 const SEVERITY_ORDER: CheckResult["severity"][] = ["critical", "warning", "info"];
@@ -257,6 +288,334 @@ function deriveEvidenceHighlight(result: CheckResult) {
     .slice(0, 2)
     .map((item) => `${item.label}: ${item.value}`)
     .join(" | ");
+}
+
+function checkKey(check: ReportCheckView) {
+  return `${check.runId}:${check.checkId}:${check.collectedAt}`;
+}
+
+function severityRank(severity: CheckResult["severity"]) {
+  return SEVERITY_ORDER.indexOf(severity);
+}
+
+function highestSeverity(checks: ReportCheckView[]): CheckResult["severity"] {
+  return checks.reduce<CheckResult["severity"]>((highest, check) => {
+    return severityRank(check.severity) < severityRank(highest) ? check.severity : highest;
+  }, "info");
+}
+
+function latestCollectedAt(checks: ReportCheckView[]) {
+  return checks.reduce((latest, check) => {
+    return check.collectedAt > latest ? check.collectedAt : latest;
+  }, checks[0]?.collectedAt ?? "");
+}
+
+function uniqueStrings(values: string[], limit?: number) {
+  const deduped = Array.from(new Set(values.filter((value) => value.trim().length > 0)));
+  return typeof limit === "number" ? deduped.slice(0, limit) : deduped;
+}
+
+function labelForService(service: CheckCorrelationMetadata["service"]) {
+  switch (service) {
+    case "nginx":
+      return "Nginx edge service";
+    case "mysql":
+      return "MySQL service";
+    case "redis":
+      return "Redis service";
+    case "docker":
+      return "Docker runtime";
+    case "kubernetes":
+      return "Kubernetes node";
+    default:
+      return "host";
+  }
+}
+
+function labelForConcern(concern: CheckCorrelationMetadata["concern"]) {
+  switch (concern) {
+    case "capacity":
+      return "capacity";
+    case "storage":
+      return "storage and log";
+    case "availability":
+      return "availability";
+    case "configuration":
+      return "configuration";
+    case "tls":
+      return "TLS";
+    case "runtime":
+      return "runtime";
+    case "pressure":
+      return "pressure";
+    default:
+      return "operational";
+  }
+}
+
+function classifyCheck(check: ReportCheckView): CheckCorrelationMetadata {
+  if (
+    check.checkId === "linux.cpu.usage" ||
+    check.checkId === "linux.memory.usage" ||
+    check.checkId === "linux.load.average"
+  ) {
+    return { layer: "host", service: "host", concern: "capacity" };
+  }
+
+  if (check.checkId === "linux.disk.usage" || check.checkId === "linux.log.usage") {
+    return { layer: "host", service: "host", concern: "storage" };
+  }
+
+  if (check.checkId === "linux.time.sync") {
+    return { layer: "host", service: "host", concern: "availability" };
+  }
+
+  if (check.checkId.startsWith("linux.nginx.")) {
+    if (check.checkId === "linux.nginx.process") {
+      return { layer: "service", service: "nginx", concern: "availability" };
+    }
+    if (check.checkId === "linux.nginx.log.risk") {
+      return { layer: "service", service: "nginx", concern: "storage" };
+    }
+    if (check.checkId === "linux.nginx.tls.expiry" || check.checkId === "linux.nginx.tls.posture") {
+      return { layer: "service", service: "nginx", concern: "tls" };
+    }
+    return { layer: "service", service: "nginx", concern: "configuration" };
+  }
+
+  if (check.checkId.startsWith("linux.mysql.")) {
+    if (check.checkId === "linux.mysql.process" || check.checkId === "linux.mysql.port.3306") {
+      return { layer: "service", service: "mysql", concern: "availability" };
+    }
+    if (check.checkId === "linux.mysql.temp-disk-table.risk") {
+      return { layer: "service", service: "mysql", concern: "storage" };
+    }
+    if (
+      check.checkId === "linux.mysql.connection.pressure" ||
+      check.checkId === "linux.mysql.slow-query.risk"
+    ) {
+      return { layer: "service", service: "mysql", concern: "capacity" };
+    }
+    return { layer: "service", service: "mysql", concern: "runtime" };
+  }
+
+  if (check.checkId.startsWith("linux.redis.")) {
+    if (check.checkId === "linux.redis.process" || check.checkId === "linux.redis.port.6379") {
+      return { layer: "service", service: "redis", concern: "availability" };
+    }
+    if (check.checkId === "linux.redis.persistence.risk") {
+      return { layer: "service", service: "redis", concern: "storage" };
+    }
+    return { layer: "service", service: "redis", concern: "capacity" };
+  }
+
+  if (check.checkId.startsWith("linux.docker.")) {
+    return { layer: "service", service: "docker", concern: "runtime" };
+  }
+
+  if (
+    check.checkId === "linux.kubelet.health.summary" ||
+    check.checkId === "linux.kubernetes.static-pod.inventory"
+  ) {
+    return { layer: "service", service: "kubernetes", concern: "availability" };
+  }
+
+  if (check.checkId === "linux.kubernetes.node.pressure") {
+    return { layer: "service", service: "kubernetes", concern: "pressure" };
+  }
+
+  if (check.checkId.startsWith("linux.kubelet.") || check.checkId.startsWith("linux.kubernetes.")) {
+    return { layer: "service", service: "kubernetes", concern: "runtime" };
+  }
+
+  return { layer: "host", service: "host", concern: "general" };
+}
+
+function combineActionFocus(checks: ReportCheckView[]) {
+  const focuses = uniqueStrings(checks.map((check) => check.actionFocus), 2);
+  return focuses.join(" Then ");
+}
+
+function combineRemediation(checks: ReportCheckView[]) {
+  const actions = uniqueStrings(checks.map((check) => check.remediation), 2);
+  return actions.join(" Then ");
+}
+
+function buildPriorityActionView(
+  checks: ReportCheckView[],
+  correlationKind: ReportPriorityActionView["correlationKind"],
+): ReportPriorityActionView {
+  const first = checks[0]!;
+  const metadata = checks.map((check) => ({ check, meta: classifyCheck(check) }));
+  const services = uniqueStrings(
+    metadata
+      .map(({ meta }) => meta.service)
+      .filter((service) => service !== "host")
+      .map((service) => labelForService(service)),
+  );
+  const concerns = uniqueStrings(metadata.map(({ meta }) => labelForConcern(meta.concern)));
+  const hostSignalCount = metadata.filter(({ meta }) => meta.layer === "host").length;
+  const serviceSignalCount = metadata.filter(({ meta }) => meta.layer === "service").length;
+  const serviceLabel = services[0] ?? "service";
+  const concernLabel = concerns[0] ?? "operational";
+
+  let title = first.title;
+  let summary = first.summary;
+
+  if (correlationKind === "host-service") {
+    title = `Correlate host ${concernLabel} risk with ${serviceLabel}`;
+    summary = `${hostSignalCount} host signal(s) and ${serviceSignalCount} ${serviceLabel} signal(s) point to the same ${concernLabel} problem on this asset.`;
+  } else if (correlationKind === "service-cluster") {
+    title = `Prioritize ${serviceLabel} ${concernLabel} follow-up`;
+    summary = `${serviceSignalCount} related ${serviceLabel} finding(s) should be handled together instead of as isolated checks.`;
+  } else if (correlationKind === "host-cluster") {
+    title = `Stabilize host ${concernLabel} findings`;
+    summary = `${hostSignalCount} host-level finding(s) indicate a shared ${concernLabel} problem that should be handled together.`;
+  }
+
+  return {
+    assetId: first.assetId,
+    assetName: first.assetName,
+    host: first.host,
+    severity: highestSeverity(checks),
+    correlationKind,
+    title,
+    summary,
+    actionFocus: combineActionFocus(checks),
+    remediation: combineRemediation(checks),
+    relatedCheckCount: checks.length,
+    relatedCheckTitles: checks.map((check) => check.title),
+    evidenceHighlights: uniqueStrings(checks.map((check) => check.evidenceHighlight), 3),
+    latestCollectedAt: latestCollectedAt(checks),
+  };
+}
+
+function buildPriorityActions(checks: ReportCheckView[]): ReportPriorityActionView[] {
+  const abnormalChecks = checks
+    .filter((check) => check.severity !== "info")
+    .sort((left, right) => {
+      const severityDelta = severityRank(left.severity) - severityRank(right.severity);
+      if (severityDelta !== 0) {
+        return severityDelta;
+      }
+
+      return right.collectedAt.localeCompare(left.collectedAt);
+    });
+  const byAsset = new Map<string, ReportCheckView[]>();
+  const consumed = new Set<string>();
+  const actions: ReportPriorityActionView[] = [];
+
+  for (const check of abnormalChecks) {
+    const existing = byAsset.get(check.assetId) ?? [];
+    existing.push(check);
+    byAsset.set(check.assetId, existing);
+  }
+
+  for (const assetChecks of byAsset.values()) {
+    const metadata = assetChecks.map((check) => ({ check, meta: classifyCheck(check) }));
+    const hostChecks = metadata.filter(({ meta }) => meta.layer === "host");
+    const serviceChecks = metadata.filter(({ meta }) => meta.layer === "service");
+    const services = uniqueStrings(serviceChecks.map(({ meta }) => meta.service));
+
+    for (const service of services) {
+      const serviceMetadata = serviceChecks.filter(({ meta }) => meta.service === service);
+      const concerns = uniqueStrings(serviceMetadata.map(({ meta }) => meta.concern));
+
+      for (const concern of concerns) {
+        const hostMatches = hostChecks
+          .filter(({ meta }) => meta.concern === concern)
+          .map(({ check }) => check)
+          .filter((check) => !consumed.has(checkKey(check)));
+        const serviceMatches = serviceMetadata
+          .filter(({ meta }) => meta.concern === concern)
+          .map(({ check }) => check)
+          .filter((check) => !consumed.has(checkKey(check)));
+
+        if (hostMatches.length === 0 || serviceMatches.length === 0) {
+          continue;
+        }
+
+        const grouped = hostMatches.concat(serviceMatches);
+        actions.push(buildPriorityActionView(grouped, "host-service"));
+        for (const check of grouped) {
+          consumed.add(checkKey(check));
+        }
+      }
+    }
+
+    for (const service of services) {
+      const remainingServiceChecks = serviceChecks
+        .filter(({ meta }) => meta.service === service)
+        .map(({ check, meta }) => ({ check, concern: meta.concern }))
+        .filter(({ check }) => !consumed.has(checkKey(check)));
+      const concerns = uniqueStrings(remainingServiceChecks.map(({ concern }) => concern));
+
+      for (const concern of concerns) {
+        const grouped = remainingServiceChecks
+          .filter((item) => item.concern === concern)
+          .map((item) => item.check);
+
+        if (grouped.length < 2) {
+          continue;
+        }
+
+        actions.push(buildPriorityActionView(grouped, "service-cluster"));
+        for (const check of grouped) {
+          consumed.add(checkKey(check));
+        }
+      }
+    }
+
+    const remainingHostChecks = hostChecks
+      .map(({ check, meta }) => ({ check, concern: meta.concern }))
+      .filter(({ check }) => !consumed.has(checkKey(check)));
+    const hostConcerns = uniqueStrings(remainingHostChecks.map(({ concern }) => concern));
+
+    for (const concern of hostConcerns) {
+      const grouped = remainingHostChecks.filter((item) => item.concern === concern).map((item) => item.check);
+
+      if (grouped.length < 2) {
+        continue;
+      }
+
+      actions.push(buildPriorityActionView(grouped, "host-cluster"));
+      for (const check of grouped) {
+        consumed.add(checkKey(check));
+      }
+    }
+  }
+
+  for (const check of abnormalChecks) {
+    if (consumed.has(checkKey(check))) {
+      continue;
+    }
+
+    actions.push(buildPriorityActionView([check], "single"));
+  }
+
+  const correlationRank: Record<ReportPriorityActionView["correlationKind"], number> = {
+    "host-service": 0,
+    "service-cluster": 1,
+    "host-cluster": 2,
+    single: 3,
+  };
+
+  return actions.sort((left, right) => {
+    const severityDelta = severityRank(left.severity) - severityRank(right.severity);
+    if (severityDelta !== 0) {
+      return severityDelta;
+    }
+
+    if (correlationRank[left.correlationKind] !== correlationRank[right.correlationKind]) {
+      return correlationRank[left.correlationKind] - correlationRank[right.correlationKind];
+    }
+
+    if (right.relatedCheckCount !== left.relatedCheckCount) {
+      return right.relatedCheckCount - left.relatedCheckCount;
+    }
+
+    return right.latestCollectedAt.localeCompare(left.latestCollectedAt);
+  });
 }
 
 function buildRecurringActions(checks: ReportCheckView[]): ReportRecurringActionView[] {
@@ -426,6 +785,7 @@ export function buildInspectionReportView(
     overallSeveritySummary,
     severityGroups: groupChecksBySeverity(allChecks),
     recurringActions: buildRecurringActions(allChecks),
+    priorityActions: buildPriorityActions(allChecks),
   };
 }
 
@@ -506,7 +866,7 @@ export function renderInspectionReportHtml(
   const abnormalChecks = view.severityGroups
     .filter((group) => group.severity !== "info")
     .flatMap((group) => group.checks);
-  const topAbnormalChecks = abnormalChecks.slice(0, 8);
+  const priorityActions = view.priorityActions.slice(0, 8);
   const recurringActions = view.recurringActions.slice(0, 8);
   const criticalChecks = abnormalChecks.filter((check) => check.severity === "critical");
   const warningChecks = abnormalChecks.filter((check) => check.severity === "warning");
@@ -774,23 +1134,24 @@ export function renderInspectionReportHtml(
           ? `<section class="panel">
         <p class="eyebrow">Priority Actions</p>
         ${
-          topAbnormalChecks.length > 0
+          priorityActions.length > 0
             ? `<div class="checks-grid">
-              ${topAbnormalChecks
+              ${priorityActions
                 .map(
-                  (check) => `
+                  (action) => `
                 <article class="check-card">
                   <div class="spaced">
                     <div>
-                      <h3>${escapeHtml(check.title)}</h3>
-                      <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.templateName)}</p>
+                      <h3>${escapeHtml(action.title)}</h3>
+                      <p class="meta">${escapeHtml(action.assetName)} · ${escapeHtml(action.host)} · ${escapeHtml(action.relatedCheckCount.toString())} related signal(s)</p>
                     </div>
-                    <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
+                    <span class="pill severity-${action.severity}">${escapeHtml(action.severity)}</span>
                   </div>
-                  <p>${escapeHtml(check.summary)}</p>
-                  <p><strong>Evidence signal:</strong> ${escapeHtml(check.evidenceHighlight)}</p>
-                  <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
-                  <p><strong>Suggested next step:</strong> ${escapeHtml(check.remediation)}</p>
+                  <p>${escapeHtml(action.summary)}</p>
+                  <p><strong>Related checks:</strong> ${escapeHtml(action.relatedCheckTitles.join(", "))}</p>
+                  <p><strong>Evidence signal:</strong> ${escapeHtml(action.evidenceHighlights.join(" | "))}</p>
+                  <p><strong>Action focus:</strong> ${escapeHtml(action.actionFocus)}</p>
+                  <p><strong>Suggested next step:</strong> ${escapeHtml(action.remediation)}</p>
                 </article>`
                 )
                 .join("")}
@@ -801,22 +1162,24 @@ export function renderInspectionReportHtml(
           : `<section class="panel">
         <p class="eyebrow">Action Queue</p>
         ${
-          topAbnormalChecks.length > 0
+          priorityActions.length > 0
             ? `<div class="checks-grid">
-              ${topAbnormalChecks
+              ${priorityActions
                 .map(
-                  (check) => `
+                  (action) => `
                 <article class="check-card">
                   <div class="spaced">
                     <div>
-                      <h3>${escapeHtml(check.title)}</h3>
-                      <p class="meta">${escapeHtml(check.assetName)} · ${escapeHtml(check.host)} · ${escapeHtml(check.templateName)}</p>
+                      <h3>${escapeHtml(action.title)}</h3>
+                      <p class="meta">${escapeHtml(action.assetName)} · ${escapeHtml(action.host)} · ${escapeHtml(action.relatedCheckCount.toString())} related signal(s)</p>
                     </div>
-                    <span class="pill severity-${check.severity}">${escapeHtml(check.severity)}</span>
+                    <span class="pill severity-${action.severity}">${escapeHtml(action.severity)}</span>
                   </div>
-                  <p><strong>Evidence signal:</strong> ${escapeHtml(check.evidenceHighlight)}</p>
-                  <p><strong>Action focus:</strong> ${escapeHtml(check.actionFocus)}</p>
-                  <p><strong>Suggested next step:</strong> ${escapeHtml(check.remediation)}</p>
+                  <p>${escapeHtml(action.summary)}</p>
+                  <p><strong>Related checks:</strong> ${escapeHtml(action.relatedCheckTitles.join(", "))}</p>
+                  <p><strong>Evidence signal:</strong> ${escapeHtml(action.evidenceHighlights.join(" | "))}</p>
+                  <p><strong>Action focus:</strong> ${escapeHtml(action.actionFocus)}</p>
+                  <p><strong>Suggested next step:</strong> ${escapeHtml(action.remediation)}</p>
                 </article>`
                 )
                 .join("")}
