@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.9.4] - 2026-06-07
+
+### Added
+
+- Local config migration regression coverage for credential masking, built-in template fallback, and schedule import behavior
+- A release-readiness gate that checks version alignment, release-note presence, desktop release copy, and smoke-validation evidence before publishing
+- Stopped-state recovery coverage so local-service status can preserve an explicit stopped snapshot instead of falling back to an ambiguous starting state
+
+### Changed
+
+- Release smoke validation now exercises manager report export and config export/import rebind behavior in addition to the earlier local-service preview flow
+- Desktop and repository release copy now reflect the install, migration, and regression-hardening `0.9.4` checkpoint in the `0.9.x` service-depth line
+- The pre-`1.0.0` limits around mixed storage, credential rebind verification, desktop coverage, and runtime supervision are now documented explicitly
+
+### Known Limits
+
+- Assets, templates, and runs prefer PostgreSQL, but schedules and desktop settings are still file-backed instead of living in one transactional store
+- Credential rebind after migration is explicit, but OpsProbe still does not verify rebound credentials before recurring schedules resume
+- Local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms
+
 ## [0.9.3] - 2026-06-07
 
 ### Added
