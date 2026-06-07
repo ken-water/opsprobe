@@ -20,6 +20,7 @@ OpsProbe releases should be created with all three artifacts aligned:
    - `apps/desktop/src-tauri/tauri.conf.json`
    - `CHANGELOG.md`
 3. Verify the release scope matches the current milestone in [releases.md](./releases.md)
+   - for `1.0.0`, complete the review in [stable-readiness.md](./stable-readiness.md)
 4. Run build and validation commands
    - `./scripts/smoke-release-candidate.sh`
    - `./scripts/check-release-readiness.sh <target-version>`
@@ -43,6 +44,8 @@ Before publishing a release, OpsProbe also requires a release-readiness gate:
 Use:
 
 `./scripts/check-release-readiness.sh <target-version>`
+
+For `1.0.0`, release readiness is necessary but not sufficient. The stable-release review in [stable-readiness.md](./stable-readiness.md) must also be completed with explicit evidence and a written decision.
 
 ## Tag Format
 

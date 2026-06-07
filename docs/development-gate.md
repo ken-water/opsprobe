@@ -59,6 +59,7 @@ For every new version:
 - Patch releases may skip milestone creation if they are limited to fixes, docs, or release metadata
 - Minor releases must pass the full gate
 - Major releases must pass the full gate and include a release plan review
+- `1.0.0` specifically must also complete the stable decision checklist in [stable-readiness.md](./stable-readiness.md)
 - No new issue work should begin on top of uncommitted or unpushed code
 
 ## Commands

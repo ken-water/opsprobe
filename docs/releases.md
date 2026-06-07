@@ -338,6 +338,10 @@ Known blockers that should be explicitly addressed or accepted before `1.0.0`:
 - credential rebind after migration is explicit, but OpsProbe still does not verify the rebound credential before recurring schedules resume
 - local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms
 
+Required review artifact:
+
+- [Stable Release Readiness](./stable-readiness.md)
+
 `1.0.0` should not be used just because enough code exists. It should represent the first stable and externally credible open source release.
 
 ## Post-Stable Direction
