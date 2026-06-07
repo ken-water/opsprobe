@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.9.1] - 2026-06-07
+
+### Added
+
+- Deeper Redis inspection workflow coverage for memory pressure, persistence risk, blocking risk, and eviction or rejection risk
+- Real SSH execution paths for Redis process, listener, runtime, replication, and the new Redis operational checks
+- CLI functional and smoke validation that directly exercises the Redis preview template path
+
+### Changed
+
+- Desktop and repository release copy now reflect the Redis-focused `0.9.1` checkpoint in the `0.9.x` service-depth line
+- Redis template coverage now goes beyond process and port presence into recurring cache and persistence review signals
+
+### Known Limits
+
+- Redis checks remain host-side and `redis-cli` driven; they do not yet use a dedicated OpsProbe credential or alternate transport path
+- `0.9.1` focuses on Redis depth only; Nginx and broader correlated reporting remain planned for `0.9.2+`
+
 ## [0.9.0] - 2026-06-07
 
 ### Added
