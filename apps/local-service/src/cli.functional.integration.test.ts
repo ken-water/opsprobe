@@ -99,4 +99,25 @@ describe("local-service CLI functional flow", () => {
     expect(html).toContain("functional-preview-host");
     expect(html).toContain("Nginx");
   });
+
+  it("previews the mysql template with deeper connection, replication, and slow-query checks", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "opsprobe-functional-cli-"));
+    cleanupPaths.push(homeDir);
+
+    await runLocalServiceCommand<LocalServiceCommandResponse>(homeDir, "assets-upsert", {
+      asset,
+    });
+
+    const previewResponse = await runLocalServiceCommand<InspectionPreviewResponse>(homeDir, "inspect-preview", {
+      asset,
+      templateId: "template.linux.mysql",
+    });
+
+    const checkIds = previewResponse.run.results.map((result) => result.checkId);
+    expect(previewResponse.ok).toBe(true);
+    expect(checkIds).toContain("linux.mysql.connection.pressure");
+    expect(checkIds).toContain("linux.mysql.replication.hints");
+    expect(checkIds).toContain("linux.mysql.slow-query.risk");
+    expect(previewResponse.run.results.some((result) => result.title === "MySQL Connection Pressure")).toBe(true);
+  });
 });
