@@ -120,6 +120,35 @@ Potential future capabilities outside the open source scope:
 - Multi-tenant management
 - Enterprise security and audit controls
 
+## Next Product Stage
+
+### `1.0.0` Stable Decision
+
+- Do not treat `1.0.0` as the automatic next coding milestone after `0.9.4`
+- Use `Issue 47` to decide whether current blockers must be fixed first or can be explicitly accepted
+- Require a defensible stable-release rationale, not just another finished release
+
+### `1.1.0` Multilingual Foundation
+
+- Add multilingual infrastructure for the desktop UI
+- Support at least Chinese and English in the main workflow
+- Add multilingual static copy for HTML and PDF reports
+- Move user-visible local-service messages toward a translation boundary
+
+Related issue:
+
+- `1.1.0`: Issue 48
+
+### `1.2.0` Customer-Testable Website And Language Support
+
+- Provide a multilingual website for product orientation and downloads
+- Keep website terminology aligned with desktop and report language choices
+- Make multilingual distribution credible for customer testing instead of only internal validation
+
+Related issue:
+
+- `1.2.0`: Issue 49
+
 See also:
 
 - [Versioning Strategy](./versioning.md)

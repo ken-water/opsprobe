@@ -339,3 +339,49 @@ Known blockers that should be explicitly addressed or accepted before `1.0.0`:
 - local runtime supervision is still process-based and best-effort rather than a hardened service-manager integration across platforms
 
 `1.0.0` should not be used just because enough code exists. It should represent the first stable and externally credible open source release.
+
+## Post-Stable Direction
+
+### `1.1.0`
+
+Goal:
+
+- Establish the multilingual foundation for the desktop app, reports, and user-visible service messaging
+
+Includes:
+
+- Desktop translation boundary and language switch
+- Chinese and English support for the main workflow
+- Static report-copy translation for operator and manager exports
+
+Related issues:
+
+- Issue 48
+
+Exit criteria:
+
+- Main desktop workflow is switchable between Chinese and English
+- HTML and PDF reports render their static copy in the selected language
+- New user-facing strings have a defined i18n path instead of being hardcoded ad hoc
+
+### `1.2.0`
+
+Goal:
+
+- Make multilingual distribution and onboarding credible for customer testing
+
+Includes:
+
+- Product website with multilingual download and orientation pages
+- Language consistency between the website, desktop app, and reports
+- Clear download paths for released desktop builds
+
+Related issues:
+
+- Issue 49
+
+Exit criteria:
+
+- Users can reach a multilingual website and choose the correct download path
+- Chinese and English terminology is consistent across the website and desktop product
+- The release is strong enough for customer-facing multilingual testing instead of internal-only evaluation

@@ -28,6 +28,15 @@ Release mapping:
   `0.9.2`: Issue 44
   `0.9.3`: Issue 46
   `0.9.4`: Issue 45
+- `1.0.0`: stable-release decision line
+  Current issue line:
+  `1.0.0`: Issue 47
+- `1.1.0`: multilingual foundation line
+  Current issue line:
+  `1.1.0`: Issue 48
+- `1.2.0`: multilingual website and customer-test line
+  Current issue line:
+  `1.2.0`: Issue 49
 
 ## Foundation
 
