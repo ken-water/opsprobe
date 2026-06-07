@@ -3,6 +3,7 @@ import {
   evaluateMysqlConnectionPressure,
   evaluateMysqlReplicationHints,
   evaluateMysqlSlowQueryRisk,
+  evaluateMysqlTempDiskTableRisk,
 } from "./ssh";
 
 describe("MySQL SSH evaluation helpers", () => {
@@ -36,5 +37,15 @@ describe("MySQL SSH evaluation helpers", () => {
     expect(result.status).toBe("warning");
     expect(result.summary).toContain("logging is disabled");
     expect(result.evidence.some((item) => item.label === "slow_query_log" && item.value === "OFF")).toBe(true);
+  });
+
+  it("marks temp disk table risk as critical when spill ratio is high", () => {
+    const result = evaluateMysqlTempDiskTableRisk(
+      "Created_tmp_tables\t2000\nCreated_tmp_disk_tables\t600\ntmp_table_size\t16777216\nmax_heap_table_size\t16777216\n",
+    );
+
+    expect(result.status).toBe("critical");
+    expect(result.summary).toContain("spill-to-disk risk is high");
+    expect(result.evidence.some((item) => item.label === "Disk Spill Ratio" && item.value === "30.0%")).toBe(true);
   });
 });

@@ -167,7 +167,8 @@ printf '%s' "$mysql_preview_json" | node --input-type=module -e '
     const required = [
       "linux.mysql.connection.pressure",
       "linux.mysql.replication.hints",
-      "linux.mysql.slow-query.risk"
+      "linux.mysql.slow-query.risk",
+      "linux.mysql.temp-disk-table.risk"
     ];
 
     if (!required.every((checkId) => checkIds.includes(checkId))) {

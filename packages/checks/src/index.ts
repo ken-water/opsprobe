@@ -465,6 +465,28 @@ export const builtInLinuxChecks: CheckDefinition[] = [
     },
   },
   {
+    id: "linux.mysql.temp-disk-table.risk",
+    title: "MySQL Temp Disk Table Risk",
+    description: "Collects temporary table spill-to-disk hints that often indicate sort, join, or buffer pressure.",
+    category: "state",
+    protocol: "ssh",
+    async run() {
+      return {
+        checkId: "linux.mysql.temp-disk-table.risk",
+        title: "MySQL Temp Disk Table Risk",
+        status: "warning",
+        severity: "warning",
+        summary: "MySQL temporary table spill risk should be reviewed for heavier query patterns.",
+        evidence: [
+          { label: "Collected At", value: nowIso() },
+          { label: "Signals", value: "Created_tmp_tables, Created_tmp_disk_tables, tmp_table_size, max_heap_table_size" },
+        ],
+        remediation:
+          "Review temporary table growth, query patterns, and temp table sizing if disk-based temp tables keep increasing.",
+      };
+    },
+  },
+  {
     id: "linux.redis.process",
     title: "Redis Process Status",
     description: "Checks whether the redis-server process is running.",
@@ -914,6 +936,7 @@ export const builtInInspectionTemplateDefinitions: BuiltInInspectionTemplateDefi
       "linux.mysql.connection.pressure",
       "linux.mysql.replication.hints",
       "linux.mysql.slow-query.risk",
+      "linux.mysql.temp-disk-table.risk",
     ],
   },
   {

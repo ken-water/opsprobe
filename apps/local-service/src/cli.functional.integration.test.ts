@@ -118,6 +118,7 @@ describe("local-service CLI functional flow", () => {
     expect(checkIds).toContain("linux.mysql.connection.pressure");
     expect(checkIds).toContain("linux.mysql.replication.hints");
     expect(checkIds).toContain("linux.mysql.slow-query.risk");
+    expect(checkIds).toContain("linux.mysql.temp-disk-table.risk");
     expect(previewResponse.run.results.some((result) => result.title === "MySQL Connection Pressure")).toBe(true);
   });
 });

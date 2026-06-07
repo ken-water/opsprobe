@@ -311,6 +311,57 @@ export function evaluateMysqlSlowQueryRisk(output: string): EvaluatedCheckDetail
   };
 }
 
+export function evaluateMysqlTempDiskTableRisk(output: string): EvaluatedCheckDetails {
+  const rows = parseMysqlKeyValueRows(output);
+  const createdTmpTables = Number.parseInt(rows.get("Created_tmp_tables") ?? "", 10);
+  const createdTmpDiskTables = Number.parseInt(rows.get("Created_tmp_disk_tables") ?? "", 10);
+  const tmpTableSize = Number.parseInt(rows.get("tmp_table_size") ?? "", 10);
+  const maxHeapTableSize = Number.parseInt(rows.get("max_heap_table_size") ?? "", 10);
+
+  if ([createdTmpTables, createdTmpDiskTables, tmpTableSize, maxHeapTableSize].some((value) => Number.isNaN(value))) {
+    throw new Error(`Unexpected MySQL temp table output: ${output}`);
+  }
+
+  const spillRatio = createdTmpTables > 0 ? (createdTmpDiskTables / createdTmpTables) * 100 : 0;
+  const evidence = [
+    { label: "Created_tmp_tables", value: String(createdTmpTables) },
+    { label: "Created_tmp_disk_tables", value: String(createdTmpDiskTables) },
+    { label: "Disk Spill Ratio", value: `${spillRatio.toFixed(1)}%` },
+    { label: "tmp_table_size", value: String(tmpTableSize) },
+    { label: "max_heap_table_size", value: String(maxHeapTableSize) },
+  ];
+
+  if (spillRatio >= 25 || createdTmpDiskTables >= 1000) {
+    return {
+      status: "critical",
+      severity: "critical",
+      summary: "MySQL temporary table spill-to-disk risk is high.",
+      evidence,
+      remediation:
+        "Inspect heavy sort or aggregation queries and review tmp_table_size, max_heap_table_size, and execution plans before disk-backed temp tables affect latency.",
+    };
+  }
+
+  if (spillRatio >= 10 || createdTmpDiskTables >= 250) {
+    return {
+      status: "warning",
+      severity: "warning",
+      summary: "MySQL temporary table spill-to-disk risk is elevated.",
+      evidence,
+      remediation:
+        "Review query patterns and temporary table sizing if disk-backed temp table growth continues during normal workload periods.",
+    };
+  }
+
+  return {
+    status: "pass",
+    severity: "info",
+    summary: "MySQL temporary table spill-to-disk risk is within the expected range.",
+    evidence,
+    remediation: "Continue monitoring temporary table spill behavior as workload shape changes.",
+  };
+}
+
 async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
   switch (input.check.id) {
     case "linux.cpu.usage": {
@@ -871,6 +922,22 @@ async function executeLinuxCheck(input: SshCheckInput): Promise<CheckResult> {
         input.check.id,
       );
       const evaluation = evaluateMysqlSlowQueryRisk(output);
+      return normalizedResult(
+        input,
+        evaluation.status,
+        evaluation.severity,
+        evaluation.summary,
+        evaluation.evidence,
+        evaluation.remediation,
+      );
+    }
+    case "linux.mysql.temp-disk-table.risk": {
+      const output = await mysqlShellOutput(
+        input.asset,
+        "client=''; if command -v mysql >/dev/null 2>&1; then client=mysql; elif command -v mariadb >/dev/null 2>&1; then client=mariadb; else echo __opsprobe_missing_mysql_client__; exit 0; fi; output=$($client --batch --raw --skip-column-names -e \\\"show global status like 'Created_tmp_tables'; show global status like 'Created_tmp_disk_tables'; show variables like 'tmp_table_size'; show variables like 'max_heap_table_size';\\\" 2>&1); status=$?; if [ $status -ne 0 ]; then printf '__opsprobe_mysql_query_failed__\\n%s\\n' \"$output\"; exit 0; fi; printf '%s\\n' \"$output\"",
+        input.check.id,
+      );
+      const evaluation = evaluateMysqlTempDiskTableRisk(output);
       return normalizedResult(
         input,
         evaluation.status,
