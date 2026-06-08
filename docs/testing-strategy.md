@@ -134,3 +134,4 @@ Additional stable-candidate evidence added during `0.11.0`:
 
 - a repeatable clean-user-profile validation script now proves the operator can start from an empty `~/.opsprobe`, save an asset, preview an inspection, export a migration package, stop, restart, and still see explicit recovery guidance
 - the repository now includes a dedicated operator-facing validation guide for clean-profile bootstrap, backup scope, and restart expectations
+- a stable-candidate evidence capture script now records version, environment, checkpoint gate output, version gate output, and clean-profile validation in one place before Issue 47 is resumed

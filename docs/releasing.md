@@ -50,7 +50,9 @@ For `1.0.0`, release readiness is necessary but not sufficient. The stable-relea
 For the pre-stable `0.11.x` evidence line, also capture:
 
 - `./scripts/validate-clean-user-profile.sh`
+- `./scripts/capture-stable-candidate-evidence.sh`
 - the operator notes in [clean-user-profile-validation.md](./clean-user-profile-validation.md)
+- the filled validation record based on [stable-candidate-operator-notes.md](./stable-candidate-operator-notes.md)
 
 ## Tag Format
 

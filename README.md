@@ -75,6 +75,7 @@ See:
 - [Releasing Guide](./docs/releasing.md)
 - [Development Gate](./docs/development-gate.md)
 - [Clean User Profile Validation](./docs/clean-user-profile-validation.md)
+- [Stable Candidate Operator Notes](./docs/stable-candidate-operator-notes.md)
 
 ## Quick Start
 
