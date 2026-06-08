@@ -69,5 +69,6 @@ There are two supported operator-level approaches:
 Notes:
 
 - config export/import protects secrets by forcing credential rebind
+- exported config packages include the source machine name and OpsProbe root path so operators can confirm where the package came from before importing it
 - backup and restore at the raw data level preserve more local runtime history
 - report files are not the same as active runtime state

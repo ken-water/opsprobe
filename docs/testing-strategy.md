@@ -124,3 +124,8 @@ Additional recovery evidence added during `0.10.2`:
 - CLI functional coverage now proves that local-service can recover from a malformed file-backed snapshot and still accept fresh asset saves afterward
 - malformed persisted local-service status files are now quarantined automatically instead of silently staying in place
 - stale local-service PID files no longer force `status` to report `ready` when the referenced process is already gone
+
+Additional machine-move trust evidence added during `0.10.3`:
+
+- export packages now carry source-machine metadata so import review can verify provenance instead of trusting an unlabeled JSON package
+- import responses now report credential-rebind count, disabled-schedule count, and explicit next steps for safe machine replacement

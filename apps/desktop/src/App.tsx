@@ -883,8 +883,11 @@ function App() {
           path: migrationPath,
         },
       });
+      const importedFrom = response.importedFrom
+        ? ` from ${response.importedFrom.machineName}`
+        : "";
       setServiceMessage(
-        `Imported ${response.importedAssets} assets, ${response.importedTemplates} templates, ${response.importedSchedules} schedules.`,
+        `Imported ${response.importedAssets} assets, ${response.importedTemplates} templates, and ${response.importedSchedules} schedules${importedFrom}. ${response.requiresCredentialRebind} assets require credential rebind, ${response.disabledSchedules} schedules remain disabled, and you should complete SSH verification before resuming automation.`,
       );
       await refreshSavedAssets();
       await refreshLocalSchedules();
@@ -1566,6 +1569,9 @@ function App() {
         <p className="helper-text">
           Exported packages exclude secret values. Imported assets are marked for credential rebind
           before use on the new machine. After rebinding, run a successful SSH test before resuming schedules.
+        </p>
+        <p className="helper-text">
+          The export package now records which machine created it, so import review can confirm source context before trusting the migrated runtime state.
         </p>
 
         {savedAssets.length > 0 ? (

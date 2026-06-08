@@ -112,6 +112,10 @@ export interface PortableAsset extends Omit<Asset, "credential"> {
 export interface LocalConfigExportPackage {
   version: 1;
   exportedAt: string;
+  origin: {
+    machineName: string;
+    exportedFromRoot: string;
+  };
   assets: PortableAsset[];
   templates: InspectionTemplate[];
   schedules: Array<{
@@ -148,6 +152,13 @@ export interface LocalConfigImportResponse {
   importedAssets: number;
   importedTemplates: number;
   importedSchedules: number;
+  requiresCredentialRebind: number;
+  disabledSchedules: number;
+  recommendedNextSteps: string[];
+  importedFrom?: {
+    machineName: string;
+    exportedAt: string;
+  };
   source: "local-service";
 }
 

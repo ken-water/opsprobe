@@ -109,6 +109,8 @@ describe("local configuration migration", () => {
 
     expect(response.ok).toBe(true);
     expect(response.package.settings.postgresPort).toBe(15432);
+    expect(response.package.origin.exportedFromRoot).toBe(config.paths.rootDir);
+    expect(response.package.origin.machineName.length).toBeGreaterThan(0);
     expect(response.package.assets).toHaveLength(1);
     expect("secretRef" in (response.package.assets[0]?.credential ?? {})).toBe(false);
     expect(response.package.assets[0]?.credential.bindingStatus).toBe("rebind-required");
@@ -163,6 +165,10 @@ describe("local configuration migration", () => {
         package: {
           version: 1,
           exportedAt: "2026-06-07T01:00:00.000Z",
+          origin: {
+            machineName: "old-ops-node",
+            exportedFromRoot: "/srv/opsprobe-old",
+          },
           assets: [
             {
               ...asset,
@@ -226,6 +232,11 @@ describe("local configuration migration", () => {
     expect(importResponse.importedAssets).toBe(1);
     expect(importResponse.importedTemplates).toBe(1);
     expect(importResponse.importedSchedules).toBe(1);
+    expect(importResponse.requiresCredentialRebind).toBe(1);
+    expect(importResponse.disabledSchedules).toBe(1);
+    expect(importResponse.importedFrom?.machineName).toBe("old-ops-node");
+    expect(importResponse.recommendedNextSteps).toHaveLength(3);
+    expect(importResponse.recommendedNextSteps[0]).toContain("Rebind");
     expect(importedAssets[0]?.credential.bindingStatus).toBe("rebind-required");
     expect(importedAssets[0]?.credential.secretRef).toBe("");
     expect(importedTemplates.map((template) => template.id)).toContain(customTemplate.id);
@@ -246,6 +257,10 @@ describe("local configuration migration", () => {
         package: {
           version: 1,
           exportedAt: "2026-06-07T02:00:00.000Z",
+          origin: {
+            machineName: "legacy-ops-node",
+            exportedFromRoot: "/srv/opsprobe-legacy",
+          },
           assets: [
             {
               ...asset,
@@ -273,6 +288,9 @@ describe("local configuration migration", () => {
 
     expect(importResponse.ok).toBe(true);
     expect(importResponse.importedAssets).toBe(1);
+    expect(importResponse.requiresCredentialRebind).toBe(1);
+    expect(importResponse.disabledSchedules).toBe(0);
+    expect(importResponse.importedFrom?.machineName).toBe("legacy-ops-node");
     expect(importedAssets[0]?.credential.bindingStatus).toBe("rebind-required");
     expect(importedSettings).toEqual({});
   });

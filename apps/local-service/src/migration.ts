@@ -1,5 +1,6 @@
 import { builtInInspectionTemplateDefinitions } from "@opsprobe/checks";
 import { createInspectionTemplate, type Asset, type InspectionTemplate } from "@opsprobe/core";
+import { hostname } from "node:os";
 import type { StorageAdapter } from "../../../packages/storage/src/index.ts";
 import type { LocalServiceConfig } from "./config.ts";
 import { LocalScheduleStore } from "./scheduler.ts";
@@ -87,6 +88,10 @@ export async function exportLocalConfig(
     package: {
       version: 1,
       exportedAt: new Date().toISOString(),
+      origin: {
+        machineName: hostname(),
+        exportedFromRoot: config.paths.rootDir,
+      },
       assets: assets.map(maskAsset),
       templates: exportedTemplates,
       schedules: portableSchedules,
@@ -144,6 +149,7 @@ export async function importLocalConfig(
   }
 
   let importedSchedules = 0;
+  let disabledSchedules = 0;
   for (const schedule of request.package.schedules) {
     const importedSchedule = buildImportedSchedule(schedule, assetsById);
     if (!importedSchedule) {
@@ -152,6 +158,9 @@ export async function importLocalConfig(
 
     await scheduleStore.saveImported(importedSchedule);
     importedSchedules += 1;
+    if (!importedSchedule.enabled) {
+      disabledSchedules += 1;
+    }
   }
 
   if (request.package.settings.desktop) {
@@ -165,6 +174,17 @@ export async function importLocalConfig(
     importedAssets: assets.length,
     importedTemplates: request.package.templates.length,
     importedSchedules,
+    requiresCredentialRebind: assets.filter((asset) => asset.credential.bindingStatus === "rebind-required").length,
+    disabledSchedules,
+    recommendedNextSteps: [
+      "Rebind each imported asset with a machine-local password or key path.",
+      "Run a successful SSH test for every imported asset before trusting recurring schedules.",
+      "Review disabled schedules and resume them only after credential verification succeeds.",
+    ],
+    importedFrom: {
+      machineName: request.package.origin?.machineName ?? "unknown-machine",
+      exportedAt: request.package.exportedAt,
+    },
     source: "local-service",
   };
 }

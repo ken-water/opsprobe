@@ -261,6 +261,10 @@ EXPORT_PATH="$export_path" node --input-type=module -e '
     process.exit(1);
   }
 
+  if (!exportedPackage.origin || !exportedPackage.origin.machineName || !exportedPackage.origin.exportedFromRoot) {
+    process.exit(1);
+  }
+
   const firstAsset = exportedPackage.assets[0];
   if (firstAsset.credential.bindingStatus !== "rebind-required") {
     process.exit(1);
@@ -290,6 +294,18 @@ printf '%s' "$import_response" | node --input-type=module -e '
   process.stdin.on("end", () => {
     const response = JSON.parse(raw);
     if (!response.ok || response.importedAssets < 1 || response.importedTemplates < 1) {
+      process.exit(1);
+    }
+
+    if (response.requiresCredentialRebind < 1 || response.disabledSchedules < 0) {
+      process.exit(1);
+    }
+
+    if (!Array.isArray(response.recommendedNextSteps) || response.recommendedNextSteps.length < 3) {
+      process.exit(1);
+    }
+
+    if (!response.importedFrom || !response.importedFrom.machineName) {
       process.exit(1);
     }
   });

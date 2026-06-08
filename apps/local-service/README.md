@@ -53,6 +53,12 @@ Operator recovery guidance now available:
 - `restart` clears stale local runtime markers through the same stop path and then tells the operator to start a fresh background process explicitly
 - the runtime contract is still best-effort, but start, stop, restart, and post-failure recovery are now more explicit and testable
 
+Migration trust guidance now available:
+
+- exported config packages record the source machine name and OpsProbe root path for operator review during machine replacement
+- import results now report how many assets still require credential rebind and how many schedules remain disabled until verification is complete
+- the import contract now returns explicit next steps so the desktop UI can guide operators through rebind, SSH verification, and schedule resume
+
 See also:
 
 - [Storage Layout](../../docs/storage-layout.md)
