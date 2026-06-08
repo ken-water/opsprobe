@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.10.3] - 2026-06-08
+
+### Added
+
+- Structured `recoveryActions` in local-service status output so operators and the desktop UI can see the next repair step instead of only raw health checks
+- A dedicated local-service `restart` flow plus functional and smoke coverage for stopped-state recovery and restart preparation
+- Machine-move provenance in exported config packages, including source machine name and OpsProbe root path, plus import feedback that reports rebind count, disabled schedules, and recommended next steps
+
+### Changed
+
+- Desktop local-service guidance now surfaces restart and recovery actions directly in the runtime panel
+- Machine-migration guidance now tells operators which imported assets still need credential rebind and which schedules remain disabled until SSH verification succeeds
+- Storage and testing docs now treat runtime recovery guidance and machine-move provenance as explicit pre-stable evidence for `0.10.3`
+
+### Known Limits
+
+- Runtime supervision is still process-based and best-effort rather than backed by a hardened service manager on each platform
+- Restart guidance and machine-move provenance are clearer now, but operators still drive the actual restart, credential rebind, and SSH verification flow manually
+- `0.10.3` focuses on making local runtime and machine replacement behavior more trustworthy; a final stable decision still depends on whether these remaining limits are acceptable for `1.0.0`
+
 ## [0.10.2] - 2026-06-08
 
 ### Added

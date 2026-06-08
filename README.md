@@ -114,7 +114,7 @@ opsprobe/
 
 OpsProbe is in the early build stage. The current focus is defining the product boundary, core architecture, and the first usable desktop workflow.
 
-The `0.7.x` external-validation cycle is complete, and the `0.9.x` service-depth line is also complete through `0.9.4`. OpsProbe is now on `0.10.2`, the third pre-stable hardening release focused on recovery evidence, corrupted-state quarantine, and upgrade continuity.
+The `0.7.x` external-validation cycle is complete, and the `0.9.x` service-depth line is also complete through `0.9.4`. OpsProbe is now on `0.10.3`, the fourth pre-stable hardening release focused on runtime recovery guidance, restart trust, and machine-move provenance.
 
 ## Roadmap Principles
 
