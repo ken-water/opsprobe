@@ -365,6 +365,17 @@ function nextCredentialBindingStatus(
 }
 
 function App() {
+  type WorkspaceId =
+    | "overview"
+    | "setup"
+    | "service"
+    | "reports"
+    | "history"
+    | "assets"
+    | "schedules"
+    | "runner";
+
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId>("overview");
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceInspectionRun, setServiceInspectionRun] = useState<InspectionRun | null>(null);
@@ -1146,16 +1157,18 @@ function App() {
     }
   }
 
-  const workspaceSections = [
-    { id: "overview", label: "Overview" },
-    { id: "setup", label: "Setup" },
-    { id: "service", label: "Local Service" },
-    { id: "reports", label: "Reports" },
-    { id: "history", label: "History" },
-    { id: "assets", label: "Assets" },
-    { id: "schedules", label: "Schedules" },
-    { id: "runner", label: "Runner" },
+  const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string }> = [
+    { id: "overview", label: "Overview", title: "Overview" },
+    { id: "setup", label: "Setup", title: "First-Run Setup" },
+    { id: "service", label: "Local Service", title: "Local Service" },
+    { id: "reports", label: "Reports", title: "Reports And Feedback" },
+    { id: "history", label: "History", title: "Run History" },
+    { id: "assets", label: "Assets", title: "Assets And Migration" },
+    { id: "schedules", label: "Schedules", title: "Schedules" },
+    { id: "runner", label: "Runner", title: "Inspection Runner" },
   ];
+  const activeWorkspaceMeta =
+    workspaceSections.find((section) => section.id === activeWorkspace) ?? workspaceSections[0];
 
   return (
     <div className="app-shell">
@@ -1168,9 +1181,14 @@ function App() {
 
         <nav className="sidebar-nav" aria-label="Primary">
           {workspaceSections.map((section) => (
-            <a key={section.id} className="sidebar-link" href={`#${section.id}`}>
+            <button
+              key={section.id}
+              className={`sidebar-link ${activeWorkspace === section.id ? "sidebar-link-active" : ""}`}
+              onClick={() => setActiveWorkspace(section.id)}
+              type="button"
+            >
               {section.label}
-            </a>
+            </button>
           ))}
         </nav>
 
@@ -1194,7 +1212,7 @@ function App() {
         <header className="app-topbar">
           <div>
             <p className="eyebrow">OpsProbe Open Source Edition</p>
-            <h2>Operator Workspace</h2>
+            <h2>{activeWorkspaceMeta.title}</h2>
           </div>
           <div className="topbar-metrics">
             <span className="topbar-chip">{completedSetupSteps}/{firstRunChecklist.length} setup steps</span>
@@ -1204,7 +1222,9 @@ function App() {
         </header>
 
         <div className="workspace-scroll">
-      <section className="hero" id="overview">
+      {activeWorkspace === "overview" ? (
+        <>
+      <section className="hero">
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
@@ -1249,8 +1269,12 @@ function App() {
           </a>
         </article>
       </section>
+        </>
+      ) : null}
 
-      <section className="run-panel" id="reports">
+      {activeWorkspace === "reports" ? (
+        <>
+      <section className="run-panel">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1418,8 +1442,12 @@ function App() {
           The selected audience affects both HTML and PDF export paths, so you can compare which report structure is more useful to early users.
         </p>
       </section>
+        </>
+      ) : null}
 
-      <section className="run-panel" id="setup">
+      {activeWorkspace === "setup" ? (
+        <>
+      <section className="run-panel">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1520,8 +1548,12 @@ function App() {
           </div>
         ) : null}
       </section>
+        </>
+      ) : null}
 
-      <section className="run-panel" id="assets">
+      {activeWorkspace === "assets" ? (
+        <>
+      <section className="run-panel">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1570,7 +1602,7 @@ function App() {
         ) : null}
       </section>
 
-      <section className="run-panel" id="schedules">
+      <section className="run-panel">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1663,8 +1695,12 @@ function App() {
           <p className="helper-text">No saved assets yet. Save the current asset before exporting.</p>
         )}
       </section>
+        </>
+      ) : null}
 
-      <section className="run-panel" id="service">
+      {activeWorkspace === "service" ? (
+        <>
+        <section className="run-panel">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1868,9 +1904,13 @@ function App() {
             ))}
           </div>
         ) : null}
-      </section>
+        </section>
+        </>
+      ) : null}
 
-      <section className="run-panel" id="history">
+      {activeWorkspace === "history" ? (
+        <>
+      <section className="run-panel">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1973,7 +2013,7 @@ function App() {
         )}
       </section>
 
-      <section className="run-panel" id="runner">
+      <section className="run-panel">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -2204,7 +2244,11 @@ function App() {
           </p>
         )}
       </section>
+        </>
+      ) : null}
 
+      {activeWorkspace === "runner" ? (
+        <>
       <section className="run-panel">
         <div className="panel-header">
           <div>
@@ -2392,6 +2436,8 @@ function App() {
           ))}
         </div>
       </section>
+        </>
+      ) : null}
         </div>
       </div>
     </div>
