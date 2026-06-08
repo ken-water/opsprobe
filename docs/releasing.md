@@ -24,6 +24,7 @@ OpsProbe releases should be created with all three artifacts aligned:
 4. Run build and validation commands
    - `./scripts/smoke-release-candidate.sh`
    - `./scripts/check-release-readiness.sh <target-version>`
+   - for desktop packaging, also verify the target-specific bundle command succeeds
 5. Commit with a release-oriented message
 6. Create an annotated tag
 7. Push branch and tags
@@ -91,3 +92,48 @@ Example:
 - Key changes
 - Known limits
 - Next target version
+
+## Desktop Packaging
+
+OpsProbe desktop releases are built with Tauri bundle targets declared in [apps/desktop/src-tauri/tauri.conf.json](/home/ken/opsprobe/apps/desktop/src-tauri/tauri.conf.json).
+
+Current default bundle targets:
+
+- Linux: `deb`, `appimage`, `rpm`
+- Windows: `nsis`
+
+### Linux Build
+
+Run:
+
+`npm run desktop:build`
+
+Expected Linux artifacts are written under:
+
+- `apps/desktop/src-tauri/target/release/bundle/deb/`
+- `apps/desktop/src-tauri/target/release/bundle/appimage/`
+- `apps/desktop/src-tauri/target/release/bundle/rpm/`
+
+### Windows Build
+
+Preferred command on a Windows build machine:
+
+`npm --workspace @opsprobe/desktop run tauri build -- --target x86_64-pc-windows-msvc`
+
+Expected Windows installer output:
+
+- `apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/`
+
+Current Linux cross-build fallback:
+
+`npm --workspace @opsprobe/desktop run tauri build -- --target x86_64-pc-windows-gnu`
+
+Fallback artifact output:
+
+- `apps/desktop/src-tauri/target/x86_64-pc-windows-gnu/release/bundle/nsis/`
+
+### Windows Packaging Notes
+
+- `x86_64-pc-windows-msvc` requires the Rust target to be installed on the build machine
+- Linux cross-builds may still fail on network-dependent crate fetches or Windows-specific toolchain gaps
+- A release should only advertise a Windows installer after the `.exe` is present in the NSIS output directory and basic install validation has been recorded
