@@ -30,6 +30,13 @@ import { runInspection, type SshConnectionTestInput, type SshConnectionTestResul
 import { exportRunPdfReport } from "./pdf";
 import "./App.css";
 import type { ReportAudience } from "@opsprobe/report";
+import { OverviewWorkspace } from "./components/OverviewWorkspace";
+import { ReportsWorkspace } from "./components/ReportsWorkspace";
+import { SetupWorkspace } from "./components/SetupWorkspace";
+import { RunnerWorkspace } from "./components/RunnerWorkspace";
+import { AssetsWorkspace } from "./components/AssetsWorkspace";
+import { ServiceWorkspace } from "./components/ServiceWorkspace";
+import { HistoryWorkspace } from "./components/HistoryWorkspace";
 
 const initialAsset: Asset = {
   id: "asset-linux-001",
@@ -1222,1221 +1229,127 @@ function App() {
         </header>
 
         <div className="workspace-scroll">
-      {activeWorkspace === "overview" ? (
-        <>
-      <section className="hero">
-        <p className="eyebrow">OpsProbe Open Source Edition</p>
-        <h1>Local-first infrastructure inspection for SMB teams.</h1>
-        <p className="summary">
-          `0.10.3` completes the pre-stable hardening line by making runtime recovery,
-          restart behavior, and machine replacement trust more explicit.
-        </p>
-      </section>
-
-      <section className="grid">
-        <article className="card">
-          <h2>Current Focus</h2>
-          <ul>
-            <li>Runtime status now includes explicit operator recovery actions</li>
-            <li>Machine-move imports now report provenance and post-import trust steps</li>
-            <li>Fourth `0.10.x` pre-stable hardening release</li>
-          </ul>
-        </article>
-
-        <article className="card">
-          <h2>Current Release</h2>
-          <p className="version">v0.10.3</p>
-          <ul>
-            <li>Local service restart guidance is now explicit and testable</li>
-            <li>Migration imports now surface source-machine and rebind trust signals</li>
-            <li>Fourth `0.10.x` pre-stable hardening release</li>
-          </ul>
-        </article>
-
-        <article className="card support-card">
-          <h2>Support OpsProbe</h2>
-          <p>
-            If this project saves you time, you can buy me a coffee and help fund
-            the next inspection features.
-          </p>
-          <a
-            className="support-link"
-            href="https://github.com/sponsors/ken-water"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Buy Me a Coffee
-          </a>
-        </article>
-      </section>
-        </>
-      ) : null}
+      {activeWorkspace === "overview" ? <OverviewWorkspace /> : null}
 
       {activeWorkspace === "reports" ? (
-        <>
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Exploration Summary</h2>
-          </div>
-        </div>
-
-        <div className="service-checks">
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Addressed In 0.7.x</strong>
-              <span className="badge badge-pass">stabilized</span>
-            </div>
-            <ul className="troubleshooting-list">
-              <li>Demo mode reduced first-run comprehension friction.</li>
-              <li>Runtime diagnostics explain SSH, dependency, and PostgreSQL setup failures.</li>
-              <li>Operator and manager report variants cover different readers.</li>
-              <li>Structured issue templates and feedback prompts now route outside-user input.</li>
-            </ul>
-          </article>
-
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Explicitly Deferred</strong>
-              <span className="badge badge-warning">not next</span>
-            </div>
-            <ul className="troubleshooting-list">
-              <li>Web report publishing and customer login.</li>
-              <li>Notification delivery and multi-user collaboration.</li>
-              <li>Trend reporting across many runs.</li>
-              <li>In-product feedback submission backend.</li>
-            </ul>
-          </article>
-
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Next Stage Decision</strong>
-              <span className="badge badge-pass">0.8.x</span>
-            </div>
-            <p>
-              OpsProbe should continue into a `0.8.x` exploration line focused on deeper
-              inspection quality and local workflow reliability, not `1.0.0` yet.
-            </p>
-            <p className="helper-text">
-              Rationale: the product is more understandable now, but it still needs stronger
-              real-world inspection depth and broader outside validation before a stable milestone.
-            </p>
-          </article>
-        </div>
-
-        <p className="helper-text">
-          Decision document: <a href="https://github.com/ken-water/opsprobe/blob/main/docs/validation-cycle-0.7.md" target="_blank" rel="noreferrer">docs/validation-cycle-0.7.md</a>
-        </p>
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Feedback Paths</h2>
-          </div>
-        </div>
-
-        <div className="service-checks">
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Inspection Need</strong>
-              <span className="badge badge-warning">missing check</span>
-            </div>
-            <p>Use this when a template, evidence field, or service check is missing from your real inspection workflow.</p>
-            <a
-              className="support-link"
-              href="https://github.com/ken-water/opsprobe/issues/new?template=inspection-need.yml"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open Inspection Need
-            </a>
-          </article>
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Report Feedback</strong>
-              <span className="badge badge-warning">report fit</span>
-            </div>
-            <p>Use this when the report exists, but the detail level, structure, wording, or audience fit is wrong.</p>
-            <a
-              className="support-link"
-              href="https://github.com/ken-water/opsprobe/issues/new?template=report-feedback.yml"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open Report Feedback
-            </a>
-          </article>
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Workflow Friction</strong>
-              <span className="badge badge-warning">real usage pain</span>
-            </div>
-            <p>Use this when OpsProbe does not fit the real sequence of work you need to complete, even if no single feature is missing.</p>
-            <a
-              className="support-link"
-              href="https://github.com/ken-water/opsprobe/issues/new?template=workflow-friction.yml"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open Workflow Friction
-            </a>
-          </article>
-        </div>
-
-        <p className="helper-text">
-          Good feedback includes the environment you were inspecting, what you were trying to finish,
-          what manual workaround you used, and what output or workflow you expected instead.
-        </p>
-
-        <p className="helper-text">
-          Guide: <a href="https://github.com/ken-water/opsprobe/blob/main/docs/feedback.md" target="_blank" rel="noreferrer">docs/feedback.md</a>
-        </p>
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Report Variants</h2>
-          </div>
-        </div>
-
-        <div className="ssh-grid">
-          <label>
-            <span>Audience</span>
-            <select
-              value={reportAudience}
-              onChange={(event) => setReportAudience(event.target.value as ReportAudience)}
-            >
-              <option value="operator">Operator Detailed Report</option>
-              <option value="manager">Manager Summary Report</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="service-checks">
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Operator Detailed Report</strong>
-              <span className={`badge badge-${reportAudience === "operator" ? "pass" : "unknown"}`}>
-                {reportAudience === "operator" ? "selected" : "available"}
-              </span>
-            </div>
-            <p>Includes detailed evidence, grouped results by severity, and per-check remediation text for operators doing the actual repair work.</p>
-          </article>
-          <article className="service-card">
-            <div className="service-card-header">
-              <strong>Manager Summary Report</strong>
-              <span className={`badge badge-${reportAudience === "manager" ? "pass" : "unknown"}`}>
-                {reportAudience === "manager" ? "selected" : "available"}
-              </span>
-            </div>
-            <p>Condenses the run into risk summary, host overview, and priority actions for stakeholders who need decision-ready context.</p>
-          </article>
-        </div>
-
-        <p className="helper-text">
-          The selected audience affects both HTML and PDF export paths, so you can compare which report structure is more useful to early users.
-        </p>
-      </section>
-        </>
+        <ReportsWorkspace
+          reportAudience={reportAudience}
+          setReportAudience={setReportAudience}
+        />
       ) : null}
 
       {activeWorkspace === "setup" ? (
-        <>
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>First-Run Demo Experience</h2>
-          </div>
-          <div className="service-actions">
-            <button
-              className="secondary-button"
-              onClick={handleEnterDemoMode}
-              type="button"
-            >
-              Explore Demo Data
-            </button>
-            <button
-              className="primary-button"
-              onClick={handleSwitchToRealSetup}
-              type="button"
-            >
-              Switch to Real Setup
-            </button>
-          </div>
-        </div>
-
-        <div className={`onboarding-banner ${showingDemoExperience ? "onboarding-demo" : "onboarding-real"}`}>
-          <strong>{showingDemoExperience ? "Sample runs are visible" : "Real setup mode is active"}</strong>
-          <span>
-            {showingDemoExperience
-              ? "These results are bundled examples and are not written into your local service history."
-              : "Demo data is hidden. Save an asset and run inspections to build your own history."}
-          </span>
-        </div>
-
-        <p className="helper-text">
-          Use demo mode to review report quality, remediation wording, and result layout. Switch to
-          real setup when you are ready to connect your own hosts.
-        </p>
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Minimum Local Setup</h2>
-          </div>
-          <div className="summary-strip">
-            <span>{completedSetupSteps}/{firstRunChecklist.length} steps complete</span>
-            <span>{blockingChecks.length} blocking checks</span>
-            <span>{warningChecks.length} warnings</span>
-          </div>
-        </div>
-
-        <div className="setup-grid">
-          {firstRunChecklist.map((item) => (
-            <article className="setup-card" key={item.id}>
-              <div className="service-card-header">
-                <strong>{item.label}</strong>
-                <span className={`badge badge-${item.done ? "pass" : "warning"}`}>
-                  {item.done ? "done" : "todo"}
-                </span>
-              </div>
-              <p>{item.detail}</p>
-              {!item.done && item.action ? (
-                <button className="secondary-button" onClick={item.action} type="button">
-                  {item.actionLabel}
-                </button>
-              ) : null}
-            </article>
-          ))}
-        </div>
-
-        {blockingChecks.length > 0 ? (
-          <div className="service-checks">
-            {blockingChecks.map((check) => (
-              <article className="service-card" key={`blocking-${check.id}`}>
-                <div className="service-card-header">
-                  <strong>{check.label}</strong>
-                  <span className="badge badge-critical">blocking</span>
-                </div>
-                <p>{check.detail}</p>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="helper-text">No blocking environment problems are currently detected.</p>
-        )}
-
-        {warningChecks.length > 0 ? (
-          <div className="service-checks">
-            {warningChecks.map((check) => (
-              <article className="service-card" key={`warning-${check.id}`}>
-                <div className="service-card-header">
-                  <strong>{check.label}</strong>
-                  <span className="badge badge-warning">warning</span>
-                </div>
-                <p>{check.detail}</p>
-              </article>
-            ))}
-          </div>
-        ) : null}
-      </section>
-        </>
+        <SetupWorkspace
+          showingDemoExperience={showingDemoExperience}
+          completedSetupSteps={completedSetupSteps}
+          firstRunChecklist={firstRunChecklist}
+          blockingChecks={blockingChecks}
+          warningChecks={warningChecks}
+          troubleshootingCards={troubleshootingCards}
+          sshTroubleshooting={sshTroubleshooting}
+          sshMessage={sshResult?.message ?? null}
+          onEnterDemoMode={handleEnterDemoMode}
+          onSwitchToRealSetup={handleSwitchToRealSetup}
+        />
       ) : null}
 
       {activeWorkspace === "assets" ? (
-        <>
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Troubleshooting Guidance</h2>
-          </div>
-          <div className="summary-strip">
-            <span>{troubleshootingCards.length} environment issues</span>
-            <span>{sshTroubleshooting.length > 0 ? "SSH guidance ready" : "SSH guidance idle"}</span>
-          </div>
-        </div>
-
-        {troubleshootingCards.length > 0 ? (
-          <div className="service-checks">
-            {troubleshootingCards.map((card) => (
-              <article className="service-card" key={`troubleshoot-${card.key}`}>
-                <div className="service-card-header">
-                  <strong>{card.label}</strong>
-                  <span className={`badge badge-${card.status}`}>{card.status}</span>
-                </div>
-                <p>{card.detail}</p>
-                <ul className="troubleshooting-list">
-                  {card.actions.map((action) => (
-                    <li key={`${card.key}-${action}`}>{action}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="helper-text">No environment problems currently need repair guidance.</p>
-        )}
-
-        {sshTroubleshooting.length > 0 ? (
-          <article className="service-card ssh-guidance-card">
-            <div className="service-card-header">
-              <strong>SSH Connection Repair Steps</strong>
-              <span className="badge badge-warning">ssh</span>
-            </div>
-            <p>{sshResult?.message}</p>
-            <ul className="troubleshooting-list">
-              {sshTroubleshooting.map((action) => (
-                <li key={`ssh-guidance-${action}`}>{action}</li>
-              ))}
-            </ul>
-          </article>
-        ) : null}
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Machine Migration</h2>
-          </div>
-          <div className="service-actions">
-            <button
-              className="secondary-button"
-              onClick={() => void refreshSavedAssets()}
-              type="button"
-            >
-              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Assets"}
-            </button>
-            <button
-              className="secondary-button"
-              onClick={() => void handleSaveAsset()}
-              type="button"
-            >
-              Save Current Asset
-            </button>
-          </div>
-        </div>
-
-        <div className="ssh-grid">
-          <label>
-            <span>Migration File</span>
-            <input
-              value={migrationPath}
-              onChange={(event) => setMigrationPath(event.target.value)}
-              placeholder="/tmp/opsprobe-config.json"
-            />
-          </label>
-        </div>
-
-        <div className="service-actions">
-          <button
-            className="primary-button"
-            onClick={() => void handleExportConfig()}
-            type="button"
-          >
-            {isExportingConfig ? "Exporting..." : "Export Local Config"}
-          </button>
-          <button
-            className="secondary-button"
-            onClick={() => void handleImportConfig()}
-            type="button"
-          >
-            {isImportingConfig ? "Importing..." : "Import Local Config"}
-          </button>
-        </div>
-
-        <p className="helper-text">
-          Exported packages exclude secret values. Imported assets are marked for credential rebind
-          before use on the new machine. After rebinding, run a successful SSH test before resuming schedules.
-        </p>
-        <p className="helper-text">
-          The export package now records which machine created it, so import review can confirm source context before trusting the migrated runtime state.
-        </p>
-
-        {savedAssets.length > 0 ? (
-          <div className="service-checks">
-            {savedAssets.map((savedAsset) => (
-              <article className="service-card" key={`asset-${savedAsset.id}`}>
-                <div className="service-card-header">
-                  <strong>{savedAsset.name}</strong>
-                  <span className={`badge badge-${savedAsset.id === asset.id ? "pass" : "unknown"}`}>
-                    {savedAsset.id === asset.id ? "active" : "saved"}
-                  </span>
-                </div>
-                <p>
-                  {savedAsset.id} · {savedAsset.host}:{savedAsset.port}
-                </p>
-                <p>
-                  Credential: {savedAsset.credential.method} / {savedAsset.credential.username}
-                  {savedAsset.credential.bindingStatus ? ` / ${savedAsset.credential.bindingStatus}` : ""}
-                </p>
-                <div className="service-actions">
-                  <button
-                    className="secondary-button"
-                    onClick={() => void handleLoadAsset(savedAsset)}
-                    type="button"
-                  >
-                    Load Asset
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="helper-text">No saved assets yet. Save the current asset before exporting.</p>
-        )}
-      </section>
-        </>
+        <AssetsWorkspace
+          asset={asset}
+          savedAssets={savedAssets}
+          migrationPath={migrationPath}
+          isRefreshingAssets={isRefreshingAssets}
+          isExportingConfig={isExportingConfig}
+          isImportingConfig={isImportingConfig}
+          onMigrationPathChange={setMigrationPath}
+          onRefreshSavedAssets={() => void refreshSavedAssets()}
+          onSaveCurrentAsset={() => void handleSaveAsset()}
+          onExportConfig={() => void handleExportConfig()}
+          onImportConfig={() => void handleImportConfig()}
+          onLoadAsset={(savedAsset) => void handleLoadAsset(savedAsset)}
+        />
       ) : null}
 
       {activeWorkspace === "service" ? (
-        <>
-        <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Local Scheduling</h2>
-          </div>
-          <div className="service-actions">
-            <button
-              className="secondary-button"
-              onClick={() => void refreshLocalSchedules()}
-              type="button"
-            >
-              {isRefreshingSchedules ? "Refreshing..." : "Refresh Schedules"}
-            </button>
-            <button
-              className="primary-button"
-              onClick={() => void handleSaveSchedule()}
-              type="button"
-            >
-              {isSavingSchedule ? "Saving..." : "Create Schedule"}
-            </button>
-          </div>
-        </div>
-
-        <div className="ssh-grid">
-          <label>
-            <span>Scheduled Asset</span>
-            <input value={asset.id} readOnly />
-          </label>
-
-          <label>
-            <span>Template</span>
-            <input value={activeTemplate.name} readOnly />
-          </label>
-
-          <label>
-            <span>Interval Minutes</span>
-            <input
-              type="number"
-              min="5"
-              step="5"
-              value={scheduleIntervalMinutes}
-              onChange={(event) => setScheduleIntervalMinutes(event.target.value)}
-            />
-          </label>
-        </div>
-
-        <p className="helper-text">
-          Schedules are stored locally by the service and executed by the background process. Keep
-          the local service running for recurring inspections. Assets with `verification-required`
-          credentials cannot resume schedules until SSH validation succeeds.
-        </p>
-
-        {schedules.length > 0 ? (
-          <div className="service-checks">
-            {schedules.map((schedule) => (
-              <article className="service-card" key={schedule.id}>
-                <div className="service-card-header">
-                  <strong>{schedule.asset.name}</strong>
-                  <span className={`badge badge-${schedule.enabled ? "pass" : "unknown"}`}>
-                    {schedule.enabled ? "enabled" : "disabled"}
-                  </span>
-                </div>
-                <p>{schedule.id}</p>
-                <p>
-                  Every {schedule.intervalMinutes} minutes · next run {schedule.nextRunAt}
-                </p>
-                <p>Template: {templateLabel(schedule.templateId)}</p>
-                <p>
-                  Last status: {schedule.lastRunStatus ?? "pending"}
-                  {schedule.lastRunAt ? ` at ${schedule.lastRunAt}` : ""}
-                </p>
-                {schedule.lastError ? <p className="result-error">Failure: {schedule.lastError}</p> : null}
-                <div className="service-actions">
-                  <button
-                    className="secondary-button"
-                    onClick={() => void handleToggleSchedule(schedule)}
-                    type="button"
-                  >
-                    {schedule.enabled ? "Disable" : "Enable"}
-                  </button>
-                  <button
-                    className="secondary-button"
-                    onClick={() => void handleDeleteSchedule(schedule.id)}
-                    type="button"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="helper-text">No local schedules configured yet.</p>
-        )}
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Local Service Status</h2>
-          </div>
-          <div className="service-actions">
-            <button
-              className="secondary-button"
-              onClick={() => void refreshLocalServiceHealth()}
-              type="button"
-            >
-              {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
-            </button>
-            <button
-              className="primary-button"
-              onClick={() => void handleStartLocalService()}
-              type="button"
-            >
-              Start Service
-            </button>
-            <button
-              className="secondary-button"
-              onClick={() => void handleStopLocalService()}
-              type="button"
-            >
-              Stop Service
-            </button>
-            <button
-              className="secondary-button"
-              onClick={() => void handleRestartLocalService()}
-              type="button"
-            >
-              Restart Service
-            </button>
-            <button
-              className="secondary-button"
-              onClick={() => void handleBootstrapLocalPostgres()}
-              type="button"
-            >
-              Bootstrap PostgreSQL
-            </button>
-            <button
-              className="secondary-button"
-              onClick={() => void handleStartLocalPostgres()}
-              type="button"
-            >
-              Start PostgreSQL
-            </button>
-            <button
-              className="secondary-button"
-              onClick={() => void handleStopLocalPostgres()}
-              type="button"
-            >
-              Stop PostgreSQL
-            </button>
-          </div>
-        </div>
-
-        {serviceResponse ? (
-          <>
-            <div className="service-banner">
-              <span className={`service-pill service-${serviceResponse.snapshot.status}`}>
-                {serviceResponse.snapshot.status}
-              </span>
-              {serviceResponse.snapshot.health.runtime ? (
-                <>
-                  <span>port {serviceResponse.snapshot.health.runtime.port}</span>
-                  <span>{serviceResponse.snapshot.config.paths.postgresDataDir}</span>
-                  <span>{serviceResponse.snapshot.config.paths.postgresLogDir}</span>
-                </>
-              ) : (
-                <span>No runtime metadata available</span>
-              )}
-            </div>
-
-            <div className="service-checks">
-              {serviceResponse.snapshot.health.checks.map((check) => (
-                <article className="service-card" key={check.id}>
-                  <div className="service-card-header">
-                    <strong>{check.label}</strong>
-                    <span className={`badge badge-${check.status}`}>{check.status}</span>
-                  </div>
-                  <p>{check.detail}</p>
-                </article>
-              ))}
-            </div>
-          </>
-        ) : (
-          <p className="helper-text">Local service bootstrap has not been queried yet.</p>
-        )}
-
-        {serviceMessage ? <p className="helper-text">{serviceMessage}</p> : null}
-
-        {serviceResponse?.snapshot.recoveryActions.length ? (
-          <div className="service-checks">
-            {serviceResponse.snapshot.recoveryActions.map((action) => (
-              <article className="service-card" key={action.id}>
-                <div className="service-card-header">
-                  <strong>{action.label}</strong>
-                  <span className="badge badge-warning">recovery</span>
-                </div>
-                <p>{action.detail}</p>
-              </article>
-            ))}
-          </div>
-        ) : null}
-        </section>
-        </>
+        <ServiceWorkspace
+          assetId={asset.id}
+          activeTemplateName={activeTemplate.name}
+          scheduleIntervalMinutes={scheduleIntervalMinutes}
+          schedules={schedules}
+          serviceResponse={serviceResponse}
+          serviceMessage={serviceMessage}
+          isRefreshingSchedules={isRefreshingSchedules}
+          isSavingSchedule={isSavingSchedule}
+          isRefreshingService={isRefreshingService}
+          onScheduleIntervalChange={setScheduleIntervalMinutes}
+          onRefreshSchedules={() => void refreshLocalSchedules()}
+          onSaveSchedule={() => void handleSaveSchedule()}
+          onToggleSchedule={(schedule) => void handleToggleSchedule(schedule)}
+          onDeleteSchedule={(id) => void handleDeleteSchedule(id)}
+          onRefreshServiceHealth={() => void refreshLocalServiceHealth()}
+          onStartLocalService={() => void handleStartLocalService()}
+          onStopLocalService={() => void handleStopLocalService()}
+          onRestartLocalService={() => void handleRestartLocalService()}
+          onBootstrapLocalPostgres={() => void handleBootstrapLocalPostgres()}
+          onStartLocalPostgres={() => void handleStartLocalPostgres()}
+          onStopLocalPostgres={() => void handleStopLocalPostgres()}
+        />
       ) : null}
 
       {activeWorkspace === "history" ? (
-        <>
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Local Service Inspection Run</h2>
-          </div>
-          <div className="service-actions">
-            <button
-              className="primary-button"
-              onClick={() => void runLocalServiceInspection()}
-              type="button"
-            >
-              {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
-            </button>
-            {serviceExecutionRun ? (
-              <>
-                  <button
-                    className="secondary-button"
-                    onClick={() => void handleExportHtmlReport(serviceExecutionRun)}
-                    type="button"
-                  >
-                    {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
-                  </button>
-                  <button
-                    className="secondary-button"
-                    onClick={() => void handleExportPdfReport(serviceExecutionRun)}
-                    type="button"
-                  >
-                    {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
-                  </button>
-              </>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="ssh-grid">
-          <label>
-            <span>Report File</span>
-            <input
-              value={reportPath}
-              onChange={(event) => setReportPath(event.target.value)}
-              placeholder="/tmp/opsprobe-report.html"
-            />
-          </label>
-          <label>
-            <span>PDF Report File</span>
-            <input
-              value={pdfReportPath}
-              onChange={(event) => setPdfReportPath(event.target.value)}
-              placeholder="/tmp/opsprobe-report.pdf"
-            />
-          </label>
-        </div>
-
-        {serviceExecutionRun ? (
-          <>
-            <div className="summary-strip">
-              <span>Total {serviceExecutionRun.summary.total}</span>
-              <span>Pass {serviceExecutionRun.summary.passed}</span>
-              <span>Warn {serviceExecutionRun.summary.warning}</span>
-              <span>Critical {serviceExecutionRun.summary.critical}</span>
-            </div>
-
-            <div className="asset-banner">
-              <strong>{asset.name}</strong>
-              <span>
-                {asset.host}:{asset.port}
-              </span>
-              <span>service-owned execution</span>
-              <span>{activeTemplate.name}</span>
-            </div>
-
-            <div className="results-list">
-              {serviceExecutionRun.results.map((result) => (
-                <article className="result-card" key={`service-run-${result.checkId}`}>
-                  <div className="result-header">
-                    <div>
-                      <h3>{result.title}</h3>
-                      <p>{result.summary}</p>
-                    </div>
-                    <span className={`badge badge-${result.status}`}>{result.status}</span>
-                  </div>
-
-                  <ul className="evidence-list">
-                    {result.evidence.map((item) => (
-                      <li key={`service-run-${result.checkId}-${item.label}`}>
-                        <strong>{item.label}:</strong> {item.value}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <p className="remediation">
-                    <strong>Remediation:</strong> {result.remediation}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </>
-        ) : (
-          <p className="helper-text">Local service has not executed an inspection run yet.</p>
-        )}
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Local Service Inspection Preview</h2>
-          </div>
-          <button
-            className="secondary-button"
-            onClick={() => void refreshLocalServiceInspectionPreview()}
-            type="button"
-          >
-            {isRefreshingServicePreview ? "Refreshing..." : "Refresh Service Preview"}
-          </button>
-        </div>
-
-        {serviceInspectionRun ? (
-          <>
-            <div className="asset-banner">
-              <strong>{asset.name}</strong>
-              <span>service-owned preview</span>
-              <span>{serviceInspectionRun.summary.total} checks</span>
-              <span>{activeTemplate.name}</span>
-            </div>
-
-            <div className="results-list">
-              {serviceInspectionRun.results.map((result) => (
-                <article className="result-card" key={`service-${result.checkId}`}>
-                  <div className="result-header">
-                    <div>
-                      <h3>{result.title}</h3>
-                      <p>{result.summary}</p>
-                    </div>
-                    <span className={`badge badge-${result.status}`}>{result.status}</span>
-                  </div>
-
-                  <ul className="evidence-list">
-                    {result.evidence.map((item) => (
-                      <li key={`service-${result.checkId}-${item.label}`}>
-                        <strong>{item.label}:</strong> {item.value}
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
-          </>
-        ) : (
-          <p className="helper-text">Local service has not generated an inspection preview yet.</p>
-        )}
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Service Persistence Preview</p>
-            <h2>Recent Local Service Runs</h2>
-          </div>
-          <button
-            className="secondary-button"
-            onClick={() => void refreshLocalServiceHistory()}
-            type="button"
-          >
-            {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
-          </button>
-        </div>
-
-        {showingDemoExperience ? (
-          <div className="asset-banner">
-            <strong>Demo History</strong>
-            <span>sample data only</span>
-            <span>{demoRuns.length} bundled runs</span>
-            <span>safe to explore and export</span>
-          </div>
-        ) : null}
-
-        <div className="ssh-grid">
-          <label>
-            <span>Asset Filter</span>
-            <input
-              value={historyAssetFilter}
-              onChange={(event) => setHistoryAssetFilter(event.target.value)}
-              placeholder="asset-linux-001"
-            />
-          </label>
-
-          <label>
-            <span>Date From</span>
-            <input
-              type="date"
-              value={historyDateFrom}
-              onChange={(event) => setHistoryDateFrom(event.target.value)}
-            />
-          </label>
-
-          <label>
-            <span>Date To</span>
-            <input
-              type="date"
-              value={historyDateTo}
-              onChange={(event) => setHistoryDateTo(event.target.value)}
-            />
-          </label>
-        </div>
-
-        {visibleHistoryRuns.length > 0 ? (
-          <>
-            <div className="results-list">
-              {visibleHistoryRuns.map((run) => (
-                <article
-                  className="result-card"
-                  key={`history-${run.id}`}
-                  onClick={() => setSelectedHistoryRun(run)}
-                >
-                  <div className="result-header">
-                    <div>
-                      <h3>{run.id}</h3>
-                      <p>
-                        {run.assetId} · {run.summary.total} checks · {run.summary.warning} warn ·{" "}
-                        {run.summary.critical} critical
-                      </p>
-                      <p className="helper-text">Template: {templateLabel(run.templateId)}</p>
-                      {showingDemoExperience ? <p className="helper-text">Sample run bundled with OpsProbe.</p> : null}
-                    </div>
-                    <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>
-                      {run.status}
-                    </span>
-                  </div>
-                  <p className="helper-text">{run.createdAt}</p>
-                </article>
-              ))}
-            </div>
-
-            {repeatedProblems.length > 0 ? (
-              <div className="service-checks">
-                {repeatedProblems.slice(0, 5).map((problem) => (
-                  <article className="service-card" key={`repeat-${problem.checkId}`}>
-                    <div className="service-card-header">
-                      <strong>{problem.title}</strong>
-                      <span className="badge badge-warning">{problem.count}x</span>
-                    </div>
-                    <p>{problem.checkId}</p>
-                    <p className="helper-text">
-                      Templates: {problem.templateIds.map((templateId) => templateLabel(templateId)).join(", ")}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="helper-text">No repeated problem checks were found in the filtered history.</p>
-            )}
-
-            {selectedHistoryRun ? (
-              <div className="results-list">
-                <article className="result-card" key={`selected-${selectedHistoryRun.id}`}>
-                  <div className="result-header">
-                    <div>
-                      <h3>Selected Run</h3>
-                      <p>
-                        {selectedHistoryRun.id} · {selectedHistoryRun.assetId} · {selectedHistoryRun.createdAt}
-                      </p>
-                      <p className="helper-text">Template: {templateLabel(selectedHistoryRun.templateId)}</p>
-                      {showingDemoExperience ? (
-                        <p className="helper-text">This is sample inspection data and is not part of your persisted history.</p>
-                      ) : null}
-                    </div>
-                    <span
-                      className={`badge badge-${
-                        selectedHistoryRun.status === "completed" ? "pass" : "critical"
-                      }`}
-                    >
-                      {selectedHistoryRun.status}
-                    </span>
-                  </div>
-
-                  <div className="service-actions">
-                    <button
-                      className="secondary-button"
-                      onClick={() => void handleExportHtmlReport(selectedHistoryRun)}
-                      type="button"
-                    >
-                      {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
-                    </button>
-                    <button
-                      className="secondary-button"
-                      onClick={() => void handleExportPdfReport(selectedHistoryRun)}
-                      type="button"
-                    >
-                      {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
-                    </button>
-                  </div>
-
-                  {selectedHistoryRun.results.length > 0 ? (
-                    <div className="results-list">
-                      {selectedHistoryRun.results.map((result) => (
-                        <article className="result-card" key={`selected-${selectedHistoryRun.id}-${result.checkId}`}>
-                          <div className="result-header">
-                            <div>
-                              <h3>{result.title}</h3>
-                              <p>{result.summary}</p>
-                              <p className="helper-text">{templateLabel(selectedHistoryRun.templateId)}</p>
-                            </div>
-                            <span className={`badge badge-${result.status}`}>{result.status}</span>
-                          </div>
-                          <ul className="evidence-list">
-                            {result.evidence.map((item) => (
-                              <li key={`selected-${selectedHistoryRun.id}-${result.checkId}-${item.label}`}>
-                                <strong>{item.label}:</strong> {item.value}
-                              </li>
-                            ))}
-                          </ul>
-                          <p className="remediation">
-                            <strong>Remediation:</strong> {result.remediation}
-                          </p>
-                        </article>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="helper-text">This historical run has no normalized check results to reopen.</p>
-                  )}
-                </article>
-              </div>
-            ) : null}
-          </>
-        ) : (
-          <p className="helper-text">
-            {onboardingMode === "real"
-              ? "No persisted runs have been recorded by local service yet."
-              : "No persisted runs yet. Explore the bundled demo data or switch to real setup."}
-          </p>
-        )}
-      </section>
-        </>
+        <HistoryWorkspace
+          asset={asset}
+          activeTemplateName={activeTemplate.name}
+          reportAudience={reportAudience}
+          reportPath={reportPath}
+          pdfReportPath={pdfReportPath}
+          serviceExecutionRun={serviceExecutionRun}
+          serviceInspectionRun={serviceInspectionRun}
+          visibleHistoryRuns={visibleHistoryRuns}
+          selectedHistoryRun={selectedHistoryRun}
+          repeatedProblems={repeatedProblems}
+          showingDemoExperience={showingDemoExperience}
+          onboardingMode={onboardingMode}
+          historyAssetFilter={historyAssetFilter}
+          historyDateFrom={historyDateFrom}
+          historyDateTo={historyDateTo}
+          isRunningServiceInspection={isRunningServiceInspection}
+          isRefreshingServicePreview={isRefreshingServicePreview}
+          isRefreshingHistory={isRefreshingHistory}
+          isExportingReport={isExportingReport}
+          isExportingPdfReport={isExportingPdfReport}
+          onReportPathChange={setReportPath}
+          onPdfReportPathChange={setPdfReportPath}
+          onHistoryAssetFilterChange={setHistoryAssetFilter}
+          onHistoryDateFromChange={setHistoryDateFrom}
+          onHistoryDateToChange={setHistoryDateTo}
+          onRunLocalServiceInspection={() => void runLocalServiceInspection()}
+          onRefreshLocalServiceInspectionPreview={() => void refreshLocalServiceInspectionPreview()}
+          onRefreshLocalServiceHistory={() => void refreshLocalServiceHistory()}
+          onSelectHistoryRun={setSelectedHistoryRun}
+          onExportHtmlReport={(run) => void handleExportHtmlReport(run)}
+          onExportPdfReport={(run) => void handleExportPdfReport(run)}
+          templateLabel={templateLabel}
+        />
       ) : null}
 
       {activeWorkspace === "runner" ? (
-        <>
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Legacy Comparison</p>
-            <h2>Linux Host Asset</h2>
-          </div>
-        </div>
-
-        <div className="ssh-grid">
-          <label>
-            <span>Asset Name</span>
-            <input
-              value={asset.name}
-              onChange={(event) => patchAsset({ name: event.target.value })}
-              placeholder="opsprobe-demo-host"
-            />
-          </label>
-
-          <label>
-            <span>Host</span>
-            <input
-              value={asset.host}
-              onChange={(event) => patchAsset({ host: event.target.value })}
-              placeholder="10.0.0.12"
-            />
-          </label>
-
-          <label>
-            <span>Port</span>
-            <input
-              type="number"
-              value={asset.port}
-              onChange={(event) => patchAsset({ port: Number(event.target.value) || 22 })}
-              placeholder="22"
-            />
-          </label>
-
-          <label>
-            <span>Username</span>
-            <input
-              value={asset.credential.username}
-              onChange={(event) => patchCredential({ username: event.target.value })}
-              placeholder="root"
-            />
-          </label>
-
-          <label>
-            <span>Auth Method</span>
-            <select
-              value={asset.credential.method}
-              onChange={(event) =>
-                patchCredential({
-                  method: event.target.value as SshConnectionTestInput["authMethod"],
-                })
-              }
-            >
-              <option value="private-key">private-key</option>
-              <option value="password">password</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Tags</span>
-            <input
-              value={asset.tags.join(", ")}
-              onChange={(event) =>
-                patchAsset({
-                  tags: event.target.value
-                    .split(",")
-                    .map((tag) => tag.trim())
-                    .filter(Boolean),
-                })
-              }
-              placeholder="demo, linux"
-            />
-          </label>
-
-          <label>
-            <span>Inspection Template</span>
-            <select
-              value={selectedTemplateId}
-              onChange={(event) => setSelectedTemplateId(event.target.value)}
-            >
-              {builtInTemplates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <p className="helper-text">
-          {activeTemplate.description} This template currently includes {activeChecks.length} checks.
-        </p>
-
-        <label className="field-block">
-          <span>
-            {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
-          </span>
-          <input
-            type={asset.credential.method === "password" ? "password" : "text"}
-            value={asset.credential.secretRef}
-            onChange={(event) => patchCredential({ secretRef: event.target.value })}
-            placeholder={
-              asset.credential.method === "private-key"
-                ? "/home/user/.ssh/id_rsa"
-                : "Enter the SSH password used for this host."
-            }
-          />
-        </label>
-
-        <div className="ssh-actions">
-          <button className="primary-button" onClick={() => void handleSshTest()} type="button">
-            {isTestingSsh ? "Testing..." : "Test SSH Connection"}
-          </button>
-          <button
-            className="secondary-button"
-            onClick={() => void refreshInspectionPreview()}
-            type="button"
-          >
-            {isRefreshingPreview ? "Refreshing..." : "Refresh Inspection Preview"}
-          </button>
-          <p className="helper-text">
-            Asset fields are shared by the SSH test and the inspection runner preview. Password mode
-            requires `sshpass` on the local machine.
-          </p>
-        </div>
-
-        {sshResult ? (
-          <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`}>
-            {sshResult.message}
-          </p>
-        ) : null}
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Legacy Comparison</p>
-            <h2>Desktop Runner Preview</h2>
-          </div>
-          {inspectionRun ? (
-            <div className="summary-strip">
-              <span>Total {inspectionRun.summary.total}</span>
-              <span>Pass {inspectionRun.summary.passed}</span>
-              <span>Warn {inspectionRun.summary.warning}</span>
-              <span>Critical {inspectionRun.summary.critical}</span>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="asset-banner">
-          <strong>{asset.name}</strong>
-          <span>
-            {asset.host}:{asset.port}
-          </span>
-          <span>{activeTemplate.name}</span>
-          <span>{asset.tags.join(", ") || "no tags"}</span>
-        </div>
-
-        <div className="results-list">
-          {inspectionRun?.results.map((result) => (
-            <article className="result-card" key={result.checkId}>
-              <div className="result-header">
-                <div>
-                  <h3>{result.title}</h3>
-                  <p>{result.summary}</p>
-                </div>
-                <span className={`badge badge-${result.status}`}>{result.status}</span>
-              </div>
-
-              <ul className="evidence-list">
-                {result.evidence.map((item) => (
-                  <li key={`${result.checkId}-${item.label}`}>
-                    <strong>{item.label}:</strong> {item.value}
-                  </li>
-                ))}
-              </ul>
-
-              <p className="remediation">
-                <strong>Remediation:</strong> {result.remediation}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
-        </>
+        <RunnerWorkspace
+          asset={asset}
+          builtInTemplates={builtInTemplates}
+          selectedTemplateId={selectedTemplateId}
+          activeTemplate={activeTemplate}
+          activeChecksCount={activeChecks.length}
+          inspectionRun={inspectionRun}
+          isTestingSsh={isTestingSsh}
+          isRefreshingPreview={isRefreshingPreview}
+          sshResult={sshResult}
+          onPatchAsset={patchAsset}
+          onPatchCredential={patchCredential}
+          onSelectTemplate={setSelectedTemplateId}
+          onTestSsh={() => void handleSshTest()}
+          onRefreshInspectionPreview={() => void refreshInspectionPreview()}
+        />
       ) : null}
         </div>
       </div>
