@@ -19,7 +19,8 @@ Confirm that a new local user profile can:
 
 - the repo builds successfully
 - `node`, `npm`, Rust, and Tauri dependencies are available
-- if managed PostgreSQL validation is expected to pass, `postgres`, `pg_ctl`, and `initdb` are available in `PATH`
+- if managed PostgreSQL validation is expected to pass, `postgres`, `pg_ctl`, and `initdb` are installed somewhere the local service can discover them
+- `./scripts/validate-clean-user-profile.sh` assigns a temporary `OPSPROBE_POSTGRES_PORT` so repeated validation runs on one machine do not collide on port `15432`
 - use a temporary `HOME` so the run simulates a clean local profile
 
 Recommended build checks:
@@ -44,7 +45,7 @@ HOME="${OPSPROBE_VALIDATION_HOME}" npm run local-service:status
 Expect:
 
 - `~/.opsprobe` is created under the temporary home
-- status output explains whether PostgreSQL binaries are visible
+- status output explains whether PostgreSQL binaries are visible, even when they are not on the default shell `PATH`
 - status output includes `recoveryActions`
 - if PostgreSQL binaries are missing, the operator can still tell what to install next
 
@@ -61,7 +62,7 @@ HOME="${OPSPROBE_VALIDATION_HOME}" npm run local-service:status
 Expect:
 
 - bootstrap either succeeds or fails with an explicit prerequisite message
-- if PostgreSQL binaries are available, status moves toward a ready local runtime
+- if PostgreSQL binaries are available, status moves to a ready local runtime and shows the managed PostgreSQL process as healthy
 - if PostgreSQL binaries are not available, the fallback and repair path is explicit instead of silent
 
 ### 3. Save an asset and preview an inspection

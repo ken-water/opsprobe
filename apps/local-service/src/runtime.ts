@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { createServer } from "node:net";
+import { delimiter, join } from "node:path";
 import { promisify } from "node:util";
 import type { LocalServiceConfig } from "./config.ts";
 import type { LocalServiceBootstrap, LocalServiceHealth } from "./index.ts";
@@ -11,6 +12,7 @@ const execFileAsync = promisify(execFile);
 interface BinaryCheck {
   name: string;
   command: string;
+  resolvedPath: string;
   available: boolean;
   detail: string;
 }
@@ -26,11 +28,46 @@ interface ManagedPostgresProcessState {
   detail: string;
 }
 
-async function runCommand(command: string, args: string[]) {
+interface ResolvedPostgresCommands {
+  postgres: string;
+  pgCtl: string;
+  initdb: string;
+}
+
+const commonPostgresBinDirs = [
+  "/usr/lib/postgresql/16/bin",
+  "/usr/lib/postgresql/15/bin",
+  "/usr/lib/postgresql/14/bin",
+  "/usr/local/pgsql/bin",
+];
+
+function buildCommandSearchPath(extraDirs: string[] = []) {
+  const envPath = process.env.PATH ?? "";
+  const segments = envPath.split(delimiter).filter(Boolean);
+  const merged = [...extraDirs, ...segments];
+  return Array.from(new Set(merged)).join(delimiter);
+}
+
+function resolvePostgresCommand(command: keyof ResolvedPostgresCommands) {
+  const configuredDir = process.env.OPSPROBE_POSTGRES_BIN_DIR;
+  const candidates = [
+    ...(configuredDir ? [join(configuredDir, command)] : []),
+    command,
+    ...commonPostgresBinDirs.map((dir) => join(dir, command)),
+  ];
+
+  return Array.from(new Set(candidates));
+}
+
+async function runCommand(command: string, args: string[], extraDirs: string[] = []) {
   try {
     const { stdout, stderr } = await execFileAsync(command, args, {
       encoding: "utf8",
       maxBuffer: 1024 * 1024,
+      env: {
+        ...process.env,
+        PATH: buildCommandSearchPath(extraDirs),
+      },
     });
 
     return {
@@ -70,20 +107,34 @@ async function isPortAvailable(port: number): Promise<boolean> {
 }
 
 async function inspectPostgresBinaries(): Promise<PostgresBinarySnapshot> {
-  const commands = [
-    { name: "postgres", command: "postgres" },
-    { name: "pg_ctl", command: "pg_ctl" },
-    { name: "initdb", command: "initdb" },
-  ];
+  const commands = ["postgres", "pg_ctl", "initdb"] as const;
 
   const checks = await Promise.all(
-    commands.map(async ({ name, command }) => {
-      const result = await runCommand(command, ["--version"]);
+    commands.map(async (command) => {
+      const candidates = resolvePostgresCommand(command);
+      let chosen = candidates[0] ?? command;
+      let result = {
+        ok: false,
+        stdout: "",
+        stderr: "",
+      };
+
+      for (const candidate of candidates) {
+        result = await runCommand(candidate, ["--version"], commonPostgresBinDirs);
+        chosen = candidate;
+        if (result.ok) {
+          break;
+        }
+      }
+
       return {
-        name,
+        name: command,
         command,
+        resolvedPath: chosen,
         available: result.ok,
-        detail: result.ok ? result.stdout || `${command} is available.` : result.stderr || `${command} is not available.`,
+        detail: result.ok
+          ? result.stdout || `${chosen} is available.`
+          : result.stderr || `${command} is not available.`,
       } satisfies BinaryCheck;
     }),
   );
@@ -169,7 +220,7 @@ async function inspectManagedPostgresProcess(
 
   const pgCtlCheck = binaries.checks.find((item) => item.name === "pg_ctl");
   if (initialized && pgCtlCheck?.available) {
-    const status = await runCommand("pg_ctl", ["-D", config.paths.postgresDataDir, "status"]);
+    const status = await runCommand(pgCtlCheck.resolvedPath, ["-D", config.paths.postgresDataDir, "status"], commonPostgresBinDirs);
     const detail = status.stdout || status.stderr;
     if (status.ok && detail.includes("server is running") && !detail.includes("single-user server")) {
       return {
@@ -323,13 +374,15 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
       return "Managed PostgreSQL data directory is already initialized.";
     }
 
-    const initdb = await runCommand("initdb", [
+    const binaries = await inspectPostgresBinaries();
+    const initdbBinary = binaries.checks.find((item) => item.name === "initdb")?.resolvedPath ?? "initdb";
+    const initdb = await runCommand(initdbBinary, [
       "-D",
       this.config.paths.postgresDataDir,
       "-U",
       "opsprobe",
       "--auth=trust",
-    ]);
+    ], commonPostgresBinDirs);
 
     if (!initdb.ok) {
       throw new Error(
@@ -368,14 +421,15 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
       );
     }
 
-    const start = await runCommand("pg_ctl", [
+    const pgCtlBinary = binaries.checks.find((item) => item.name === "pg_ctl")?.resolvedPath ?? "pg_ctl";
+    const start = await runCommand(pgCtlBinary, [
       "-D",
       this.config.paths.postgresDataDir,
       "-l",
       this.config.paths.postgresCtlLogFile,
       "-w",
       "start",
-    ]);
+    ], commonPostgresBinDirs);
 
     if (!start.ok) {
       throw new Error(
@@ -409,14 +463,14 @@ export class ManagedLocalServiceBootstrap implements LocalServiceBootstrap {
       return "Managed PostgreSQL is already stopped.";
     }
 
-    const stop = await runCommand("pg_ctl", [
+    const stop = await runCommand(pgCtlCheck.resolvedPath, [
       "-D",
       this.config.paths.postgresDataDir,
       "-m",
       "fast",
       "-w",
       "stop",
-    ]);
+    ], commonPostgresBinDirs);
 
     if (!stop.ok) {
       throw new Error(

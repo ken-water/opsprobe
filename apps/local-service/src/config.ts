@@ -33,6 +33,8 @@ export function createDefaultLocalServiceConfig(): LocalServiceConfig {
   const rootDir = globalProcess?.env?.HOME
     ? `${globalProcess.env.HOME}/.opsprobe`
     : "~/.opsprobe";
+  const postgresPortRaw = globalProcess?.env?.OPSPROBE_POSTGRES_PORT;
+  const postgresPort = Number.parseInt(postgresPortRaw ?? "15432", 10);
 
   return {
     paths: {
@@ -52,7 +54,7 @@ export function createDefaultLocalServiceConfig(): LocalServiceConfig {
       serviceStatusFile: `${rootDir}/runtime/local-service-status.json`,
     },
     postgres: {
-      port: 15432,
+      port: Number.isNaN(postgresPort) ? 15432 : postgresPort,
       version: null,
     },
   };

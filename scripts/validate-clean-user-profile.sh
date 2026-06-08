@@ -3,6 +3,7 @@
 set -euo pipefail
 
 tmp_home="$(mktemp -d)"
+tmp_postgres_port="$((20000 + (RANDOM % 10000)))"
 cleanup() {
   rm -rf "$tmp_home"
 }
@@ -27,7 +28,7 @@ asset_payload='{
   }
 }'
 
-status_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts status)"
+status_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts status)"
 printf '%s' "$status_json" | node --input-type=module -e '
   let raw = "";
   process.stdin.on("data", (chunk) => {
@@ -36,15 +37,69 @@ printf '%s' "$status_json" | node --input-type=module -e '
   process.stdin.on("end", () => {
     const response = JSON.parse(raw);
     const recoveryActions = response.snapshot?.recoveryActions ?? [];
-    if (!response.ok || !Array.isArray(recoveryActions) || recoveryActions.length === 0) {
+    const bootstrapCheck = response.snapshot?.health?.checks?.find((check) => check.id === "service.bootstrap");
+    if (
+      !response.ok ||
+      !Array.isArray(recoveryActions) ||
+      recoveryActions.length === 0 ||
+      bootstrapCheck?.status !== "pass"
+    ) {
       process.exit(1);
     }
   });
 '
 
-HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts assets-upsert <<<"$asset_payload" >/dev/null
+bootstrap_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts postgres-bootstrap)"
+printf '%s' "$bootstrap_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || typeof response.message !== "string" || response.message.length === 0) {
+      process.exit(1);
+    }
+  });
+'
 
-preview_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts inspect-preview <<'EOF'
+start_postgres_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts postgres-start)"
+printf '%s' "$start_postgres_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || typeof response.message !== "string" || response.message.length === 0) {
+      process.exit(1);
+    }
+  });
+'
+
+postgres_ready_status_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts status)"
+printf '%s' "$postgres_ready_status_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    const processCheck = response.snapshot?.health?.checks?.find((check) => check.id === "postgres.process");
+    const storageCheck = response.snapshot?.health?.checks?.find((check) => check.id === "storage.backend");
+    if (
+      !response.ok ||
+      processCheck?.status !== "pass" ||
+      !["pass", "warning"].includes(storageCheck?.status ?? "")
+    ) {
+      process.exit(1);
+    }
+  });
+'
+
+HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts assets-upsert <<<"$asset_payload" >/dev/null
+
+preview_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts inspect-preview <<'EOF'
 {
   "asset": {
     "id": "asset-clean-profile-001",
@@ -80,7 +135,7 @@ printf '%s' "$preview_json" | node --input-type=module -e '
 '
 
 export_path="$tmp_home/opsprobe-config-export.json"
-HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts config-export <<EOF >/dev/null
+HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts config-export <<EOF >/dev/null
 {
   "path": "$export_path"
 }
@@ -95,7 +150,7 @@ EXPORT_PATH="$export_path" node --input-type=module -e '
   }
 '
 
-stop_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts stop)"
+stop_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts stop)"
 printf '%s' "$stop_json" | node --input-type=module -e '
   let raw = "";
   process.stdin.on("data", (chunk) => {
@@ -109,7 +164,21 @@ printf '%s' "$stop_json" | node --input-type=module -e '
   });
 '
 
-restart_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts restart)"
+postgres_stop_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts postgres-stop)"
+printf '%s' "$postgres_stop_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || typeof response.message !== "string" || response.message.length === 0) {
+      process.exit(1);
+    }
+  });
+'
+
+restart_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts restart)"
 printf '%s' "$restart_json" | node --input-type=module -e '
   let raw = "";
   process.stdin.on("data", (chunk) => {
@@ -123,7 +192,7 @@ printf '%s' "$restart_json" | node --input-type=module -e '
   });
 '
 
-final_status_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts status)"
+final_status_json="$(HOME="$tmp_home" OPSPROBE_POSTGRES_PORT="$tmp_postgres_port" node --experimental-strip-types ./apps/local-service/src/main.ts status)"
 printf '%s' "$final_status_json" | node --input-type=module -e '
   let raw = "";
   process.stdin.on("data", (chunk) => {

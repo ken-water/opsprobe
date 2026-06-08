@@ -48,6 +48,7 @@ const bootstrap = new ManagedLocalServiceBootstrap(config);
 const fileStorage = new LocalFileStorageAdapter(`${config.paths.dataDir}/opsprobe-storage.json`);
 let storage: StorageAdapter = fileStorage;
 let storageBackendMessage = "Local file storage adapter is active.";
+let storageClosed = false;
 const scheduleStore = new LocalScheduleStore(config, () => storage);
 const desktopSettingsStore = new LocalDesktopSettingsStore(config, () => storage);
 const builtInTemplates = builtInInspectionTemplateDefinitions.map((definition) =>
@@ -55,6 +56,15 @@ const builtInTemplates = builtInInspectionTemplateDefinitions.map((definition) =
 );
 const DESKTOP_SETTINGS_STATE_KEY = "desktop-settings";
 const SCHEDULES_STATE_KEY = "inspection-schedules";
+
+async function shutdownStorage() {
+  if (storageClosed) {
+    return;
+  }
+
+  await storage.shutdown();
+  storageClosed = true;
+}
 
 async function migrateFileRunsToPostgres(postgresStorage: PostgresStorageAdapter) {
   await fileStorage.bootstrap();
@@ -133,6 +143,7 @@ async function selectStorageAdapter() {
         await migrateLegacyStateIntoStorage(fileStorage);
         await migrateFileStateToPostgres(postgresStorage);
         storage = postgresStorage;
+        storageClosed = false;
         storageBackendMessage =
           migratedRuns > 0
             ? `${postgresHealth.detail} Migrated ${migratedRuns} file-backed inspection runs into PostgreSQL and unified schedules/settings into the active state store.`
@@ -151,6 +162,7 @@ async function selectStorageAdapter() {
   await fileStorage.bootstrap();
   await migrateLegacyStateIntoStorage(fileStorage);
   storage = fileStorage;
+  storageClosed = false;
 }
 
 async function ensureRuntimeDirs() {
@@ -354,7 +366,7 @@ async function stopServiceRuntime() {
   }
 
   try {
-    await storage.shutdown();
+    await shutdownStorage();
     await bootstrap.stopPostgres();
   } catch {
     // Stop should still clean local-service state even if PostgreSQL stop fails.
@@ -415,7 +427,7 @@ async function startPostgresCommand() {
 async function stopPostgresCommand() {
   await ensureRuntimeDirs();
 
-  await storage.shutdown();
+  await shutdownStorage();
 
   const response: LocalServiceCommandResponse = {
     ok: true,
@@ -442,7 +454,7 @@ async function serveCommand() {
 
   const cleanup = async () => {
     try {
-      await storage.shutdown();
+      await shutdownStorage();
       await bootstrap.stopPostgres();
     } catch {
       // Preserve best-effort shutdown for the service process.
@@ -472,165 +484,171 @@ async function serveCommand() {
 async function main() {
   const mode = process.argv[2] ?? "status";
 
-  if (mode === "serve") {
-    await serveCommand();
-    return;
-  }
+  try {
+    if (mode === "serve") {
+      await serveCommand();
+      return;
+    }
 
-  if (mode === "stop") {
-    await stopCommand();
-    return;
-  }
+    if (mode === "stop") {
+      await stopCommand();
+      return;
+    }
 
-  if (mode === "restart") {
-    await restartCommand();
-    return;
-  }
+    if (mode === "restart") {
+      await restartCommand();
+      return;
+    }
 
-  if (mode === "postgres-bootstrap") {
-    await bootstrapPostgresCommand();
-    return;
-  }
+    if (mode === "postgres-bootstrap") {
+      await bootstrapPostgresCommand();
+      return;
+    }
 
-  if (mode === "postgres-start") {
-    await startPostgresCommand();
-    return;
-  }
+    if (mode === "postgres-start") {
+      await startPostgresCommand();
+      return;
+    }
 
-  if (mode === "postgres-stop") {
-    await stopPostgresCommand();
-    return;
-  }
+    if (mode === "postgres-stop") {
+      await stopPostgresCommand();
+      return;
+    }
 
-  if (mode === "inspect-preview") {
-    const request = await readJsonStdin<InspectionPreviewRequest>();
-    const response = await buildInspectionPreview(request);
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "inspect-preview") {
+      const request = await readJsonStdin<InspectionPreviewRequest>();
+      const response = await buildInspectionPreview(request);
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "inspect-run") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<InspectionExecutionRequest>();
-    const response = await buildInspectionExecution(request, storage);
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "inspect-run") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<InspectionExecutionRequest>();
+      const response = await buildInspectionExecution(request, storage);
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "inspection-history") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalServiceInspectionHistoryRequest>().catch(() => ({}));
-    const response: LocalServiceInspectionHistoryResponse = await readInspectionHistory(storage, request);
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "inspection-history") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalServiceInspectionHistoryRequest>().catch(() => ({}));
+      const response: LocalServiceInspectionHistoryResponse = await readInspectionHistory(storage, request);
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "assets-list") {
-    await ensureRuntimeDirs();
-    const response: LocalAssetListResponse = {
-      ok: true,
-      assets: await storage.assets.list(),
-      source: "local-service",
-    };
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "assets-list") {
+      await ensureRuntimeDirs();
+      const response: LocalAssetListResponse = {
+        ok: true,
+        assets: await storage.assets.list(),
+        source: "local-service",
+      };
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "assets-upsert") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalAssetUpsertRequest>();
-    await storage.assets.upsert(request.asset);
-    const response: LocalServiceCommandResponse = {
-      ok: true,
-      message: `Saved asset ${request.asset.id}.`,
-    };
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "assets-upsert") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalAssetUpsertRequest>();
+      await storage.assets.upsert(request.asset);
+      const response: LocalServiceCommandResponse = {
+        ok: true,
+        message: `Saved asset ${request.asset.id}.`,
+      };
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "settings-get") {
-    await ensureRuntimeDirs();
-    const response: LocalDesktopSettingsResponse = await desktopSettingsStore.getResponse();
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "settings-get") {
+      await ensureRuntimeDirs();
+      const response: LocalDesktopSettingsResponse = await desktopSettingsStore.getResponse();
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "settings-upsert") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalDesktopSettingsUpsertRequest>();
-    const response = await desktopSettingsStore.upsert(request);
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "settings-upsert") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalDesktopSettingsUpsertRequest>();
+      const response = await desktopSettingsStore.upsert(request);
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "schedules-list") {
-    await ensureRuntimeDirs();
-    const response: LocalInspectionScheduleListResponse = await scheduleStore.listResponse();
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "schedules-list") {
+      await ensureRuntimeDirs();
+      const response: LocalInspectionScheduleListResponse = await scheduleStore.listResponse();
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "config-export") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalFilePathRequest>();
-    const response: LocalConfigExportResponse = await exportLocalConfig(
-      storage,
-      scheduleStore,
-      desktopSettingsStore,
-      config,
-    );
-    await writeFile(request.path, `${JSON.stringify(response.package, null, 2)}\n`, "utf8");
-    const commandResponse: LocalServiceCommandResponse = {
-      ok: true,
-      message: `Exported local configuration to ${request.path}.`,
-    };
-    process.stdout.write(`${JSON.stringify(commandResponse, null, 2)}\n`);
-    return;
-  }
+    if (mode === "config-export") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalFilePathRequest>();
+      const response: LocalConfigExportResponse = await exportLocalConfig(
+        storage,
+        scheduleStore,
+        desktopSettingsStore,
+        config,
+      );
+      await writeFile(request.path, `${JSON.stringify(response.package, null, 2)}\n`, "utf8");
+      const commandResponse: LocalServiceCommandResponse = {
+        ok: true,
+        message: `Exported local configuration to ${request.path}.`,
+      };
+      process.stdout.write(`${JSON.stringify(commandResponse, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "config-import") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalFilePathRequest>();
-    const raw = await readFile(request.path, "utf8");
-    const response: LocalConfigImportResponse = await importLocalConfig(
-      { package: JSON.parse(raw) as LocalConfigImportRequest["package"] },
-      storage,
-      scheduleStore,
-      desktopSettingsStore,
-    );
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "config-import") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalFilePathRequest>();
+      const raw = await readFile(request.path, "utf8");
+      const response: LocalConfigImportResponse = await importLocalConfig(
+        { package: JSON.parse(raw) as LocalConfigImportRequest["package"] },
+        storage,
+        scheduleStore,
+        desktopSettingsStore,
+      );
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "schedules-upsert") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalInspectionScheduleUpsertRequest>();
-    const response: LocalInspectionScheduleUpsertResponse = await scheduleStore.upsert(request);
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "schedules-upsert") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalInspectionScheduleUpsertRequest>();
+      const response: LocalInspectionScheduleUpsertResponse = await scheduleStore.upsert(request);
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "schedules-delete") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalInspectionScheduleDeleteRequest>();
-    await scheduleStore.delete(request);
-    const response: LocalServiceCommandResponse = {
-      ok: true,
-      message: `Deleted schedule ${request.id}.`,
-    };
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "schedules-delete") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalInspectionScheduleDeleteRequest>();
+      await scheduleStore.delete(request);
+      const response: LocalServiceCommandResponse = {
+        ok: true,
+        message: `Deleted schedule ${request.id}.`,
+      };
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  if (mode === "report-export-html") {
-    await ensureRuntimeDirs();
-    const request = await readJsonStdin<LocalHtmlReportExportRequest>();
-    const response = await exportHtmlReport(request);
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
-  }
+    if (mode === "report-export-html") {
+      await ensureRuntimeDirs();
+      const request = await readJsonStdin<LocalHtmlReportExportRequest>();
+      const response = await exportHtmlReport(request);
+      process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+      return;
+    }
 
-  await statusCommand();
+    await statusCommand();
+  } finally {
+    if (mode !== "serve") {
+      await shutdownStorage();
+    }
+  }
 }
 
 main().catch((error: unknown) => {
