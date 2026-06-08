@@ -85,7 +85,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Local Service Inspection Run</h2>
+            <h2>Execution And Export</h2>
           </div>
           <div className="service-actions">
             <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
@@ -133,33 +133,16 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
-            <h2>Local Service Inspection Preview</h2>
-          </div>
-          <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">
-            {isRefreshingServicePreview ? "Refreshing..." : "Refresh Service Preview"}
-          </button>
-        </div>
-        {serviceInspectionRun ? (
-          <div className="asset-banner">
-            <strong>{asset.name}</strong>
-            <span>service-owned preview</span>
-            <span>{serviceInspectionRun.summary.total} checks</span>
-            <span>{activeTemplateName}</span>
-          </div>
-        ) : (
-          <p className="helper-text">Local service has not generated an inspection preview yet.</p>
-        )}
-      </section>
-
-      <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Service Persistence Preview</p>
             <h2>Recent Local Service Runs</h2>
           </div>
-          <button className="secondary-button" onClick={onRefreshLocalServiceHistory} type="button">
-            {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
-          </button>
+          <div className="service-actions">
+            <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">
+              {isRefreshingServicePreview ? "Refreshing..." : "Refresh Preview"}
+            </button>
+            <button className="secondary-button" onClick={onRefreshLocalServiceHistory} type="button">
+              {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
+            </button>
+          </div>
         </div>
 
         {showingDemoExperience ? (
@@ -178,53 +161,64 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         </div>
 
         {visibleHistoryRuns.length > 0 ? (
-          <>
-            <div className="results-list">
-              {visibleHistoryRuns.map((run) => (
-                <article className="result-card" key={`history-${run.id}`} onClick={() => onSelectHistoryRun(run)}>
-                  <div className="result-header">
-                    <div>
-                      <h3>{run.id}</h3>
-                      <p>{run.assetId} · {run.summary.total} checks · {run.summary.warning} warn · {run.summary.critical} critical</p>
-                      <p className="helper-text">Template: {templateLabel(run.templateId)}</p>
+          <div className="history-workspace">
+            <div className="history-list-panel">
+              <div className="history-list">
+                {visibleHistoryRuns.map((run) => (
+                  <button
+                    className={`history-list-item ${selectedHistoryRun?.id === run.id ? "history-list-item-active" : ""}`}
+                    key={`history-${run.id}`}
+                    onClick={() => onSelectHistoryRun(run)}
+                    type="button"
+                  >
+                    <div className="history-list-top">
+                      <strong>{run.id}</strong>
+                      <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>{run.status}</span>
                     </div>
-                    <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>{run.status}</span>
-                  </div>
-                  <p className="helper-text">{run.createdAt}</p>
-                </article>
-              ))}
-            </div>
-
-            {repeatedProblems.length > 0 ? (
-              <div className="service-checks">
-                {repeatedProblems.slice(0, 5).map((problem) => (
-                  <article className="service-card" key={`repeat-${problem.checkId}`}>
-                    <div className="service-card-header">
-                      <strong>{problem.title}</strong>
-                      <span className="badge badge-warning">{problem.count}x</span>
-                    </div>
-                    <p>{problem.checkId}</p>
-                    <p className="helper-text">
-                      Templates: {problem.templateIds.map((templateId) => templateLabel(templateId)).join(", ")}
-                    </p>
-                  </article>
+                    <p>{run.assetId}</p>
+                    <p>{templateLabel(run.templateId)}</p>
+                    <p>{run.summary.total} checks · {run.summary.warning} warn · {run.summary.critical} critical</p>
+                    <p>{run.createdAt}</p>
+                  </button>
                 ))}
               </div>
-            ) : null}
 
-            {selectedHistoryRun ? (
-              <div className="results-list">
-                <article className="result-card" key={`selected-${selectedHistoryRun.id}`}>
+              {repeatedProblems.length > 0 ? (
+                <div className="history-side-card">
+                  <h3>Repeated Problems</h3>
+                  <div className="history-side-list">
+                    {repeatedProblems.slice(0, 5).map((problem) => (
+                      <article className="service-card" key={`repeat-${problem.checkId}`}>
+                        <div className="service-card-header">
+                          <strong>{problem.title}</strong>
+                          <span className="badge badge-warning">{problem.count}x</span>
+                        </div>
+                        <p>{problem.checkId}</p>
+                        <p className="helper-text">
+                          Templates: {problem.templateIds.map((templateId) => templateLabel(templateId)).join(", ")}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="history-detail-panel">
+              {selectedHistoryRun ? (
+                <article className="history-detail-card">
                   <div className="result-header">
                     <div>
                       <h3>Selected Run</h3>
-                      <p>{selectedHistoryRun.id} · {selectedHistoryRun.assetId} · {selectedHistoryRun.createdAt}</p>
+                      <p>{selectedHistoryRun.id} · {selectedHistoryRun.assetId}</p>
                       <p className="helper-text">Template: {templateLabel(selectedHistoryRun.templateId)}</p>
+                      <p className="helper-text">{selectedHistoryRun.createdAt}</p>
                     </div>
                     <span className={`badge badge-${selectedHistoryRun.status === "completed" ? "pass" : "critical"}`}>
                       {selectedHistoryRun.status}
                     </span>
                   </div>
+
                   <div className="service-actions">
                     <button className="secondary-button" onClick={() => onExportHtmlReport(selectedHistoryRun)} type="button">
                       {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
@@ -233,10 +227,47 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                       {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
                     </button>
                   </div>
+
+                  <div className="summary-strip">
+                    <span>Total {selectedHistoryRun.summary.total}</span>
+                    <span>Pass {selectedHistoryRun.summary.passed}</span>
+                    <span>Warn {selectedHistoryRun.summary.warning}</span>
+                    <span>Critical {selectedHistoryRun.summary.critical}</span>
+                  </div>
+
+                  <div className="results-list">
+                    {selectedHistoryRun.results.map((result) => (
+                      <article className="result-card" key={`selected-${selectedHistoryRun.id}-${result.checkId}`}>
+                        <div className="result-header">
+                          <div>
+                            <h3>{result.title}</h3>
+                            <p>{result.summary}</p>
+                            <p className="helper-text">{templateLabel(selectedHistoryRun.templateId)}</p>
+                          </div>
+                          <span className={`badge badge-${result.status}`}>{result.status}</span>
+                        </div>
+                        <ul className="evidence-list">
+                          {result.evidence.map((item) => (
+                            <li key={`selected-${selectedHistoryRun.id}-${result.checkId}-${item.label}`}>
+                              <strong>{item.label}:</strong> {item.value}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="remediation">
+                          <strong>Remediation:</strong> {result.remediation}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
                 </article>
-              </div>
-            ) : null}
-          </>
+              ) : (
+                <div className="history-empty-state">
+                  <strong>No Run Selected</strong>
+                  <p>Select a run from the left list to inspect checks, evidence, and export actions.</p>
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
           <p className="helper-text">
             {onboardingMode === "real"
@@ -244,6 +275,15 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               : "No persisted runs yet. Explore the bundled demo data or switch to real setup."}
           </p>
         )}
+
+        {serviceInspectionRun ? (
+          <div className="asset-banner">
+            <strong>{asset.name}</strong>
+            <span>service-owned preview</span>
+            <span>{serviceInspectionRun.summary.total} checks</span>
+            <span>{activeTemplateName}</span>
+          </div>
+        ) : null}
       </section>
     </>
   );

@@ -1229,7 +1229,18 @@ function App() {
         </header>
 
         <div className="workspace-scroll">
-      {activeWorkspace === "overview" ? <OverviewWorkspace /> : null}
+      {activeWorkspace === "overview" ? (
+        <OverviewWorkspace
+          completedSetupSteps={completedSetupSteps}
+          totalSetupSteps={firstRunChecklist.length}
+          warningCount={warningChecks.length}
+          blockingCount={blockingChecks.length}
+          assetCount={savedAssets.length}
+          scheduleCount={schedules.length}
+          historyCount={visibleHistoryRuns.length}
+          serviceStatus={serviceResponse?.snapshot.status ?? "unknown"}
+        />
+      ) : null}
 
       {activeWorkspace === "reports" ? (
         <ReportsWorkspace
