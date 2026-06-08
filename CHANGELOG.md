@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.10.2] - 2026-06-08
+
+### Added
+
+- Automatic quarantine and rebuild coverage for malformed local storage snapshots so file-backed state can recover without manual JSON repair
+- Recovery coverage for malformed persisted service-status snapshots, stale PID fallback, and legacy export packages that do not yet include desktop settings
+- Expanded release smoke evidence for malformed storage recovery, malformed status fallback, stale PID cleanup, and post-recovery asset save continuity
+
+### Changed
+
+- Local file storage now renames malformed snapshots into timestamped `.corrupt-*` files before rebuilding a clean state file
+- Local service status now distrusts stale PID files and falls back to persisted status recovery when the referenced process is gone
+- Recovery and stable-readiness documentation now treat corrupted-state repair and upgrade continuity as explicit pre-stable evidence for the `0.10.x` line
+
+### Known Limits
+
+- Runtime supervision is still process-based and best-effort rather than backed by a hardened service manager on each platform
+- Recovery now handles several corrupted local-state paths automatically, but operators still need to inspect quarantined `.corrupt-*` files manually if they want to preserve broken payload details
+- `0.10.2` focuses on recovery and upgrade continuity evidence; deeper runtime supervision and machine-move trust hardening remain planned for later `0.10.x` releases
 ## [0.10.1] - 2026-06-07
 
 ### Added
