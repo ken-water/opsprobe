@@ -1517,6 +1517,7 @@ function App() {
                 isTestingSsh={isTestingSsh}
                 isRefreshingPreview={isRefreshingPreview}
                 sshResult={sshResult}
+                sshTroubleshooting={sshTroubleshooting}
                 onPatchAsset={patchAsset}
                 onPatchCredential={patchCredential}
                 onSelectTemplate={setSelectedTemplateId}

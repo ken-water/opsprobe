@@ -416,6 +416,9 @@ test("surfaces ssh failure clearly and lets the operator retry successfully", as
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
   await expect(page.getByRole("status").getByText(/SSH authentication failed/)).toBeVisible();
   await expect(page.locator(".global-feedback-error")).toBeVisible();
+  await expect(page.getByText("Repair Guide")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Retry SSH Test" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Switch To Password" })).toBeVisible();
 
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
   await expect(page.getByRole("status").getByText("SSH connection verified and asset state refreshed.")).toBeVisible();
