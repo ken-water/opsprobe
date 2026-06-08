@@ -110,6 +110,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
           <label><span>Report File</span><input value={reportPath} onChange={(e) => onReportPathChange(e.target.value)} /></label>
           <label><span>PDF Report File</span><input value={pdfReportPath} onChange={(e) => onPdfReportPathChange(e.target.value)} /></label>
         </div>
+        <div className="inline-note">
+          <strong>Export destination</strong>
+          <span>HTML and PDF export use the current audience mode and write to the local paths shown above.</span>
+        </div>
 
         {serviceExecutionRun ? (
           <>
@@ -162,47 +166,51 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
           <label><span>Date From</span><input type="date" value={historyDateFrom} onChange={(e) => onHistoryDateFromChange(e.target.value)} /></label>
           <label><span>Date To</span><input type="date" value={historyDateTo} onChange={(e) => onHistoryDateToChange(e.target.value)} /></label>
         </div>
+        <div className="inline-note">
+          <strong>Run filter</strong>
+          <span>Use asset and date filters to narrow inspection history before reviewing repeated failures or exporting detail.</span>
+        </div>
 
         {visibleHistoryRuns.length > 0 ? (
           <div className="history-workspace">
             <div className="history-list-panel">
               <DesktopDataTable
                 columns={[
-              {
-                key: "run",
-                header: "Run",
-                width: "minmax(220px, 1.3fr)",
-                render: (run) => (
-                  <div className="data-table-primary">
-                    <strong>{run.id}</strong>
-                    <span>{run.assetId}</span>
+                  {
+                    key: "run",
+                    header: "Run",
+                    width: "minmax(220px, 1.3fr)",
+                    render: (run) => (
+                      <div className="data-table-primary">
+                        <strong>{run.id}</strong>
+                        <span>{run.assetId}</span>
                       </div>
                     ),
                   },
-              {
-                key: "template",
-                header: "Template",
-                width: "minmax(180px, 1fr)",
-                render: (run) => templateLabel(run.templateId),
-              },
-              {
-                key: "summary",
-                header: "Results",
-                width: "minmax(200px, 1.1fr)",
-                render: (run) => (
-                  <div className="data-table-primary">
-                    <strong>{run.summary.total} checks</strong>
-                    <span>{run.summary.warning} warn · {run.summary.critical} critical</span>
-                  </div>
-                ),
-              },
-              {
-                key: "created",
-                header: "Created At",
-                width: "minmax(140px, 0.9fr)",
-                render: (run) => formatListDate(run.createdAt),
-              },
-            ]}
+                  {
+                    key: "template",
+                    header: "Template",
+                    width: "minmax(180px, 1fr)",
+                    render: (run) => templateLabel(run.templateId),
+                  },
+                  {
+                    key: "summary",
+                    header: "Results",
+                    width: "minmax(200px, 1.1fr)",
+                    render: (run) => (
+                      <div className="data-table-primary">
+                        <strong>{run.summary.total} checks</strong>
+                        <span>{run.summary.warning} warn · {run.summary.critical} critical</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "created",
+                    header: "Created At",
+                    width: "minmax(140px, 0.9fr)",
+                    render: (run) => formatListDate(run.createdAt),
+                  },
+                ]}
                 rows={visibleHistoryRuns}
                 getRowKey={(run) => run.id}
                 onRowClick={onSelectHistoryRun}
@@ -297,7 +305,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
             </div>
           </div>
         ) : (
-          <p className="helper-text">
+          <p className="helper-text helper-empty-state">
             {onboardingMode === "real"
               ? "No persisted runs have been recorded by local service yet."
               : "No persisted runs yet. Explore the bundled demo data or switch to real setup."}

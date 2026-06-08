@@ -124,117 +124,122 @@ export function AssetsWorkspace({
               }
             />
 
-            <div className="ssh-grid">
-              <label>
-                <span>Asset Name</span>
-                <input
-                  value={asset.name}
-                  onChange={(event) => onPatchAsset({ name: event.target.value })}
-                  placeholder="opsprobe-demo-host"
-                />
-              </label>
-              <label>
-                <span>Host</span>
-                <input
-                  value={asset.host}
-                  onChange={(event) => onPatchAsset({ host: event.target.value })}
-                  placeholder="10.0.0.12"
-                />
-              </label>
-              <label>
-                <span>Port</span>
-                <input
-                  type="number"
-                  value={asset.port}
-                  onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
-                  placeholder="22"
-                />
-              </label>
-              <label>
-                <span>Username</span>
-                <input
-                  value={asset.credential.username}
-                  onChange={(event) => onPatchCredential({ username: event.target.value })}
-                  placeholder="root"
-                />
-              </label>
-              <label>
-                <span>Auth Method</span>
-                <select
-                  value={asset.credential.method}
-                  onChange={(event) =>
-                    onPatchCredential({
-                      method: event.target.value as SshConnectionTestInput["authMethod"],
-                    })
-                  }
-                >
-                  <option value="private-key">private-key</option>
-                  <option value="password">password</option>
-                </select>
-              </label>
-              <label>
-                <span>Tags</span>
-                <input
-                  value={asset.tags.join(", ")}
-                  onChange={(event) =>
-                    onPatchAsset({
-                      tags: event.target.value
-                        .split(",")
-                        .map((tag) => tag.trim())
-                        .filter(Boolean),
-                    })
-                  }
-                  placeholder="demo, linux"
-                />
-              </label>
-            </div>
-
-            <label className="field-block">
-              <span>{asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}</span>
-              <input
-                type={asset.credential.method === "password" ? "password" : "text"}
-                value={asset.credential.secretRef}
-                onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
-                placeholder={
-                  asset.credential.method === "private-key"
-                    ? "/home/user/.ssh/id_rsa"
-                    : "Enter the SSH password used for this host."
-                }
-              />
-            </label>
-
-            <div className="service-checks">
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>Migration Package</strong>
-                  <span className="badge badge-pass">portable</span>
-                </div>
-                <label className="field-block">
-                  <span>Migration File</span>
+            <section className="form-section">
+              <div className="form-section-header">
+                <strong>Target Record</strong>
+                <span>{asset.host}:{asset.port}</span>
+              </div>
+              <div className="ssh-grid">
+                <label>
+                  <span>Asset Name</span>
                   <input
-                    value={migrationPath}
-                    onChange={(event) => onMigrationPathChange(event.target.value)}
-                    placeholder="/tmp/opsprobe-config.json"
+                    value={asset.name}
+                    onChange={(event) => onPatchAsset({ name: event.target.value })}
+                    placeholder="opsprobe-demo-host"
                   />
                 </label>
-                <div className="service-actions">
-                  <button className="primary-button" onClick={onExportConfig} type="button">
-                    {isExportingConfig ? "Exporting..." : "Export Local Config"}
-                  </button>
-                  <button className="secondary-button" onClick={onImportConfig} type="button">
-                    {isImportingConfig ? "Importing..." : "Import Local Config"}
-                  </button>
-                </div>
-              </article>
-            </div>
+                <label>
+                  <span>Host</span>
+                  <input
+                    value={asset.host}
+                    onChange={(event) => onPatchAsset({ host: event.target.value })}
+                    placeholder="10.0.0.12"
+                  />
+                </label>
+                <label>
+                  <span>Port</span>
+                  <input
+                    type="number"
+                    value={asset.port}
+                    onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
+                    placeholder="22"
+                  />
+                </label>
+                <label>
+                  <span>Username</span>
+                  <input
+                    value={asset.credential.username}
+                    onChange={(event) => onPatchCredential({ username: event.target.value })}
+                    placeholder="root"
+                  />
+                </label>
+                <label>
+                  <span>Auth Method</span>
+                  <select
+                    value={asset.credential.method}
+                    onChange={(event) =>
+                      onPatchCredential({
+                        method: event.target.value as SshConnectionTestInput["authMethod"],
+                      })
+                    }
+                  >
+                    <option value="private-key">private-key</option>
+                    <option value="password">password</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Tags</span>
+                  <input
+                    value={asset.tags.join(", ")}
+                    onChange={(event) =>
+                      onPatchAsset({
+                        tags: event.target.value
+                          .split(",")
+                          .map((tag) => tag.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    placeholder="demo, linux"
+                  />
+                </label>
+              </div>
+              <label className="field-block field-block-inline">
+                <span>{asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}</span>
+                <input
+                  type={asset.credential.method === "password" ? "password" : "text"}
+                  value={asset.credential.secretRef}
+                  onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
+                  placeholder={
+                    asset.credential.method === "private-key"
+                      ? "/home/user/.ssh/id_rsa"
+                      : "Enter the SSH password used for this host."
+                  }
+                />
+              </label>
+            </section>
 
-            <p className="helper-text">
-              Exported packages exclude secret values. Imported assets are marked for credential rebind
-              before use on the new machine. After rebinding, run a successful SSH test before resuming schedules.
-            </p>
-            <p className="helper-text">
-              The export package now records which machine created it, so import review can confirm source context before trusting the migrated runtime state.
-            </p>
+            <section className="form-section">
+              <div className="form-section-header">
+                <strong>Migration Package</strong>
+                <span>Portable bundle</span>
+              </div>
+              <label className="field-block field-block-inline">
+                <span>Migration File</span>
+                <input
+                  value={migrationPath}
+                  onChange={(event) => onMigrationPathChange(event.target.value)}
+                  placeholder="/tmp/opsprobe-config.json"
+                />
+              </label>
+              <div className="service-actions">
+                <button className="primary-button" onClick={onExportConfig} type="button">
+                  {isExportingConfig ? "Exporting..." : "Export Local Config"}
+                </button>
+                <button className="secondary-button" onClick={onImportConfig} type="button">
+                  {isImportingConfig ? "Importing..." : "Import Local Config"}
+                </button>
+              </div>
+            </section>
+
+            <div className="helper-stack">
+              <p className="helper-text">
+                Exported packages exclude secret values. Imported assets are marked for credential rebind
+                before use on the new machine. After rebinding, run a successful SSH test before resuming schedules.
+              </p>
+              <p className="helper-text">
+                The export package now records which machine created it, so import review can confirm source context before trusting the migrated runtime state.
+              </p>
+            </div>
           </div>
         </div>
       </div>

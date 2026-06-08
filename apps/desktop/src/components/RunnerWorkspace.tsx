@@ -1,6 +1,6 @@
 import type { Asset, InspectionRun } from "@opsprobe/core";
 import type { SshConnectionTestInput, SshConnectionTestResult } from "@opsprobe/runner";
-import { DesktopSectionHeader } from "./DesktopUI";
+import { DesktopSectionHeader, formatStatusLabel } from "./DesktopUI";
 
 interface TemplateOption {
   id: string;
@@ -60,103 +60,117 @@ export function RunnerWorkspace({
             <span>{activeChecksCount} checks</span>
           </div>
 
-          <div className="ssh-grid">
-            <label>
-              <span>Asset Name</span>
-              <input
-                value={asset.name}
-                onChange={(event) => onPatchAsset({ name: event.target.value })}
-                placeholder="opsprobe-demo-host"
-              />
-            </label>
-            <label>
-              <span>Host</span>
-              <input
-                value={asset.host}
-                onChange={(event) => onPatchAsset({ host: event.target.value })}
-                placeholder="10.0.0.12"
-              />
-            </label>
-            <label>
-              <span>Port</span>
-              <input
-                type="number"
-                value={asset.port}
-                onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
-                placeholder="22"
-              />
-            </label>
-            <label>
-              <span>Username</span>
-              <input
-                value={asset.credential.username}
-                onChange={(event) => onPatchCredential({ username: event.target.value })}
-                placeholder="root"
-              />
-            </label>
-            <label>
-              <span>Auth Method</span>
-              <select
-                value={asset.credential.method}
-                onChange={(event) =>
-                  onPatchCredential({
-                    method: event.target.value as SshConnectionTestInput["authMethod"],
-                  })
-                }
-              >
-                <option value="private-key">private-key</option>
-                <option value="password">password</option>
-              </select>
-            </label>
-            <label>
-              <span>Tags</span>
-              <input
-                value={asset.tags.join(", ")}
-                onChange={(event) =>
-                  onPatchAsset({
-                    tags: event.target.value
-                      .split(",")
-                      .map((tag) => tag.trim())
-                      .filter(Boolean),
-                  })
-                }
-                placeholder="demo, linux"
-              />
-            </label>
-            <label>
-              <span>Inspection Template</span>
-              <select
-                value={selectedTemplateId}
-                onChange={(event) => onSelectTemplate(event.target.value)}
-              >
-                {builtInTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <section className="form-section">
+            <div className="form-section-header">
+              <strong>Connection Target</strong>
+              <span>{asset.host}:{asset.port}</span>
+            </div>
+            <div className="ssh-grid">
+              <label>
+                <span>Asset Name</span>
+                <input
+                  value={asset.name}
+                  onChange={(event) => onPatchAsset({ name: event.target.value })}
+                  placeholder="opsprobe-demo-host"
+                />
+              </label>
+              <label>
+                <span>Host</span>
+                <input
+                  value={asset.host}
+                  onChange={(event) => onPatchAsset({ host: event.target.value })}
+                  placeholder="10.0.0.12"
+                />
+              </label>
+              <label>
+                <span>Port</span>
+                <input
+                  type="number"
+                  value={asset.port}
+                  onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
+                  placeholder="22"
+                />
+              </label>
+              <label>
+                <span>Username</span>
+                <input
+                  value={asset.credential.username}
+                  onChange={(event) => onPatchCredential({ username: event.target.value })}
+                  placeholder="root"
+                />
+              </label>
+              <label>
+                <span>Auth Method</span>
+                <select
+                  value={asset.credential.method}
+                  onChange={(event) =>
+                    onPatchCredential({
+                      method: event.target.value as SshConnectionTestInput["authMethod"],
+                    })
+                  }
+                >
+                  <option value="private-key">private-key</option>
+                  <option value="password">password</option>
+                </select>
+              </label>
+              <label>
+                <span>Tags</span>
+                <input
+                  value={asset.tags.join(", ")}
+                  onChange={(event) =>
+                    onPatchAsset({
+                      tags: event.target.value
+                        .split(",")
+                        .map((tag) => tag.trim())
+                        .filter(Boolean),
+                    })
+                  }
+                  placeholder="demo, linux"
+                />
+              </label>
+            </div>
+          </section>
 
-          <p className="helper-text">
-            {activeTemplate.description ?? "No template description provided."} This template currently includes {activeChecksCount} checks.
-          </p>
-
-          <label className="field-block">
-            <span>
-              {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
-            </span>
-            <input
-              type={asset.credential.method === "password" ? "password" : "text"}
-              value={asset.credential.secretRef}
-              onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
-              placeholder={
-                asset.credential.method === "private-key"
-                  ? "/home/user/.ssh/id_rsa"
-                  : "Enter the SSH password used for this host."
-              }
-            />
-          </label>
+          <section className="form-section">
+            <div className="form-section-header">
+              <strong>Check Scope</strong>
+              <span>{activeChecksCount} checks</span>
+            </div>
+            <div className="ssh-grid">
+              <label>
+                <span>Inspection Template</span>
+                <select
+                  value={selectedTemplateId}
+                  onChange={(event) => onSelectTemplate(event.target.value)}
+                >
+                  {builtInTemplates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field-block field-block-inline">
+                <span>
+                  {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
+                </span>
+                <input
+                  type={asset.credential.method === "password" ? "password" : "text"}
+                  value={asset.credential.secretRef}
+                  onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
+                  placeholder={
+                    asset.credential.method === "private-key"
+                      ? "/home/user/.ssh/id_rsa"
+                      : "Enter the SSH password used for this host."
+                  }
+                />
+              </label>
+            </div>
+            <div className="inline-note">
+              <strong>{formatStatusLabel(asset.credential.method)} mode</strong>
+              <span>{activeTemplate.description ?? "No template description provided."}</span>
+            </div>
+          </section>
 
           <div className="service-actions">
             <button className="primary-button" onClick={onTestSsh} type="button">
@@ -197,7 +211,7 @@ export function RunnerWorkspace({
                 <strong>{asset.name}</strong>
                 <span>{asset.host}:{asset.port}</span>
                 <span>{activeTemplate.name}</span>
-                <span>{asset.tags.join(", ") || "no tags"}</span>
+                <span>{asset.tags.join(", ") || "No tags"}</span>
               </div>
 
               <div className="results-list">
@@ -208,7 +222,7 @@ export function RunnerWorkspace({
                         <h3>{result.title}</h3>
                         <p>{result.summary}</p>
                       </div>
-                      <span className={`badge badge-${result.status}`}>{result.status}</span>
+                      <span className={`badge badge-${result.status}`}>{formatStatusLabel(result.status)}</span>
                     </div>
 
                     <ul className="evidence-list">

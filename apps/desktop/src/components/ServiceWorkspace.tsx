@@ -77,6 +77,10 @@ export function ServiceWorkspace({
             <button className="secondary-button" onClick={onStartLocalPostgres} type="button">Start PostgreSQL</button>
             <button className="secondary-button" onClick={onStopLocalPostgres} type="button">Stop PostgreSQL</button>
           </div>
+          <div className="inline-note">
+            <strong>Managed runtime</strong>
+            <span>Keep the local background service running if you want schedules, history, and exports to stay current.</span>
+          </div>
 
           {serviceResponse ? (
             <>
@@ -162,6 +166,10 @@ export function ServiceWorkspace({
             <button className="primary-button" onClick={onSaveSchedule} type="button">
               {isSavingSchedule ? "Saving..." : "Create Schedule"}
             </button>
+          </div>
+          <div className="inline-note">
+            <strong>Recurring plan</strong>
+            <span>The active asset and template above are what the local service will execute on each schedule tick.</span>
           </div>
 
           <p className="helper-text">
