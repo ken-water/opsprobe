@@ -327,7 +327,7 @@ test("switches report audience and exports the selected history run with visible
   await expect(historyDetail.getByText(/history-2/)).toBeVisible();
   await expect(historyDetail.getByText("Disk Usage")).toBeVisible();
 
-  await page.getByRole("button", { name: "Export manager HTML" }).click();
+  await historyDetail.getByRole("button", { name: "Export manager HTML" }).click();
   await expect(page.getByText("Workspace Update")).toBeVisible();
   await expect(page.getByText("Exported HTML report.")).toBeVisible();
 });

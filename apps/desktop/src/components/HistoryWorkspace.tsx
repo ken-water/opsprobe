@@ -87,24 +87,30 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     templateLabel,
   } = props;
 
+  const activeRun = selectedHistoryRun ?? serviceExecutionRun ?? visibleHistoryRuns[0] ?? null;
+  const activeCriticalResults = activeRun?.results.filter((result) => result.status === "critical") ?? [];
+  const activeWarningResults = activeRun?.results.filter((result) => result.status === "warning") ?? [];
+  const priorityResults =
+    activeCriticalResults.length > 0 ? activeCriticalResults : activeWarningResults.length > 0 ? activeWarningResults : activeRun?.results.slice(0, 3) ?? [];
+
   return (
     <>
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="Inspection Results"
-          title="Run And Export"
-          subtitle="Run service-owned inspections and choose where HTML or PDF evidence is written before sharing results."
+          title="Run, Review, And Export"
+          subtitle="Start the service-owned inspection, see the most important findings first, and export the report once the conclusions are clear."
           actions={
             <div className="service-actions">
               <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
                 {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
               </button>
-              {serviceExecutionRun ? (
+              {activeRun ? (
                 <>
-                  <button className="secondary-button" onClick={() => onExportHtmlReport(serviceExecutionRun)} type="button">
+                  <button className="secondary-button" onClick={() => onExportHtmlReport(activeRun)} type="button">
                     {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
                   </button>
-                  <button className="secondary-button" onClick={() => onExportPdfReport(serviceExecutionRun)} type="button">
+                  <button className="secondary-button" onClick={() => onExportPdfReport(activeRun)} type="button">
                     {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
                   </button>
                 </>
@@ -113,30 +119,120 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
           }
         />
 
-        <div className="ssh-grid">
-          <label><span>Report File</span><input value={reportPath} onChange={(e) => onReportPathChange(e.target.value)} /></label>
-          <label><span>PDF Report File</span><input value={pdfReportPath} onChange={(e) => onPdfReportPathChange(e.target.value)} /></label>
-        </div>
-        <div className="inline-note">
-          <strong>Export destination</strong>
-          <span>HTML and PDF export use the current audience mode and write to the local paths shown above.</span>
-        </div>
+        {activeRun ? (
+          <div className="results-overview-stack">
+            <div className="results-overview-hero">
+              <div className="results-overview-main">
+                <div className="assets-panel-header">
+                  <strong>Current Conclusion</strong>
+                  <span>{activeRun.id}</span>
+                </div>
+                <div className="summary-strip">
+                  <span>Total {activeRun.summary.total}</span>
+                  <span>Pass {activeRun.summary.passed}</span>
+                  <span>Warn {activeRun.summary.warning}</span>
+                  <span>Critical {activeRun.summary.critical}</span>
+                </div>
+                <div className="asset-banner">
+                  <strong>{asset.name}</strong>
+                  <span>{asset.host}:{asset.port}</span>
+                  <span>{templateLabel(activeRun.templateId)}</span>
+                  <span>{formatDateTime(activeRun.createdAt)}</span>
+                </div>
+              </div>
 
-        {serviceExecutionRun ? (
-          <>
-            <div className="summary-strip">
-              <span>Total {serviceExecutionRun.summary.total}</span>
-              <span>Pass {serviceExecutionRun.summary.passed}</span>
-              <span>Warn {serviceExecutionRun.summary.warning}</span>
-              <span>Critical {serviceExecutionRun.summary.critical}</span>
+              <div className="results-overview-side">
+                <article className="history-side-card">
+                  <h3>Priority Actions</h3>
+                  <div className="history-side-list">
+                    {priorityResults.map((result) => (
+                      <article className="service-card" key={`priority-${activeRun.id}-${result.checkId}`}>
+                        <div className="service-card-header">
+                          <strong>{result.title}</strong>
+                          <span className={`badge badge-${result.status}`}>{formatStatusLabel(result.status)}</span>
+                        </div>
+                        <p>{result.summary}</p>
+                        <p className="helper-text">{result.remediation}</p>
+                      </article>
+                    ))}
+                  </div>
+                </article>
+              </div>
             </div>
-            <div className="asset-banner">
-              <strong>{asset.name}</strong>
-              <span>{asset.host}:{asset.port}</span>
-              <span>service-owned execution</span>
-              <span>{activeTemplateName}</span>
+
+            <div className="results-insight-grid">
+              <article className="history-side-card">
+                <h3>Top Repeated Problems</h3>
+                <div className="history-side-list">
+                  {repeatedProblems.length > 0 ? (
+                    repeatedProblems.slice(0, 3).map((problem) => (
+                      <article className="service-card" key={`repeat-${problem.checkId}`}>
+                        <div className="service-card-header">
+                          <strong>{problem.title}</strong>
+                          <span className="badge badge-warning">{problem.count}x</span>
+                        </div>
+                        <p>{problem.checkId}</p>
+                        <p className="helper-text">
+                          Templates: {problem.templateIds.map((templateId) => templateLabel(templateId)).join(", ")}
+                        </p>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="helper-text">No repeated warning or critical failures are currently grouped.</p>
+                  )}
+                </div>
+              </article>
+
+              <article className="history-side-card">
+                <h3>Export Destination</h3>
+                <div className="ssh-grid">
+                  <label>
+                    <span>Report File</span>
+                    <input value={reportPath} onChange={(event) => onReportPathChange(event.target.value)} />
+                  </label>
+                  <label>
+                    <span>PDF Report File</span>
+                    <input value={pdfReportPath} onChange={(event) => onPdfReportPathChange(event.target.value)} />
+                  </label>
+                </div>
+                <div className="inline-note">
+                  <strong>Audience: {reportAudience}</strong>
+                  <span>HTML and PDF export use the audience selected in the report settings panel.</span>
+                </div>
+              </article>
             </div>
-          </>
+
+            <article className="history-detail-card">
+              <div className="assets-panel-header">
+                <strong>Evidence And Remediation</strong>
+                <span>{activeRun.results.length} checks</span>
+              </div>
+              <div className="results-list">
+                {activeRun.results.map((result) => (
+                  <article className={`result-card result-card-${result.status}`} key={`selected-${activeRun.id}-${result.checkId}`}>
+                    <div className="result-header">
+                      <div>
+                        <h3>{result.title}</h3>
+                        <p>{result.summary}</p>
+                        <p className="helper-text">{templateLabel(activeRun.templateId)}</p>
+                      </div>
+                      <span className={`badge badge-${result.status}`}>{formatStatusLabel(result.status)}</span>
+                    </div>
+                    <ul className="evidence-list">
+                      {result.evidence.map((item) => (
+                        <li key={`selected-${activeRun.id}-${result.checkId}-${item.label}`}>
+                          <strong>{item.label}:</strong> {item.value}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="remediation">
+                      <strong>Remediation:</strong> {result.remediation}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </article>
+          </div>
         ) : (
           <p className="helper-text">Local service has not executed an inspection run yet.</p>
         )}
@@ -145,8 +241,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="Inspection Results"
-          title="Recent Runs"
-          subtitle="Filter recent runs, inspect repeated failures, and reopen normalized results without leaving the desktop workflow."
+          title="Run History And Filters"
+          subtitle="Use history only after the current result is understood. This section helps compare runs, reopen evidence, and inspect trends."
           actions={
             <div className="service-actions">
               <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">
@@ -169,13 +265,22 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         ) : null}
 
         <div className="ssh-grid">
-          <label><span>Asset Filter</span><input value={historyAssetFilter} onChange={(e) => onHistoryAssetFilterChange(e.target.value)} /></label>
-          <label><span>Date From</span><input type="date" value={historyDateFrom} onChange={(e) => onHistoryDateFromChange(e.target.value)} /></label>
-          <label><span>Date To</span><input type="date" value={historyDateTo} onChange={(e) => onHistoryDateToChange(e.target.value)} /></label>
+          <label>
+            <span>Asset Filter</span>
+            <input value={historyAssetFilter} onChange={(event) => onHistoryAssetFilterChange(event.target.value)} />
+          </label>
+          <label>
+            <span>Date From</span>
+            <input type="date" value={historyDateFrom} onChange={(event) => onHistoryDateFromChange(event.target.value)} />
+          </label>
+          <label>
+            <span>Date To</span>
+            <input type="date" value={historyDateTo} onChange={(event) => onHistoryDateToChange(event.target.value)} />
+          </label>
         </div>
         <div className="inline-note">
           <strong>Run filter</strong>
-          <span>Use asset and date filters to narrow inspection history before reviewing repeated failures or exporting detail.</span>
+          <span>Use asset and date filters to narrow inspection history before comparing trends or exporting another run.</span>
         </div>
 
         {visibleHistoryRuns.length > 0 ? (
@@ -221,86 +326,41 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 rows={visibleHistoryRuns}
                 getRowKey={(run) => run.id}
                 onRowClick={onSelectHistoryRun}
-                isRowActive={(run) => selectedHistoryRun?.id === run.id}
+                isRowActive={(run) => activeRun?.id === run.id}
                 emptyTitle="No Runs Available"
                 emptyDetail="Select demo mode or execute a local service run to start building history."
               />
-
-              {repeatedProblems.length > 0 ? (
-                <div className="history-side-card">
-                  <h3>Repeated Problems</h3>
-                  <div className="history-side-list">
-                    {repeatedProblems.slice(0, 5).map((problem) => (
-                      <article className="service-card" key={`repeat-${problem.checkId}`}>
-                        <div className="service-card-header">
-                          <strong>{problem.title}</strong>
-                          <span className="badge badge-warning">{problem.count}x</span>
-                        </div>
-                        <p>{problem.checkId}</p>
-                        <p className="helper-text">
-                          Templates: {problem.templateIds.map((templateId) => templateLabel(templateId)).join(", ")}
-                        </p>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
             </div>
 
             <div className="history-detail-panel">
-              {selectedHistoryRun ? (
+              {activeRun ? (
                 <article className="history-detail-card">
                   <div className="result-header">
                     <div>
                       <h3>Selected Run</h3>
-                      <p>{selectedHistoryRun.id} · {selectedHistoryRun.assetId}</p>
-                      <p className="helper-text">Template: {templateLabel(selectedHistoryRun.templateId)}</p>
-                      <p className="helper-text">{formatDateTime(selectedHistoryRun.createdAt)}</p>
+                      <p>{activeRun.id} · {activeRun.assetId}</p>
+                      <p className="helper-text">Template: {templateLabel(activeRun.templateId)}</p>
+                      <p className="helper-text">{formatDateTime(activeRun.createdAt)}</p>
                     </div>
-                    <span className={`badge badge-${selectedHistoryRun.status === "completed" ? "pass" : "critical"}`}>
-                      {formatStatusLabel(selectedHistoryRun.status)}
+                    <span className={`badge badge-${activeRun.status === "completed" ? "pass" : "critical"}`}>
+                      {formatStatusLabel(activeRun.status)}
                     </span>
                   </div>
 
+                  <div className="summary-strip">
+                    <span>Total {activeRun.summary.total}</span>
+                    <span>Pass {activeRun.summary.passed}</span>
+                    <span>Warn {activeRun.summary.warning}</span>
+                    <span>Critical {activeRun.summary.critical}</span>
+                  </div>
+
                   <div className="service-actions">
-                    <button className="secondary-button" onClick={() => onExportHtmlReport(selectedHistoryRun)} type="button">
+                    <button className="secondary-button" onClick={() => onExportHtmlReport(activeRun)} type="button">
                       {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
                     </button>
-                    <button className="secondary-button" onClick={() => onExportPdfReport(selectedHistoryRun)} type="button">
+                    <button className="secondary-button" onClick={() => onExportPdfReport(activeRun)} type="button">
                       {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
                     </button>
-                  </div>
-
-                  <div className="summary-strip">
-                    <span>Total {selectedHistoryRun.summary.total}</span>
-                    <span>Pass {selectedHistoryRun.summary.passed}</span>
-                    <span>Warn {selectedHistoryRun.summary.warning}</span>
-                    <span>Critical {selectedHistoryRun.summary.critical}</span>
-                  </div>
-
-                  <div className="results-list">
-                    {selectedHistoryRun.results.map((result) => (
-                      <article className={`result-card result-card-${result.status}`} key={`selected-${selectedHistoryRun.id}-${result.checkId}`}>
-                        <div className="result-header">
-                          <div>
-                            <h3>{result.title}</h3>
-                            <p>{result.summary}</p>
-                            <p className="helper-text">{templateLabel(selectedHistoryRun.templateId)}</p>
-                          </div>
-                          <span className={`badge badge-${result.status}`}>{formatStatusLabel(result.status)}</span>
-                        </div>
-                        <ul className="evidence-list">
-                          {result.evidence.map((item) => (
-                            <li key={`selected-${selectedHistoryRun.id}-${result.checkId}-${item.label}`}>
-                              <strong>{item.label}:</strong> {item.value}
-                            </li>
-                          ))}
-                        </ul>
-                        <p className="remediation">
-                          <strong>Remediation:</strong> {result.remediation}
-                        </p>
-                      </article>
-                    ))}
                   </div>
                 </article>
               ) : (
