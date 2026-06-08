@@ -380,3 +380,59 @@ printf '%s' "$redis_preview_json" | node --input-type=module -e '
     }
   });
 '
+
+broken_home="$(mktemp -d)"
+trap 'rm -rf "$tmp_home" "$import_home" "$broken_home"' EXIT
+mkdir -p "$broken_home/.opsprobe/data" "$broken_home/.opsprobe/runtime"
+printf '{broken-json}\n' > "$broken_home/.opsprobe/data/opsprobe-storage.json"
+printf '{broken-status}\n' > "$broken_home/.opsprobe/runtime/local-service-status.json"
+printf '999999\n' > "$broken_home/.opsprobe/runtime/local-service.pid"
+
+broken_status_json="$(HOME="$broken_home" node --experimental-strip-types ./apps/local-service/src/main.ts status)"
+printf '%s' "$broken_status_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || !["starting", "degraded", "error", "stopped"].includes(response.snapshot.status)) {
+      process.exit(1);
+    }
+  });
+'
+
+HOME="$broken_home" node --experimental-strip-types ./apps/local-service/src/main.ts assets-upsert <<'EOF' >/dev/null
+{
+  "asset": {
+    "id": "asset-recovery-001",
+    "name": "recovery-host",
+    "kind": "linux-host",
+    "protocol": "ssh",
+    "host": "192.0.2.30",
+    "port": 22,
+    "tags": ["smoke", "recovery"],
+    "credential": {
+      "method": "private-key",
+      "username": "opsprobe",
+      "secretRef": "/tmp/opsprobe-recovery-id_rsa"
+    },
+    "createdAt": "2026-06-05T00:00:00.000Z",
+    "updatedAt": "2026-06-05T00:00:00.000Z"
+  }
+}
+EOF
+
+recovered_assets_json="$(HOME="$broken_home" node --experimental-strip-types ./apps/local-service/src/main.ts assets-list)"
+printf '%s' "$recovered_assets_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || !response.assets.some((asset) => asset.id === "asset-recovery-001")) {
+      process.exit(1);
+    }
+  });
+'

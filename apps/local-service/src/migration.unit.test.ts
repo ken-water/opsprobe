@@ -237,4 +237,43 @@ describe("local configuration migration", () => {
     expect(importedSettings.activeAsset?.credential.secretRef).toBe("");
     expect(importedSettings.onboardingMode).toBe("real");
   });
+
+  it("imports older export packages that do not contain desktop settings", async () => {
+    const { storage, scheduleStore, desktopSettingsStore } = await createContext();
+
+    const importResponse = await importLocalConfig(
+      {
+        package: {
+          version: 1,
+          exportedAt: "2026-06-07T02:00:00.000Z",
+          assets: [
+            {
+              ...asset,
+              credential: {
+                method: "private-key",
+                username: "opsprobe",
+                bindingStatus: "rebind-required",
+              },
+            },
+          ],
+          templates: [customTemplate],
+          schedules: [],
+          settings: {
+            postgresPort: 15432,
+          },
+        },
+      },
+      storage,
+      scheduleStore,
+      desktopSettingsStore,
+    );
+
+    const importedAssets = await storage.assets.list();
+    const importedSettings = await desktopSettingsStore.get();
+
+    expect(importResponse.ok).toBe(true);
+    expect(importResponse.importedAssets).toBe(1);
+    expect(importedAssets[0]?.credential.bindingStatus).toBe("rebind-required");
+    expect(importedSettings).toEqual({});
+  });
 });
