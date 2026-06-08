@@ -53,7 +53,11 @@ export function ServiceWorkspace({
 }: ServiceWorkspaceProps) {
   return (
     <section className="run-panel">
-      <DesktopSectionHeader eyebrow="Service Workspace" title="Service And Scheduling" />
+      <DesktopSectionHeader
+        eyebrow="Service Workspace"
+        title="Service And Scheduling"
+        subtitle="Operate the managed local runtime, keep PostgreSQL healthy, and define recurring inspection cadence for the active asset."
+      />
 
       <div className="service-workspace">
         <div className="service-runtime-panel">

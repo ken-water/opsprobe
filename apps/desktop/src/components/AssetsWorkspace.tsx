@@ -40,6 +40,7 @@ export function AssetsWorkspace({
       <DesktopSectionHeader
         eyebrow="Assets Workspace"
         title="Assets And Migration"
+        subtitle="Capture reusable targets locally, then move non-secret inspection state between machines without exposing credentials."
         actions={
           <div className="service-actions">
             <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
@@ -93,7 +94,11 @@ export function AssetsWorkspace({
 
         <div className="assets-detail-panel">
           <div className="history-detail-card">
-            <DesktopSectionHeader eyebrow="Asset Editor" title={asset.name} />
+            <DesktopSectionHeader
+              eyebrow="Asset Editor"
+              title={asset.name}
+              subtitle="Edit the active host record, authentication binding, and migration package path from one place."
+            />
 
             <div className="ssh-grid">
               <label>

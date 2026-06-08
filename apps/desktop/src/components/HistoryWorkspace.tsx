@@ -86,6 +86,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         <DesktopSectionHeader
           eyebrow="History Workspace"
           title="Execution And Export"
+          subtitle="Run service-owned inspections and choose where HTML or PDF evidence is written before sharing results."
           actions={
             <div className="service-actions">
               <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
@@ -134,6 +135,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         <DesktopSectionHeader
           eyebrow="History Workspace"
           title="Recent Local Service Runs"
+          subtitle="Filter recent runs, inspect repeated failures, and reopen normalized results without leaving the desktop workflow."
           actions={
             <div className="service-actions">
               <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">

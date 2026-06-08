@@ -1,4 +1,5 @@
 import type { LocalServiceStatusResponse } from "@opsprobe/local-service";
+import { DesktopSectionHeader } from "./DesktopUI";
 
 interface TroubleshootingCard {
   key: string;
@@ -47,32 +48,33 @@ export function SetupWorkspace({
   return (
     <>
       <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Setup Workspace</p>
-            <h2>First-Run Demo Experience</h2>
-          </div>
-          <div className="service-actions">
-            <button
-              className={`secondary-button ${showingDemoExperience ? "button-active-state" : ""}`}
-              onClick={onEnterDemoMode}
-              type="button"
-              disabled={isSwitchingMode}
-              aria-pressed={showingDemoExperience}
-            >
-              {isSwitchingMode && showingDemoExperience ? "Loading Demo..." : showingDemoExperience ? "Demo Data Loaded" : "Explore Demo Data"}
-            </button>
-            <button
-              className={`primary-button ${!showingDemoExperience ? "button-active-state" : ""}`}
-              onClick={onSwitchToRealSetup}
-              type="button"
-              disabled={isSwitchingMode}
-              aria-pressed={!showingDemoExperience}
-            >
-              {isSwitchingMode && !showingDemoExperience ? "Switching..." : !showingDemoExperience ? "Real Setup Active" : "Switch to Real Setup"}
-            </button>
-          </div>
-        </div>
+        <DesktopSectionHeader
+          eyebrow="Setup Workspace"
+          title="First-Run Demo Experience"
+          subtitle="Use demo mode to validate report clarity and workflow fit before connecting a real host."
+          actions={
+            <div className="service-actions">
+              <button
+                className={`secondary-button ${showingDemoExperience ? "button-active-state" : ""}`}
+                onClick={onEnterDemoMode}
+                type="button"
+                disabled={isSwitchingMode}
+                aria-pressed={showingDemoExperience}
+              >
+                {isSwitchingMode && showingDemoExperience ? "Loading Demo..." : showingDemoExperience ? "Demo Data Loaded" : "Explore Demo Data"}
+              </button>
+              <button
+                className={`primary-button ${!showingDemoExperience ? "button-active-state" : ""}`}
+                onClick={onSwitchToRealSetup}
+                type="button"
+                disabled={isSwitchingMode}
+                aria-pressed={!showingDemoExperience}
+              >
+                {isSwitchingMode && !showingDemoExperience ? "Switching..." : !showingDemoExperience ? "Real Setup Active" : "Switch to Real Setup"}
+              </button>
+            </div>
+          }
+        />
 
         <div className={`onboarding-banner ${showingDemoExperience ? "onboarding-demo" : "onboarding-real"}`}>
           <strong>{showingDemoExperience ? "Sample runs are visible" : "Real setup mode is active"}</strong>
@@ -90,17 +92,18 @@ export function SetupWorkspace({
       </section>
 
       <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Setup Workspace</p>
-            <h2>Minimum Local Setup</h2>
-          </div>
-          <div className="summary-strip">
-            <span>{completedSetupSteps}/{firstRunChecklist.length} steps complete</span>
-            <span>{blockingChecks.length} blocking checks</span>
-            <span>{warningChecks.length} warnings</span>
-          </div>
-        </div>
+        <DesktopSectionHeader
+          eyebrow="Setup Workspace"
+          title="Minimum Local Setup"
+          subtitle="Finish the minimum local requirements before relying on saved assets, schedules, history, and export automation."
+          meta={
+            <div className="summary-strip">
+              <span>{completedSetupSteps}/{firstRunChecklist.length} steps complete</span>
+              <span>{blockingChecks.length} blocking checks</span>
+              <span>{warningChecks.length} warnings</span>
+            </div>
+          }
+        />
 
         <div className="setup-grid">
           {firstRunChecklist.map((item) => (
@@ -153,16 +156,17 @@ export function SetupWorkspace({
       </section>
 
       <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Setup Workspace</p>
-            <h2>Troubleshooting Guidance</h2>
-          </div>
-          <div className="summary-strip">
-            <span>{troubleshootingCards.length} environment issues</span>
-            <span>{sshTroubleshooting.length > 0 ? "SSH guidance ready" : "SSH guidance idle"}</span>
-          </div>
-        </div>
+        <DesktopSectionHeader
+          eyebrow="Setup Workspace"
+          title="Troubleshooting Guidance"
+          subtitle="Surface the next repair steps when the local runtime or SSH path is not ready for repeatable inspections."
+          meta={
+            <div className="summary-strip">
+              <span>{troubleshootingCards.length} environment issues</span>
+              <span>{sshTroubleshooting.length > 0 ? "SSH guidance ready" : "SSH guidance idle"}</span>
+            </div>
+          }
+        />
 
         {troubleshootingCards.length > 0 ? (
           <div className="service-checks">

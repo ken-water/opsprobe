@@ -1,4 +1,5 @@
 import type { ReportAudience } from "@opsprobe/report";
+import { DesktopSectionHeader } from "./DesktopUI";
 
 interface ReportsWorkspaceProps {
   reportAudience: ReportAudience;
@@ -11,12 +12,16 @@ export function ReportsWorkspace({
 }: ReportsWorkspaceProps) {
   return (
     <section className="run-panel">
-      <div className="panel-header">
-        <div>
-          <p className="eyebrow">Reports Workspace</p>
-          <h2>Audience And Feedback Hub</h2>
-        </div>
-      </div>
+      <DesktopSectionHeader
+        eyebrow="Reports Workspace"
+        title="Audience And Feedback Hub"
+        subtitle="Choose how reports read before export, then route product and report fit feedback into structured issue intake."
+        meta={
+          <div className="summary-strip">
+            <span>Current audience {reportAudience}</span>
+          </div>
+        }
+      />
 
       <div className="reports-workspace">
         <div className="reports-config-panel">

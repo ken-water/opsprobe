@@ -1,5 +1,6 @@
 import type { Asset, InspectionRun } from "@opsprobe/core";
 import type { SshConnectionTestInput, SshConnectionTestResult } from "@opsprobe/runner";
+import { DesktopSectionHeader } from "./DesktopUI";
 
 interface TemplateOption {
   id: string;
@@ -41,12 +42,16 @@ export function RunnerWorkspace({
 }: RunnerWorkspaceProps) {
   return (
     <section className="run-panel">
-      <div className="panel-header">
-        <div>
-          <p className="eyebrow">Runner Workspace</p>
-          <h2>Manual Inspection Workspace</h2>
-        </div>
-      </div>
+      <DesktopSectionHeader
+        eyebrow="Runner Workspace"
+        title="Manual Inspection Workspace"
+        subtitle="Validate SSH access, switch templates, and inspect normalized check output before handing execution to the local service."
+        meta={
+          <div className="summary-strip">
+            <span>{activeChecksCount} checks in current template</span>
+          </div>
+        }
+      />
 
       <div className="runner-workspace">
         <div className="runner-config-panel">
