@@ -1,7 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 
-async function installDesktopMock(page: Page) {
-  await page.addInitScript(() => {
+interface DesktopMockOptions {
+  fail_first_ssh?: boolean;
+  history_delay_ms?: number;
+}
+
+async function installDesktopMock(page: Page, options: DesktopMockOptions = {}) {
+  await page.addInitScript((mockOptions: DesktopMockOptions) => {
     const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
     const historyRuns = [
       {
@@ -109,6 +114,8 @@ async function installDesktopMock(page: Page) {
       },
     ];
     let serviceStatus = "ready";
+    let sshAttemptCount = 0;
+    const historyDelayMs = mockOptions.history_delay_ms ?? 0;
 
     (window as Window & {
       __OPS_PROBE_DESKTOP__?: {
@@ -116,6 +123,10 @@ async function installDesktopMock(page: Page) {
       };
     }).__OPS_PROBE_DESKTOP__ = {
       invoke: async (command: string, payload?: Record<string, unknown>) => {
+        if (historyDelayMs > 0 && command === "get_local_service_inspection_history") {
+          await new Promise((resolve) => window.setTimeout(resolve, historyDelayMs));
+        }
+
         switch (command) {
           case "get_local_service_settings":
             return { settings: {} };
@@ -161,6 +172,13 @@ async function installDesktopMock(page: Page) {
           case "get_local_service_inspection_history":
             return { runs: clone(historyRuns) };
           case "test_ssh_connection":
+            sshAttemptCount += 1;
+            if (mockOptions.fail_first_ssh && sshAttemptCount === 1) {
+              return {
+                ok: false,
+                message: "SSH authentication failed for root@10.0.0.12:22. Verify the private key and retry.",
+              };
+            }
             return { ok: true, message: "SSH connection successful." };
           case "run_linux_check":
             return {
@@ -191,6 +209,10 @@ async function installDesktopMock(page: Page) {
             };
           case "save_export_file":
             return "Saved PDF export.";
+          case "open_export_path":
+            return typeof payload?.path === "string" ? payload.path : "";
+          case "reveal_export_path":
+            return typeof payload?.path === "string" ? payload.path : "";
           case "upsert_local_service_asset": {
             const nextAsset =
               payload?.input && typeof payload.input === "object"
@@ -267,7 +289,7 @@ async function installDesktopMock(page: Page) {
         }
       },
     };
-  });
+  }, options);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -383,4 +405,43 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
 
   await page.getByRole("button", { name: "Delete" }).first().click();
   await expect(page.getByRole("status").getByText("Schedule deleted.")).toBeVisible();
+});
+
+test("surfaces ssh failure clearly and lets the operator retry successfully", async ({ page }) => {
+  await installDesktopMock(page, { fail_first_ssh: true });
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Primary" });
+
+  await nav.getByRole("button", { name: "Assets & Strategy" }).click();
+  await page.getByRole("button", { name: "Test SSH Connection" }).click();
+  await expect(page.getByRole("status").getByText(/SSH authentication failed/)).toBeVisible();
+  await expect(page.locator(".global-feedback-error")).toBeVisible();
+
+  await page.getByRole("button", { name: "Test SSH Connection" }).click();
+  await expect(page.getByRole("status").getByText("SSH connection verified and asset state refreshed.")).toBeVisible();
+  await expect(page.locator(".global-feedback-success")).toBeVisible();
+});
+
+test("shows loading feedback when history refresh is slow", async ({ page }) => {
+  await installDesktopMock(page, { history_delay_ms: 450 });
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Primary" });
+
+  await nav.getByRole("button", { name: "Inspection Results" }).click();
+  await page.getByRole("button", { name: "Refresh History" }).click();
+  await expect(page.getByText("Loading run history")).toBeVisible();
+  await expect(page.getByRole("status").getByText(/Loaded \d+ inspection runs?/)).toBeVisible();
+});
+
+test("supports opening exported files and revealing them in the local folder", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Primary" });
+
+  await nav.getByRole("button", { name: "Inspection Results" }).click();
+
+  await page.getByRole("button", { name: "Open HTML File" }).click();
+  await expect(page.getByRole("status").getByText(/Opened exported file .*opsprobe-report.*\.html/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Show PDF In Folder" }).click();
+  await expect(page.getByRole("status").getByText(/Revealed exported file .*opsprobe-report.*\.pdf/)).toBeVisible();
 });

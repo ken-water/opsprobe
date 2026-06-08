@@ -5,6 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::Manager;
+use tauri_plugin_opener::OpenerExt;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -551,6 +552,22 @@ fn save_export_file(input: SaveExportFileInput) -> Result<String, String> {
     fs::write(&input.path, bytes)
         .map_err(|error| format!("Failed to write export file: {error}"))?;
     Ok(input.path)
+}
+
+#[tauri::command]
+fn open_export_path(app: tauri::AppHandle, path: String) -> Result<String, String> {
+    app.opener()
+        .open_path(path.clone(), None::<String>)
+        .map_err(|error| format!("Failed to open exported file: {error}"))?;
+    Ok(path)
+}
+
+#[tauri::command]
+fn reveal_export_path(app: tauri::AppHandle, path: String) -> Result<String, String> {
+    app.opener()
+        .reveal_item_in_dir(&path)
+        .map_err(|error| format!("Failed to reveal exported file: {error}"))?;
+    Ok(path)
 }
 
 fn validate_ssh_input(
@@ -3038,7 +3055,9 @@ pub fn run() {
             export_local_service_config,
             import_local_service_config,
             export_local_service_html_report,
-            save_export_file
+            save_export_file,
+            open_export_path,
+            reveal_export_path
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

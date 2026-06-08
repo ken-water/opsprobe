@@ -1056,6 +1056,34 @@ function App() {
     }
   }
 
+  async function handleOpenExportFile(path: string) {
+    setServiceMessage(`Opening exported file ${path}...`);
+    setServiceMessageTone("info");
+
+    try {
+      await invokeDesktop<string>("open_export_path", { path });
+      setServiceMessage(`Opened exported file ${path}.`);
+      setServiceMessageTone("success");
+    } catch (error) {
+      setServiceMessage(formatActionError(`Opening exported file ${path}`, error));
+      setServiceMessageTone("error");
+    }
+  }
+
+  async function handleRevealExportFile(path: string) {
+    setServiceMessage(`Revealing exported file ${path}...`);
+    setServiceMessageTone("info");
+
+    try {
+      await invokeDesktop<string>("reveal_export_path", { path });
+      setServiceMessage(`Revealed exported file ${path}.`);
+      setServiceMessageTone("success");
+    } catch (error) {
+      setServiceMessage(formatActionError(`Revealing exported file ${path}`, error));
+      setServiceMessageTone("error");
+    }
+  }
+
   async function handleSaveSchedule() {
     setIsSavingSchedule(true);
     setServiceMessage("Creating local schedule...");
@@ -1571,6 +1599,8 @@ function App() {
                 onSelectHistoryRun={setSelectedHistoryRun}
                 onExportHtmlReport={(run) => void handleExportHtmlReport(run)}
                 onExportPdfReport={(run) => void handleExportPdfReport(run)}
+                onOpenExportFile={(path) => void handleOpenExportFile(path)}
+                onRevealExportFile={(path) => void handleRevealExportFile(path)}
                 templateLabel={templateLabel}
               />
               <ReportsWorkspace

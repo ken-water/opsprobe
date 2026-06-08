@@ -48,6 +48,8 @@ interface HistoryWorkspaceProps {
   onSelectHistoryRun: (run: InspectionRun) => void;
   onExportHtmlReport: (run: InspectionRun) => void;
   onExportPdfReport: (run: InspectionRun) => void;
+  onOpenExportFile: (path: string) => void;
+  onRevealExportFile: (path: string) => void;
   templateLabel: (templateId: string) => string;
 }
 
@@ -84,6 +86,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     onSelectHistoryRun,
     onExportHtmlReport,
     onExportPdfReport,
+    onOpenExportFile,
+    onRevealExportFile,
     templateLabel,
   } = props;
 
@@ -198,6 +202,20 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 <div className="inline-note">
                   <strong>Audience: {reportAudience}</strong>
                   <span>HTML and PDF export use the audience selected in the report settings panel.</span>
+                </div>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={() => onOpenExportFile(reportPath)} type="button">
+                    Open HTML File
+                  </button>
+                  <button className="secondary-button" onClick={() => onRevealExportFile(reportPath)} type="button">
+                    Show HTML In Folder
+                  </button>
+                  <button className="secondary-button" onClick={() => onOpenExportFile(pdfReportPath)} type="button">
+                    Open PDF File
+                  </button>
+                  <button className="secondary-button" onClick={() => onRevealExportFile(pdfReportPath)} type="button">
+                    Show PDF In Folder
+                  </button>
                 </div>
               </article>
             </div>
