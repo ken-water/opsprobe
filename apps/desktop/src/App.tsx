@@ -1249,7 +1249,11 @@ function App() {
       <aside className="app-sidebar">
         <div className="sidebar-brand">
           <div className="sidebar-brand-mark" aria-hidden="true">
-            <span className="brand-mark-core">OP</span>
+            <svg className="brand-mark-svg" viewBox="0 0 64 64" role="img">
+              <path d="M14 18h20c8.837 0 16 7.163 16 16s-7.163 16-16 16H14z" />
+              <path d="M22 26h12c4.418 0 8 3.582 8 8s-3.582 8-8 8H22z" />
+              <path d="M43 14h7L35 50h-7z" />
+            </svg>
           </div>
           <p className="sidebar-kicker">OpsProbe</p>
           <h1>Desktop Console</h1>

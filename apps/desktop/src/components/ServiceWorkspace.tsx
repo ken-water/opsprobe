@@ -2,6 +2,7 @@ import type {
   LocalInspectionSchedule,
   LocalServiceStatusResponse,
 } from "@opsprobe/local-service";
+import { DesktopDataTable, DesktopSectionHeader } from "./DesktopUI";
 
 interface ServiceWorkspaceProps {
   assetId: string;
@@ -52,12 +53,7 @@ export function ServiceWorkspace({
 }: ServiceWorkspaceProps) {
   return (
     <section className="run-panel">
-      <div className="panel-header">
-        <div>
-          <p className="eyebrow">Service Workspace</p>
-          <h2>Service And Scheduling</h2>
-        </div>
-      </div>
+      <DesktopSectionHeader eyebrow="Service Workspace" title="Service And Scheduling" />
 
       <div className="service-workspace">
         <div className="service-runtime-panel">
@@ -170,25 +166,34 @@ export function ServiceWorkspace({
             credentials cannot resume schedules until SSH validation succeeds.
           </p>
 
-          {schedules.length > 0 ? (
-            <div className="history-side-list">
-              {schedules.map((schedule) => (
-                <article className="service-card" key={schedule.id}>
-                  <div className="service-card-header">
+          <DesktopDataTable
+            columns={[
+              {
+                key: "asset",
+                header: "Asset",
+                render: (schedule) => (
+                  <div className="data-table-primary">
                     <strong>{schedule.asset.name}</strong>
-                    <span className={`badge badge-${schedule.enabled ? "pass" : "unknown"}`}>
-                      {schedule.enabled ? "enabled" : "disabled"}
-                    </span>
+                    <span>{schedule.id}</span>
                   </div>
-                  <p>{schedule.id}</p>
-                  <p>Every {schedule.intervalMinutes} minutes · next run {schedule.nextRunAt}</p>
-                  <p>Template: {schedule.templateId}</p>
-                  <p>
-                    Last status: {schedule.lastRunStatus ?? "pending"}
-                    {schedule.lastRunAt ? ` at ${schedule.lastRunAt}` : ""}
-                  </p>
-                  {schedule.lastError ? <p className="result-error">Failure: {schedule.lastError}</p> : null}
-                  <div className="service-actions">
+                ),
+              },
+              {
+                key: "plan",
+                header: "Schedule",
+                render: (schedule) => `Every ${schedule.intervalMinutes} min · ${schedule.nextRunAt}`,
+              },
+              {
+                key: "status",
+                header: "Last Result",
+                render: (schedule) =>
+                  `${schedule.lastRunStatus ?? "pending"}${schedule.lastRunAt ? ` · ${schedule.lastRunAt}` : ""}`,
+              },
+              {
+                key: "actions",
+                header: "Actions",
+                render: (schedule) => (
+                  <div className="data-table-actions">
                     <button className="secondary-button" onClick={() => onToggleSchedule(schedule)} type="button">
                       {schedule.enabled ? "Disable" : "Enable"}
                     </button>
@@ -196,15 +201,14 @@ export function ServiceWorkspace({
                       Delete
                     </button>
                   </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="history-empty-state">
-              <strong>No Local Schedules</strong>
-              <p>Create the first recurring inspection after the asset and local runtime are ready.</p>
-            </div>
-          )}
+                ),
+              },
+            ]}
+            rows={schedules}
+            getRowKey={(schedule) => schedule.id}
+            emptyTitle="No Local Schedules"
+            emptyDetail="Create the first recurring inspection after the asset and local runtime are ready."
+          />
         </div>
       </div>
     </section>

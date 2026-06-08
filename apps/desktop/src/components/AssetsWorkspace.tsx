@@ -1,5 +1,6 @@
 import type { Asset } from "@opsprobe/core";
 import type { SshConnectionTestInput } from "@opsprobe/runner";
+import { DesktopDataTable, DesktopSectionHeader } from "./DesktopUI";
 
 interface AssetsWorkspaceProps {
   asset: Asset;
@@ -36,20 +37,20 @@ export function AssetsWorkspace({
 }: AssetsWorkspaceProps) {
   return (
     <section className="run-panel">
-      <div className="panel-header">
-        <div>
-          <p className="eyebrow">Assets Workspace</p>
-          <h2>Assets And Migration</h2>
-        </div>
-        <div className="service-actions">
-          <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
-            {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Assets"}
-          </button>
-          <button className="primary-button" onClick={onSaveCurrentAsset} type="button">
-            Save Current Asset
-          </button>
-        </div>
-      </div>
+      <DesktopSectionHeader
+        eyebrow="Assets Workspace"
+        title="Assets And Migration"
+        actions={
+          <div className="service-actions">
+            <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
+              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Assets"}
+            </button>
+            <button className="primary-button" onClick={onSaveCurrentAsset} type="button">
+              Save Current Asset
+            </button>
+          </div>
+        }
+      />
 
       <div className="assets-workspace">
         <div className="assets-list-panel">
@@ -57,46 +58,42 @@ export function AssetsWorkspace({
             <strong>Saved Assets</strong>
             <span>{savedAssets.length} total</span>
           </div>
-          {savedAssets.length > 0 ? (
-            <div className="assets-list">
-              {savedAssets.map((savedAsset) => (
-                <button
-                  className={`assets-list-item ${savedAsset.id === asset.id ? "assets-list-item-active" : ""}`}
-                  key={`asset-${savedAsset.id}`}
-                  onClick={() => onLoadAsset(savedAsset)}
-                  type="button"
-                >
-                  <div className="history-list-top">
+          <DesktopDataTable
+            columns={[
+              {
+                key: "name",
+                header: "Asset",
+                render: (savedAsset) => (
+                  <div className="data-table-primary">
                     <strong>{savedAsset.name}</strong>
-                    <span className={`badge badge-${savedAsset.id === asset.id ? "pass" : "unknown"}`}>
-                      {savedAsset.id === asset.id ? "active" : "saved"}
-                    </span>
+                    <span>{savedAsset.id}</span>
                   </div>
-                  <p>{savedAsset.id}</p>
-                  <p>{savedAsset.host}:{savedAsset.port}</p>
-                  <p>
-                    {savedAsset.credential.method} / {savedAsset.credential.username}
-                    {savedAsset.credential.bindingStatus ? ` / ${savedAsset.credential.bindingStatus}` : ""}
-                  </p>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="history-empty-state">
-              <strong>No Saved Assets</strong>
-              <p>Save the current asset to reuse it, migrate it, or schedule recurring inspections.</p>
-            </div>
-          )}
+                ),
+              },
+              {
+                key: "target",
+                header: "Target",
+                render: (savedAsset) => `${savedAsset.host}:${savedAsset.port}`,
+              },
+              {
+                key: "auth",
+                header: "Credential",
+                render: (savedAsset) =>
+                  `${savedAsset.credential.method} / ${savedAsset.credential.username}${savedAsset.credential.bindingStatus ? ` / ${savedAsset.credential.bindingStatus}` : ""}`,
+              },
+            ]}
+            rows={savedAssets}
+            getRowKey={(savedAsset) => savedAsset.id}
+            onRowClick={onLoadAsset}
+            isRowActive={(savedAsset) => savedAsset.id === asset.id}
+            emptyTitle="No Saved Assets"
+            emptyDetail="Save the current asset to reuse it, migrate it, or schedule recurring inspections."
+          />
         </div>
 
         <div className="assets-detail-panel">
           <div className="history-detail-card">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Asset Editor</p>
-                <h2>{asset.name}</h2>
-              </div>
-            </div>
+            <DesktopSectionHeader eyebrow="Asset Editor" title={asset.name} />
 
             <div className="ssh-grid">
               <label>

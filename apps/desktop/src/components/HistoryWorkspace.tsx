@@ -1,5 +1,6 @@
 import type { Asset, InspectionRun } from "@opsprobe/core";
 import type { ReportAudience } from "@opsprobe/report";
+import { DesktopDataTable, DesktopSectionHeader } from "./DesktopUI";
 
 interface RepeatedProblem {
   checkId: string;
@@ -82,27 +83,27 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
   return (
     <>
       <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">History Workspace</p>
-            <h2>Execution And Export</h2>
-          </div>
-          <div className="service-actions">
-            <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
-              {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
-            </button>
-            {serviceExecutionRun ? (
-              <>
-                <button className="secondary-button" onClick={() => onExportHtmlReport(serviceExecutionRun)} type="button">
-                  {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
-                </button>
-                <button className="secondary-button" onClick={() => onExportPdfReport(serviceExecutionRun)} type="button">
-                  {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
-                </button>
-              </>
-            ) : null}
-          </div>
-        </div>
+        <DesktopSectionHeader
+          eyebrow="History Workspace"
+          title="Execution And Export"
+          actions={
+            <div className="service-actions">
+              <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
+                {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
+              </button>
+              {serviceExecutionRun ? (
+                <>
+                  <button className="secondary-button" onClick={() => onExportHtmlReport(serviceExecutionRun)} type="button">
+                    {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
+                  </button>
+                  <button className="secondary-button" onClick={() => onExportPdfReport(serviceExecutionRun)} type="button">
+                    {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
+                  </button>
+                </>
+              ) : null}
+            </div>
+          }
+        />
 
         <div className="ssh-grid">
           <label><span>Report File</span><input value={reportPath} onChange={(e) => onReportPathChange(e.target.value)} /></label>
@@ -130,20 +131,20 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
       </section>
 
       <section className="run-panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">History Workspace</p>
-            <h2>Recent Local Service Runs</h2>
-          </div>
-          <div className="service-actions">
-            <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">
-              {isRefreshingServicePreview ? "Refreshing..." : "Refresh Preview"}
-            </button>
-            <button className="secondary-button" onClick={onRefreshLocalServiceHistory} type="button">
-              {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
-            </button>
-          </div>
-        </div>
+        <DesktopSectionHeader
+          eyebrow="History Workspace"
+          title="Recent Local Service Runs"
+          actions={
+            <div className="service-actions">
+              <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">
+                {isRefreshingServicePreview ? "Refreshing..." : "Refresh Preview"}
+              </button>
+              <button className="secondary-button" onClick={onRefreshLocalServiceHistory} type="button">
+                {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
+              </button>
+            </div>
+          }
+        />
 
         {showingDemoExperience ? (
           <div className="asset-banner">
@@ -163,25 +164,41 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         {visibleHistoryRuns.length > 0 ? (
           <div className="history-workspace">
             <div className="history-list-panel">
-              <div className="history-list">
-                {visibleHistoryRuns.map((run) => (
-                  <button
-                    className={`history-list-item ${selectedHistoryRun?.id === run.id ? "history-list-item-active" : ""}`}
-                    key={`history-${run.id}`}
-                    onClick={() => onSelectHistoryRun(run)}
-                    type="button"
-                  >
-                    <div className="history-list-top">
-                      <strong>{run.id}</strong>
-                      <span className={`badge badge-${run.status === "completed" ? "pass" : "critical"}`}>{run.status}</span>
-                    </div>
-                    <p>{run.assetId}</p>
-                    <p>{templateLabel(run.templateId)}</p>
-                    <p>{run.summary.total} checks · {run.summary.warning} warn · {run.summary.critical} critical</p>
-                    <p>{run.createdAt}</p>
-                  </button>
-                ))}
-              </div>
+              <DesktopDataTable
+                columns={[
+                  {
+                    key: "run",
+                    header: "Run",
+                    render: (run) => (
+                      <div className="data-table-primary">
+                        <strong>{run.id}</strong>
+                        <span>{run.assetId}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "template",
+                    header: "Template",
+                    render: (run) => templateLabel(run.templateId),
+                  },
+                  {
+                    key: "summary",
+                    header: "Results",
+                    render: (run) => `${run.summary.total} total · ${run.summary.warning} warn · ${run.summary.critical} critical`,
+                  },
+                  {
+                    key: "created",
+                    header: "Created At",
+                    render: (run) => run.createdAt,
+                  },
+                ]}
+                rows={visibleHistoryRuns}
+                getRowKey={(run) => run.id}
+                onRowClick={onSelectHistoryRun}
+                isRowActive={(run) => selectedHistoryRun?.id === run.id}
+                emptyTitle="No Runs Available"
+                emptyDetail="Select demo mode or execute a local service run to start building history."
+              />
 
               {repeatedProblems.length > 0 ? (
                 <div className="history-side-card">
