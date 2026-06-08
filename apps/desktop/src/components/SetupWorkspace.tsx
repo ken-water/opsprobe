@@ -19,6 +19,7 @@ interface SetupItem {
 
 interface SetupWorkspaceProps {
   showingDemoExperience: boolean;
+  isSwitchingMode: boolean;
   completedSetupSteps: number;
   firstRunChecklist: SetupItem[];
   blockingChecks: LocalServiceStatusResponse["snapshot"]["health"]["checks"];
@@ -32,6 +33,7 @@ interface SetupWorkspaceProps {
 
 export function SetupWorkspace({
   showingDemoExperience,
+  isSwitchingMode,
   completedSetupSteps,
   firstRunChecklist,
   blockingChecks,
@@ -51,11 +53,23 @@ export function SetupWorkspace({
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
-            <button className="secondary-button" onClick={onEnterDemoMode} type="button">
-              Explore Demo Data
+            <button
+              className={`secondary-button ${showingDemoExperience ? "button-active-state" : ""}`}
+              onClick={onEnterDemoMode}
+              type="button"
+              disabled={isSwitchingMode}
+              aria-pressed={showingDemoExperience}
+            >
+              {isSwitchingMode && showingDemoExperience ? "Loading Demo..." : showingDemoExperience ? "Demo Data Loaded" : "Explore Demo Data"}
             </button>
-            <button className="primary-button" onClick={onSwitchToRealSetup} type="button">
-              Switch to Real Setup
+            <button
+              className={`primary-button ${!showingDemoExperience ? "button-active-state" : ""}`}
+              onClick={onSwitchToRealSetup}
+              type="button"
+              disabled={isSwitchingMode}
+              aria-pressed={!showingDemoExperience}
+            >
+              {isSwitchingMode && !showingDemoExperience ? "Switching..." : !showingDemoExperience ? "Real Setup Active" : "Switch to Real Setup"}
             </button>
           </div>
         </div>

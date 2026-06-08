@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import {
   builtInInspectionTemplateDefinitions,
@@ -382,6 +382,7 @@ function App() {
     | "runner";
 
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId>("overview");
+  const [pendingWorkspace, setPendingWorkspace] = useState<WorkspaceId | null>(null);
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceInspectionRun, setServiceInspectionRun] = useState<InspectionRun | null>(null);
@@ -417,6 +418,7 @@ function App() {
   const [isExportingReport, setIsExportingReport] = useState(false);
   const [isExportingPdfReport, setIsExportingPdfReport] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [isSwitchingMode, setIsSwitchingMode] = useState(false);
   const activeTemplate = builtInTemplates.find((template) => template.id === selectedTemplateId) ?? defaultTemplate;
   const activeChecks = resolveTemplateChecks(activeTemplate.id);
   const hasRealData = savedAssets.length > 0 || serviceHistoryRuns.length > 0 || schedules.length > 0;
@@ -505,6 +507,18 @@ function App() {
     selectedTemplateId,
     settingsLoaded,
   ]);
+
+  function handleWorkspaceChange(workspaceId: WorkspaceId) {
+    if (workspaceId === activeWorkspace) {
+      return;
+    }
+
+    setPendingWorkspace(workspaceId);
+    setServiceMessage(`Opening ${workspaceSections.find((section) => section.id === workspaceId)?.title ?? workspaceId}...`);
+    startTransition(() => {
+      setActiveWorkspace(workspaceId);
+    });
+  }
 
   function patchAsset(patch: Partial<Asset>) {
     setAsset((current) => ({
@@ -1020,6 +1034,7 @@ function App() {
   }
 
   function handleEnterDemoMode() {
+    setIsSwitchingMode(true);
     setOnboardingMode("demo");
     setAsset(initialAsset);
     setSelectedTemplateId(demoRuns[0]?.templateId ?? defaultTemplate.id);
@@ -1028,12 +1043,19 @@ function App() {
     setHistoryDateTo("");
     setSelectedHistoryRun(demoRuns[0] ?? null);
     setServiceMessage("Showing sample runs so you can inspect OpsProbe before connecting a real host.");
+    window.setTimeout(() => {
+      setIsSwitchingMode(false);
+    }, 180);
   }
 
   function handleSwitchToRealSetup() {
+    setIsSwitchingMode(true);
     setOnboardingMode("real");
     setSelectedHistoryRun(null);
     setServiceMessage("Demo mode hidden. Configure and save a real asset to start collecting live inspection history.");
+    window.setTimeout(() => {
+      setIsSwitchingMode(false);
+    }, 180);
   }
 
   const repeatedProblems = visibleHistoryRuns
@@ -1210,10 +1232,25 @@ function App() {
   const sidebarStatusLabel =
     showingDemoExperience ? "Demo dataset loaded" : hasRealData ? "Live workspace active" : "Awaiting first saved asset";
 
+  useEffect(() => {
+    if (pendingWorkspace === null || pendingWorkspace !== activeWorkspace) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setPendingWorkspace(null);
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [activeWorkspace, pendingWorkspace]);
+
   return (
     <div className="app-shell">
       <aside className="app-sidebar">
         <div className="sidebar-brand">
+          <div className="sidebar-brand-mark" aria-hidden="true">
+            <span className="brand-mark-core">OP</span>
+          </div>
           <p className="sidebar-kicker">OpsProbe</p>
           <h1>Desktop Console</h1>
           <p className="sidebar-copy">Local-first inspection workspace for operators, not a browser landing page.</p>
@@ -1227,12 +1264,14 @@ function App() {
                 {group.items.map((section) => (
                   <button
                     key={section.id}
-                    className={`sidebar-link ${activeWorkspace === section.id ? "sidebar-link-active" : ""}`}
-                    onClick={() => setActiveWorkspace(section.id)}
+                    className={`sidebar-link ${activeWorkspace === section.id ? "sidebar-link-active" : ""} ${pendingWorkspace === section.id ? "sidebar-link-pending" : ""}`}
+                    onClick={() => handleWorkspaceChange(section.id)}
                     type="button"
+                    aria-busy={pendingWorkspace === section.id}
                   >
                     <span className="sidebar-link-label">{section.label}</span>
                     <span className="sidebar-link-copy">{section.description}</span>
+                    {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
                   </button>
                 ))}
               </div>
@@ -1274,6 +1313,13 @@ function App() {
         </header>
 
         <div className="workspace-scroll">
+          {serviceMessage ? (
+            <div className="global-feedback-banner" role="status" aria-live="polite">
+              <strong>Workspace Update</strong>
+              <span>{serviceMessage}</span>
+            </div>
+          ) : null}
+
           <section className="workspace-hero">
             <div className="workspace-hero-main">
               <p className="eyebrow">Active Workspace</p>
@@ -1317,6 +1363,7 @@ function App() {
           {activeWorkspace === "setup" ? (
             <SetupWorkspace
               showingDemoExperience={showingDemoExperience}
+              isSwitchingMode={isSwitchingMode}
               completedSetupSteps={completedSetupSteps}
               firstRunChecklist={firstRunChecklist}
               blockingChecks={blockingChecks}
