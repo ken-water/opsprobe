@@ -41,6 +41,7 @@ Current runtime progress:
 
 Current known limits before `1.0.0`:
 
+- malformed local file storage and malformed persisted status files now trigger automatic quarantine-and-rebuild behavior, but broader crash recovery is still best-effort rather than a full supervisor design
 - status recovery now preserves a persisted `stopped` state, but broader crash-recovery semantics are still best-effort rather than a full supervisor design
 - export and import flows now block recurring schedules until rebound credentials pass SSH validation, but broader credential-repair UX is still desktop-driven rather than fully workflow-guided
 

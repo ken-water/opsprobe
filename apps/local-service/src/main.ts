@@ -231,11 +231,33 @@ async function writeStatusFile(mode: "starting" | "ready" | "stopped") {
   return response;
 }
 
+function isProcessAlive(pid: number) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveServiceMode() {
+  if (!existsSync(config.paths.servicePidFile)) {
+    return await readPersistedServiceMode(config.paths.serviceStatusFile);
+  }
+
+  const rawPid = (await readFile(config.paths.servicePidFile, "utf8").catch(() => "")).trim();
+  const pid = Number.parseInt(rawPid, 10);
+  if (!Number.isNaN(pid) && isProcessAlive(pid)) {
+    return "ready" as const;
+  }
+
+  await rm(config.paths.servicePidFile, { force: true });
+  return await readPersistedServiceMode(config.paths.serviceStatusFile);
+}
+
 async function statusCommand() {
   await ensureRuntimeDirs();
-  const mode = existsSync(config.paths.servicePidFile)
-    ? "ready"
-    : await readPersistedServiceMode(config.paths.serviceStatusFile);
+  const mode = await resolveServiceMode();
   const response = await buildStatusResponse(mode);
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }

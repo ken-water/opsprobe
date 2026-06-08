@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -39,5 +39,8 @@ describe("readPersistedServiceMode", () => {
 
     await expect(readPersistedServiceMode(missingFile)).resolves.toBe("starting");
     await expect(readPersistedServiceMode(malformedFile)).resolves.toBe("starting");
+
+    const files = await readdir(rootDir);
+    expect(files.some((file) => file.startsWith("malformed-status.json.corrupt-"))).toBe(true);
   });
 });

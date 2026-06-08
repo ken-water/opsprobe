@@ -122,3 +122,5 @@ Additional recovery evidence added during `0.10.2`:
 
 - malformed file-backed storage snapshots are now quarantined and rebuilt automatically instead of leaving local-service startup blocked on JSON parse failure
 - CLI functional coverage now proves that local-service can recover from a malformed file-backed snapshot and still accept fresh asset saves afterward
+- malformed persisted local-service status files are now quarantined automatically instead of silently staying in place
+- stale local-service PID files no longer force `status` to report `ready` when the referenced process is already gone

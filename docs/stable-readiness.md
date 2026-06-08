@@ -119,7 +119,7 @@ Required evidence:
 These gaps already exist and must not stay implicit during the `1.0.0` decision:
 
 - schedules and desktop settings are being unified into the active storage boundary; Issue 50 should be closed only after the new layout, backup expectations, and machine-move guidance are all validated
-- desktop end-to-end coverage is still thin for crash recovery, first-run repair, and upgrade continuity, but `0.10.2` now includes automated evidence for malformed file-storage recovery and stopped-state continuity; see Issue 52
+- desktop end-to-end coverage is still thin for crash recovery, first-run repair, and upgrade continuity, but `0.10.2` now includes automated evidence for malformed file-storage recovery, malformed status-file recovery, stale PID cleanup, and stopped-state continuity; see Issue 52
 - rebound credentials now require explicit SSH validation before recurring schedules can resume, but the overall recovery UX still needs broader pre-stable review; see Issue 51
 - local runtime supervision is still process-based and best-effort rather than a hardened cross-platform service-manager integration; see Issue 53
 

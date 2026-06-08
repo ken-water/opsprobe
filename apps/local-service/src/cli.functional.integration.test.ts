@@ -180,4 +180,37 @@ describe("local-service CLI functional flow", () => {
     expect(saveResponse.ok).toBe(true);
     expect(listResponse.assets.map((item) => item.id)).toContain(asset.id);
   });
+
+  it("falls back to persisted stopped mode when the service pid file is stale", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "opsprobe-functional-cli-"));
+    cleanupPaths.push(homeDir);
+
+    const runtimeDir = join(homeDir, ".opsprobe", "runtime");
+    await mkdir(runtimeDir, { recursive: true });
+    await writeFile(join(runtimeDir, "local-service.pid"), "999999\n", "utf8");
+    await writeFile(
+      join(runtimeDir, "local-service-status.json"),
+      `${JSON.stringify({ snapshot: { status: "stopped" } }, null, 2)}\n`,
+      "utf8",
+    );
+
+    const statusResponse = await runLocalServiceCommand<LocalServiceStatusResponse>(homeDir, "status");
+
+    expect(statusResponse.ok).toBe(true);
+    expect(statusResponse.snapshot.status).toBe("stopped");
+  });
+
+  it("repairs a malformed persisted status file by falling back to starting", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "opsprobe-functional-cli-"));
+    cleanupPaths.push(homeDir);
+
+    const runtimeDir = join(homeDir, ".opsprobe", "runtime");
+    await mkdir(runtimeDir, { recursive: true });
+    await writeFile(join(runtimeDir, "local-service-status.json"), "{broken-json}\n", "utf8");
+
+    const statusResponse = await runLocalServiceCommand<LocalServiceStatusResponse>(homeDir, "status");
+
+    expect(statusResponse.ok).toBe(true);
+    expect(["starting", "degraded", "error"]).toContain(statusResponse.snapshot.status);
+  });
 });
