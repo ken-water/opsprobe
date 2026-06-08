@@ -1146,9 +1146,65 @@ function App() {
     }
   }
 
+  const workspaceSections = [
+    { id: "overview", label: "Overview" },
+    { id: "setup", label: "Setup" },
+    { id: "service", label: "Local Service" },
+    { id: "reports", label: "Reports" },
+    { id: "history", label: "History" },
+    { id: "assets", label: "Assets" },
+    { id: "schedules", label: "Schedules" },
+    { id: "runner", label: "Runner" },
+  ];
+
   return (
-    <main className="app-shell">
-      <section className="hero">
+    <div className="app-shell">
+      <aside className="app-sidebar">
+        <div className="sidebar-brand">
+          <p className="sidebar-kicker">OpsProbe</p>
+          <h1>Desktop Console</h1>
+          <p className="sidebar-copy">Local-first inspection workspace for operators, not a browser landing page.</p>
+        </div>
+
+        <nav className="sidebar-nav" aria-label="Primary">
+          {workspaceSections.map((section) => (
+            <a key={section.id} className="sidebar-link" href={`#${section.id}`}>
+              {section.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="sidebar-status">
+          <div className="status-tile">
+            <span className="status-label">Release</span>
+            <strong>v0.10.3</strong>
+          </div>
+          <div className="status-tile">
+            <span className="status-label">Mode</span>
+            <strong>{showingDemoExperience ? "Demo" : "Real"}</strong>
+          </div>
+          <div className="status-tile">
+            <span className="status-label">Runtime</span>
+            <strong>{serviceResponse?.snapshot.status ?? "unknown"}</strong>
+          </div>
+        </div>
+      </aside>
+
+      <div className="app-main">
+        <header className="app-topbar">
+          <div>
+            <p className="eyebrow">OpsProbe Open Source Edition</p>
+            <h2>Operator Workspace</h2>
+          </div>
+          <div className="topbar-metrics">
+            <span className="topbar-chip">{completedSetupSteps}/{firstRunChecklist.length} setup steps</span>
+            <span className="topbar-chip">{warningChecks.length} warnings</span>
+            <span className="topbar-chip">{blockingChecks.length} blocking</span>
+          </div>
+        </header>
+
+        <div className="workspace-scroll">
+      <section className="hero" id="overview">
         <p className="eyebrow">OpsProbe Open Source Edition</p>
         <h1>Local-first infrastructure inspection for SMB teams.</h1>
         <p className="summary">
@@ -1194,7 +1250,7 @@ function App() {
         </article>
       </section>
 
-      <section className="run-panel">
+      <section className="run-panel" id="reports">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1363,7 +1419,7 @@ function App() {
         </p>
       </section>
 
-      <section className="run-panel">
+      <section className="run-panel" id="setup">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1465,7 +1521,7 @@ function App() {
         ) : null}
       </section>
 
-      <section className="run-panel">
+      <section className="run-panel" id="assets">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1514,7 +1570,7 @@ function App() {
         ) : null}
       </section>
 
-      <section className="run-panel">
+      <section className="run-panel" id="schedules">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1608,7 +1664,7 @@ function App() {
         )}
       </section>
 
-      <section className="run-panel">
+      <section className="run-panel" id="service">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1814,7 +1870,7 @@ function App() {
         ) : null}
       </section>
 
-      <section className="run-panel">
+      <section className="run-panel" id="history">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -1917,7 +1973,7 @@ function App() {
         )}
       </section>
 
-      <section className="run-panel">
+      <section className="run-panel" id="runner">
         <div className="panel-header">
           <div>
             <p className="eyebrow">0.10.3 Current Release</p>
@@ -2336,7 +2392,9 @@ function App() {
           ))}
         </div>
       </section>
-    </main>
+        </div>
+      </div>
+    </div>
   );
 }
 
