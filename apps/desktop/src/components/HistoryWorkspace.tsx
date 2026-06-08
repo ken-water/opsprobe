@@ -327,6 +327,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 getRowKey={(run) => run.id}
                 onRowClick={onSelectHistoryRun}
                 isRowActive={(run) => activeRun?.id === run.id}
+                isLoading={isRefreshingHistory}
+                loadingTitle="Loading run history"
+                loadingDetail="Fetching recent inspection evidence from the local service."
                 emptyTitle="No Runs Available"
                 emptyDetail="Select demo mode or execute a local service run to start building history."
               />

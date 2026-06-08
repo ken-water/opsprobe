@@ -115,6 +115,9 @@ export function AssetsWorkspace({
                 getRowKey={(savedAsset) => savedAsset.id}
                 onRowClick={onLoadAsset}
                 isRowActive={(savedAsset) => savedAsset.id === asset.id}
+                isLoading={isRefreshingAssets}
+                loadingTitle="Loading saved assets"
+                loadingDetail="Fetching reusable targets from the local workspace."
                 emptyTitle="No Saved Assets"
                 emptyDetail="Save the current asset to reuse it, migrate it, or schedule recurring inspections."
               />

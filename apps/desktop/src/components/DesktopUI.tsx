@@ -47,9 +47,17 @@ interface DesktopDataTableProps<T> {
   isRowActive?: (row: T) => boolean;
   emptyTitle: string;
   emptyDetail: string;
+  isLoading?: boolean;
+  loadingTitle?: string;
+  loadingDetail?: string;
 }
 
 interface DesktopEmptyStateProps {
+  title: string;
+  detail: string;
+}
+
+interface DesktopLoadingStateProps {
   title: string;
   detail: string;
 }
@@ -73,6 +81,23 @@ export function DesktopEmptyState({
   );
 }
 
+export function DesktopLoadingState({
+  title,
+  detail,
+}: DesktopLoadingStateProps) {
+  return (
+    <div className="history-empty-state data-table-empty loading-state-shell" aria-busy="true">
+      <div className="loading-state-mark" aria-hidden="true">
+        <span className="loading-state-dot" />
+        <span className="loading-state-dot" />
+        <span className="loading-state-dot" />
+      </div>
+      <strong className="empty-state-title">{title}</strong>
+      <p className="empty-state-copy">{detail}</p>
+    </div>
+  );
+}
+
 export function DesktopDataTable<T>({
   columns,
   rows,
@@ -81,7 +106,14 @@ export function DesktopDataTable<T>({
   isRowActive,
   emptyTitle,
   emptyDetail,
+  isLoading = false,
+  loadingTitle = "Loading",
+  loadingDetail = "Fetching the latest local data.",
 }: DesktopDataTableProps<T>) {
+  if (isLoading) {
+    return <DesktopLoadingState title={loadingTitle} detail={loadingDetail} />;
+  }
+
   if (rows.length === 0) {
     return <DesktopEmptyState title={emptyTitle} detail={emptyDetail} />;
   }

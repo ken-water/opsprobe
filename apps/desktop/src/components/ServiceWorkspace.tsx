@@ -167,6 +167,9 @@ export function ServiceWorkspace({
                 ]}
                 rows={schedules}
                 getRowKey={(schedule) => schedule.id}
+                isLoading={isRefreshingSchedules}
+                loadingTitle="Loading schedules"
+                loadingDetail="Fetching recurring inspection plans from the local service."
                 emptyTitle="No Local Schedules"
                 emptyDetail="Create the first recurring inspection after the asset and local runtime are ready."
               />
