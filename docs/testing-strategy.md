@@ -129,3 +129,8 @@ Additional machine-move trust evidence added during `0.10.3`:
 
 - export packages now carry source-machine metadata so import review can verify provenance instead of trusting an unlabeled JSON package
 - import responses now report credential-rebind count, disabled-schedule count, and explicit next steps for safe machine replacement
+
+Additional stable-candidate evidence added during `0.11.0`:
+
+- a repeatable clean-user-profile validation script now proves the operator can start from an empty `~/.opsprobe`, save an asset, preview an inspection, export a migration package, stop, restart, and still see explicit recovery guidance
+- the repository now includes a dedicated operator-facing validation guide for clean-profile bootstrap, backup scope, and restart expectations

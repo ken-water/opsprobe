@@ -47,6 +47,11 @@ Use:
 
 For `1.0.0`, release readiness is necessary but not sufficient. The stable-release review in [stable-readiness.md](./stable-readiness.md) must also be completed with explicit evidence and a written decision.
 
+For the pre-stable `0.11.x` evidence line, also capture:
+
+- `./scripts/validate-clean-user-profile.sh`
+- the operator notes in [clean-user-profile-validation.md](./clean-user-profile-validation.md)
+
 ## Tag Format
 
 Use:

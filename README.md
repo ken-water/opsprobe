@@ -74,6 +74,7 @@ See:
 - [Initial Issues](./docs/issues.md)
 - [Releasing Guide](./docs/releasing.md)
 - [Development Gate](./docs/development-gate.md)
+- [Clean User Profile Validation](./docs/clean-user-profile-validation.md)
 
 ## Quick Start
 
@@ -91,7 +92,7 @@ Planned local development prerequisites:
 - Tauri system dependencies
 - PostgreSQL binaries available locally
 
-The first runnable setup guide will be added after the desktop skeleton is committed.
+The current clean-user-profile validation guide lives in [docs/clean-user-profile-validation.md](./docs/clean-user-profile-validation.md).
 
 ## Repository Structure
 
