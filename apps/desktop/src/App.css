@@ -935,6 +935,7 @@ body {
 }
 
 .data-table-shell {
+  --ops-table-columns: repeat(auto-fit, minmax(140px, 1fr));
   margin-top: 10px;
   border: 1px solid var(--ops-border-soft);
   border-radius: 20px;
@@ -945,7 +946,7 @@ body {
 .data-table-header,
 .data-table-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: var(--ops-table-columns);
   gap: 0;
 }
 
@@ -1030,6 +1031,7 @@ button.data-table-row {
 
 .data-table-empty {
   margin-top: 10px;
+  min-height: 220px;
 }
 
 .history-list-item {
@@ -1128,7 +1130,7 @@ button.data-table-row {
 }
 
 .history-side-card h3 {
-  margin: 0 0 14px;
+  margin: 0;
   color: var(--ops-text-strong);
 }
 

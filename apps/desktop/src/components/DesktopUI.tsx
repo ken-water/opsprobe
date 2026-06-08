@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 interface DesktopSectionHeaderProps {
   eyebrow: string;
@@ -36,6 +36,7 @@ interface DesktopDataTableColumn<T> {
   key: string;
   header: string;
   render: (row: T) => ReactNode;
+  width?: string;
 }
 
 interface DesktopDataTableProps<T> {
@@ -67,7 +68,14 @@ export function DesktopDataTable<T>({
   }
 
   return (
-    <div className="data-table-shell">
+    <div
+      className="data-table-shell"
+      style={
+        {
+          "--ops-table-columns": columns.map((column) => column.width ?? "minmax(140px, 1fr)").join(" "),
+        } as CSSProperties
+      }
+    >
       <div className="data-table-header">
         {columns.map((column) => (
           <span className="data-table-cell data-table-head" key={column.key}>
@@ -112,4 +120,32 @@ export function DesktopDataTable<T>({
       </div>
     </div>
   );
+}
+
+function pad(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+export function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function formatListDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function formatStatusLabel(value: string) {
+  return value
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }

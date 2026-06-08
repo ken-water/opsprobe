@@ -1,6 +1,6 @@
 import type { Asset } from "@opsprobe/core";
 import type { SshConnectionTestInput } from "@opsprobe/runner";
-import { DesktopDataTable, DesktopSectionHeader } from "./DesktopUI";
+import { DesktopDataTable, DesktopSectionHeader, formatDateTime, formatStatusLabel } from "./DesktopUI";
 
 interface AssetsWorkspaceProps {
   asset: Asset;
@@ -64,6 +64,7 @@ export function AssetsWorkspace({
               {
                 key: "name",
                 header: "Asset",
+                width: "minmax(220px, 1.4fr)",
                 render: (savedAsset) => (
                   <div className="data-table-primary">
                     <strong>{savedAsset.name}</strong>
@@ -74,13 +75,30 @@ export function AssetsWorkspace({
               {
                 key: "target",
                 header: "Target",
+                width: "minmax(160px, 1fr)",
                 render: (savedAsset) => `${savedAsset.host}:${savedAsset.port}`,
               },
               {
                 key: "auth",
                 header: "Credential",
-                render: (savedAsset) =>
-                  `${savedAsset.credential.method} / ${savedAsset.credential.username}${savedAsset.credential.bindingStatus ? ` / ${savedAsset.credential.bindingStatus}` : ""}`,
+                width: "minmax(220px, 1.3fr)",
+                render: (savedAsset) => (
+                  <div className="data-table-primary">
+                    <strong>{formatStatusLabel(savedAsset.credential.method)}</strong>
+                    <span>
+                      {savedAsset.credential.username}
+                      {savedAsset.credential.bindingStatus
+                        ? ` · ${formatStatusLabel(savedAsset.credential.bindingStatus)}`
+                        : ""}
+                    </span>
+                  </div>
+                ),
+              },
+              {
+                key: "updated",
+                header: "Updated",
+                width: "minmax(140px, 0.9fr)",
+                render: (savedAsset) => formatDateTime(savedAsset.updatedAt),
               },
             ]}
             rows={savedAssets}
@@ -98,6 +116,12 @@ export function AssetsWorkspace({
               eyebrow="Asset Editor"
               title={asset.name}
               subtitle="Edit the active host record, authentication binding, and migration package path from one place."
+              meta={
+                <div className="summary-strip">
+                  <span>{asset.protocol.toUpperCase()}</span>
+                  <span>{formatDateTime(asset.updatedAt)}</span>
+                </div>
+              }
             />
 
             <div className="ssh-grid">

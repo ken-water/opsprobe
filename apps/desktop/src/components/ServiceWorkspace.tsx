@@ -2,7 +2,7 @@ import type {
   LocalInspectionSchedule,
   LocalServiceStatusResponse,
 } from "@opsprobe/local-service";
-import { DesktopDataTable, DesktopSectionHeader } from "./DesktopUI";
+import { DesktopDataTable, DesktopSectionHeader, formatDateTime, formatListDate, formatStatusLabel } from "./DesktopUI";
 
 interface ServiceWorkspaceProps {
   assetId: string;
@@ -63,7 +63,7 @@ export function ServiceWorkspace({
         <div className="service-runtime-panel">
           <div className="assets-panel-header">
             <strong>Runtime Control</strong>
-            <span>{serviceResponse?.snapshot.status ?? "unknown"}</span>
+            <span>{formatStatusLabel(serviceResponse?.snapshot.status ?? "unknown")}</span>
           </div>
 
           <div className="service-actions">
@@ -100,7 +100,7 @@ export function ServiceWorkspace({
                   <article className="service-card" key={check.id}>
                     <div className="service-card-header">
                       <strong>{check.label}</strong>
-                      <span className={`badge badge-${check.status}`}>{check.status}</span>
+                      <span className={`badge badge-${check.status}`}>{formatStatusLabel(check.status)}</span>
                     </div>
                     <p>{check.detail}</p>
                   </article>
@@ -175,6 +175,7 @@ export function ServiceWorkspace({
               {
                 key: "asset",
                 header: "Asset",
+                width: "minmax(220px, 1.3fr)",
                 render: (schedule) => (
                   <div className="data-table-primary">
                     <strong>{schedule.asset.name}</strong>
@@ -185,17 +186,29 @@ export function ServiceWorkspace({
               {
                 key: "plan",
                 header: "Schedule",
-                render: (schedule) => `Every ${schedule.intervalMinutes} min · ${schedule.nextRunAt}`,
+                width: "minmax(220px, 1.2fr)",
+                render: (schedule) => (
+                  <div className="data-table-primary">
+                    <strong>Every {schedule.intervalMinutes} min</strong>
+                    <span>Next {formatListDate(schedule.nextRunAt)}</span>
+                  </div>
+                ),
               },
               {
                 key: "status",
                 header: "Last Result",
-                render: (schedule) =>
-                  `${schedule.lastRunStatus ?? "pending"}${schedule.lastRunAt ? ` · ${schedule.lastRunAt}` : ""}`,
+                width: "minmax(170px, 1fr)",
+                render: (schedule) => (
+                  <div className="data-table-primary">
+                    <strong>{formatStatusLabel(schedule.lastRunStatus ?? "pending")}</strong>
+                    <span>{schedule.lastRunAt ? formatDateTime(schedule.lastRunAt) : "No run yet"}</span>
+                  </div>
+                ),
               },
               {
                 key: "actions",
                 header: "Actions",
+                width: "minmax(180px, 0.9fr)",
                 render: (schedule) => (
                   <div className="data-table-actions">
                     <button className="secondary-button" onClick={() => onToggleSchedule(schedule)} type="button">

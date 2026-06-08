@@ -1,6 +1,6 @@
 import type { Asset, InspectionRun } from "@opsprobe/core";
 import type { ReportAudience } from "@opsprobe/report";
-import { DesktopDataTable, DesktopSectionHeader } from "./DesktopUI";
+import { DesktopDataTable, DesktopSectionHeader, formatDateTime, formatListDate, formatStatusLabel } from "./DesktopUI";
 
 interface RepeatedProblem {
   checkId: string;
@@ -168,32 +168,41 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
             <div className="history-list-panel">
               <DesktopDataTable
                 columns={[
-                  {
-                    key: "run",
-                    header: "Run",
-                    render: (run) => (
-                      <div className="data-table-primary">
-                        <strong>{run.id}</strong>
-                        <span>{run.assetId}</span>
+              {
+                key: "run",
+                header: "Run",
+                width: "minmax(220px, 1.3fr)",
+                render: (run) => (
+                  <div className="data-table-primary">
+                    <strong>{run.id}</strong>
+                    <span>{run.assetId}</span>
                       </div>
                     ),
                   },
-                  {
-                    key: "template",
-                    header: "Template",
-                    render: (run) => templateLabel(run.templateId),
-                  },
-                  {
-                    key: "summary",
-                    header: "Results",
-                    render: (run) => `${run.summary.total} total · ${run.summary.warning} warn · ${run.summary.critical} critical`,
-                  },
-                  {
-                    key: "created",
-                    header: "Created At",
-                    render: (run) => run.createdAt,
-                  },
-                ]}
+              {
+                key: "template",
+                header: "Template",
+                width: "minmax(180px, 1fr)",
+                render: (run) => templateLabel(run.templateId),
+              },
+              {
+                key: "summary",
+                header: "Results",
+                width: "minmax(200px, 1.1fr)",
+                render: (run) => (
+                  <div className="data-table-primary">
+                    <strong>{run.summary.total} checks</strong>
+                    <span>{run.summary.warning} warn · {run.summary.critical} critical</span>
+                  </div>
+                ),
+              },
+              {
+                key: "created",
+                header: "Created At",
+                width: "minmax(140px, 0.9fr)",
+                render: (run) => formatListDate(run.createdAt),
+              },
+            ]}
                 rows={visibleHistoryRuns}
                 getRowKey={(run) => run.id}
                 onRowClick={onSelectHistoryRun}
@@ -231,10 +240,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                       <h3>Selected Run</h3>
                       <p>{selectedHistoryRun.id} · {selectedHistoryRun.assetId}</p>
                       <p className="helper-text">Template: {templateLabel(selectedHistoryRun.templateId)}</p>
-                      <p className="helper-text">{selectedHistoryRun.createdAt}</p>
+                      <p className="helper-text">{formatDateTime(selectedHistoryRun.createdAt)}</p>
                     </div>
                     <span className={`badge badge-${selectedHistoryRun.status === "completed" ? "pass" : "critical"}`}>
-                      {selectedHistoryRun.status}
+                      {formatStatusLabel(selectedHistoryRun.status)}
                     </span>
                   </div>
 
@@ -263,7 +272,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                             <p>{result.summary}</p>
                             <p className="helper-text">{templateLabel(selectedHistoryRun.templateId)}</p>
                           </div>
-                          <span className={`badge badge-${result.status}`}>{result.status}</span>
+                          <span className={`badge badge-${result.status}`}>{formatStatusLabel(result.status)}</span>
                         </div>
                         <ul className="evidence-list">
                           {result.evidence.map((item) => (
