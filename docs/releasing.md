@@ -50,8 +50,10 @@ For `1.0.0`, release readiness is necessary but not sufficient. The stable-relea
 For the pre-stable `0.11.x` evidence line, also capture:
 
 - `./scripts/validate-clean-user-profile.sh`
+- `./scripts/validate-desktop-stable-candidate.sh`
 - `./scripts/capture-stable-candidate-evidence.sh`
 - the operator notes in [clean-user-profile-validation.md](./clean-user-profile-validation.md)
+- the desktop candidate notes in [desktop-stable-candidate-validation.md](./desktop-stable-candidate-validation.md)
 - the filled validation record based on [stable-candidate-operator-notes.md](./stable-candidate-operator-notes.md)
 - the current issue-specific draft such as [stable-candidate-operator-notes-0.11.0.md](./stable-candidate-operator-notes-0.11.0.md)
 - the decision summary based on [stable-review-record.md](./stable-review-record.md)

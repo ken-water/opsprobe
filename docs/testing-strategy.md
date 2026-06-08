@@ -133,7 +133,9 @@ Additional machine-move trust evidence added during `0.10.3`:
 Additional stable-candidate evidence added during `0.11.0`:
 
 - a repeatable clean-user-profile validation script now proves the operator can start from an empty `~/.opsprobe`, save an asset, preview an inspection, export a migration package, stop, restart, and still see explicit recovery guidance
+- a repeatable desktop stable-candidate validation script now proves the desktop TypeScript build, frontend bundle, and Tauri shell still build coherently on the current machine
 - the repository now includes a dedicated operator-facing validation guide for clean-profile bootstrap, backup scope, and restart expectations
+- the repository now includes a dedicated desktop stable-candidate validation guide so release evidence is not limited to local-service CLI flows
 - a stable-candidate evidence capture script now records version, environment, checkpoint gate output, version gate output, and clean-profile validation in one place before Issue 47 is resumed
 - a stable review record now exists so Issue 47 can be updated from structured evidence instead of ad hoc summaries
 - a `0.11.0` operator-notes draft now translates the raw evidence into explicit provisional blockers and acceptable-limit candidates for the stable decision
