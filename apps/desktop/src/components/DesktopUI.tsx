@@ -49,6 +49,30 @@ interface DesktopDataTableProps<T> {
   emptyDetail: string;
 }
 
+interface DesktopEmptyStateProps {
+  title: string;
+  detail: string;
+}
+
+export function DesktopEmptyState({
+  title,
+  detail,
+}: DesktopEmptyStateProps) {
+  return (
+    <div className="history-empty-state data-table-empty">
+      <div className="empty-state-mark" aria-hidden="true">
+        <svg className="empty-state-mark-svg" viewBox="0 0 64 64" role="img">
+          <path d="M14 18h20c8.837 0 16 7.163 16 16s-7.163 16-16 16H14z" />
+          <path d="M22 26h12c4.418 0 8 3.582 8 8s-3.582 8-8 8H22z" />
+          <path d="M43 14h7L35 50h-7z" />
+        </svg>
+      </div>
+      <strong className="empty-state-title">{title}</strong>
+      <p className="empty-state-copy">{detail}</p>
+    </div>
+  );
+}
+
 export function DesktopDataTable<T>({
   columns,
   rows,
@@ -59,12 +83,7 @@ export function DesktopDataTable<T>({
   emptyDetail,
 }: DesktopDataTableProps<T>) {
   if (rows.length === 0) {
-    return (
-      <div className="history-empty-state data-table-empty">
-        <strong>{emptyTitle}</strong>
-        <p>{emptyDetail}</p>
-      </div>
-    );
+    return <DesktopEmptyState title={emptyTitle} detail={emptyDetail} />;
   }
 
   return (

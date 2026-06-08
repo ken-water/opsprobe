@@ -784,16 +784,17 @@ body {
   margin-top: 16px;
   padding: 14px 16px;
   border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.08);
   font-weight: 600;
 }
 
 .result-ok {
-  background: rgba(34, 197, 94, 0.16);
-  color: #9ae6b4;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), rgba(15, 118, 110, 0.14));
+  color: #a7f3d0;
 }
 
 .result-error {
-  background: rgba(239, 68, 68, 0.16);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(190, 24, 93, 0.14));
   color: #fecaca;
 }
 
@@ -878,28 +879,44 @@ body {
 .service-pill {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
+  border: 1px solid transparent;
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.service-pill::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.9;
 }
 
 .service-ready {
-  background: #dcefdc;
-  color: #2e6a34;
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(74, 222, 128, 0.22);
+  color: #86efac;
 }
 
 .service-starting,
 .service-degraded {
-  background: #fff0cc;
-  color: #8a5b00;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.22);
+  color: #fcd34d;
 }
 
 .service-stopped,
 .service-error {
-  background: #ffd8d8;
-  color: #8a1f1f;
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.22);
+  color: #fca5a5;
 }
 
 .service-checks {
@@ -1210,14 +1227,43 @@ button.data-table-row {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 10px;
   text-align: center;
   color: var(--ops-text-soft);
 }
 
 .history-empty-state p {
-  max-width: 360px;
-  margin: 10px 0 0;
+  max-width: 420px;
+  margin: 0;
   color: var(--ops-text-muted);
+}
+
+.empty-state-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(37, 99, 235, 0.22));
+  box-shadow:
+    0 18px 34px rgba(2, 6, 23, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.empty-state-mark-svg {
+  width: 34px;
+  height: 34px;
+  fill: #7dd3fc;
+}
+
+.empty-state-title {
+  color: var(--ops-text-strong);
+  font-size: 1.02rem;
+}
+
+.empty-state-copy {
+  max-width: 420px;
 }
 
 .result-card {
@@ -1225,6 +1271,30 @@ button.data-table-row {
   gap: 14px;
   padding: 18px;
   border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: 18px 0 0 18px;
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.result-card-pass::before {
+  background: linear-gradient(180deg, rgba(74, 222, 128, 0.85), rgba(16, 185, 129, 0.45));
+}
+
+.result-card-warning::before,
+.result-card-unknown::before {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.9), rgba(217, 119, 6, 0.48));
+}
+
+.result-card-critical::before {
+  background: linear-gradient(180deg, rgba(248, 113, 113, 0.92), rgba(190, 24, 93, 0.5));
 }
 
 .result-header {
@@ -1250,24 +1320,30 @@ button.data-table-row {
   flex-shrink: 0;
   padding: 6px 10px;
   border-radius: 999px;
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .badge-pass {
-  background: #dcefdc;
-  color: #2e6a34;
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(74, 222, 128, 0.22);
+  color: #86efac;
 }
 
 .badge-warning {
-  background: #fff0cc;
-  color: #8a5b00;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.22);
+  color: #fcd34d;
 }
 
 .badge-critical {
-  background: #ffd8d8;
-  color: #8a1f1f;
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.22);
+  color: #fca5a5;
 }
 
 @keyframes sidebar-pulse {
@@ -1312,7 +1388,8 @@ button.data-table-row {
 }
 
 .badge-unknown {
-  background: rgba(148, 163, 184, 0.16);
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.16);
   color: #c5d0db;
 }
 

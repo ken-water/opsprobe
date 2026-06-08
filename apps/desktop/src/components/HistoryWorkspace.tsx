@@ -1,6 +1,13 @@
 import type { Asset, InspectionRun } from "@opsprobe/core";
 import type { ReportAudience } from "@opsprobe/report";
-import { DesktopDataTable, DesktopSectionHeader, formatDateTime, formatListDate, formatStatusLabel } from "./DesktopUI";
+import {
+  DesktopDataTable,
+  DesktopEmptyState,
+  DesktopSectionHeader,
+  formatDateTime,
+  formatListDate,
+  formatStatusLabel,
+} from "./DesktopUI";
 
 interface RepeatedProblem {
   checkId: string;
@@ -273,7 +280,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
 
                   <div className="results-list">
                     {selectedHistoryRun.results.map((result) => (
-                      <article className="result-card" key={`selected-${selectedHistoryRun.id}-${result.checkId}`}>
+                      <article className={`result-card result-card-${result.status}`} key={`selected-${selectedHistoryRun.id}-${result.checkId}`}>
                         <div className="result-header">
                           <div>
                             <h3>{result.title}</h3>
@@ -297,10 +304,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                   </div>
                 </article>
               ) : (
-                <div className="history-empty-state">
-                  <strong>No Run Selected</strong>
-                  <p>Select a run from the left list to inspect checks, evidence, and export actions.</p>
-                </div>
+                <DesktopEmptyState
+                  title="No Run Selected"
+                  detail="Select a run from the left list to inspect checks, evidence, and export actions."
+                />
               )}
             </div>
           </div>

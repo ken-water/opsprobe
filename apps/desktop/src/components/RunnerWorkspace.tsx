@@ -1,6 +1,6 @@
 import type { Asset, InspectionRun } from "@opsprobe/core";
 import type { SshConnectionTestInput, SshConnectionTestResult } from "@opsprobe/runner";
-import { DesktopSectionHeader, formatStatusLabel } from "./DesktopUI";
+import { DesktopEmptyState, DesktopSectionHeader, formatStatusLabel } from "./DesktopUI";
 
 interface TemplateOption {
   id: string;
@@ -241,10 +241,10 @@ export function RunnerWorkspace({
               </div>
             </>
           ) : (
-            <div className="history-empty-state">
-              <strong>No Preview Yet</strong>
-              <p>Run a manual preview to inspect normalized results before handing execution to the local service.</p>
-            </div>
+            <DesktopEmptyState
+              title="No Preview Yet"
+              detail="Run a manual preview to inspect normalized results before handing execution to the local service."
+            />
           )}
         </div>
       </div>
