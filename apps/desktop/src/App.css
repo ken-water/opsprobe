@@ -1216,6 +1216,12 @@ body {
   line-height: 1.65;
 }
 
+.setup-issue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
 .workflow-step-header {
   display: flex;
   justify-content: space-between;

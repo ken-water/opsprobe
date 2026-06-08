@@ -224,7 +224,7 @@ export function SetupWorkspace({
         </div>
 
         {blockingChecks.length > 0 ? (
-          <div className="service-checks">
+          <div className="setup-issue-grid">
             {blockingChecks.map((check) => (
               <article className="service-card" key={`blocking-${check.id}`}>
                 <div className="service-card-header">
@@ -232,6 +232,10 @@ export function SetupWorkspace({
                   <span className="badge badge-critical">blocking</span>
                 </div>
                 <p>{check.detail}</p>
+                <div className="inline-note">
+                  <strong>Repair first</strong>
+                  <span>Resolve this before relying on recurring inspections or report exports.</span>
+                </div>
               </article>
             ))}
           </div>
@@ -240,7 +244,7 @@ export function SetupWorkspace({
         )}
 
         {warningChecks.length > 0 ? (
-          <div className="service-checks">
+          <div className="setup-issue-grid">
             {warningChecks.map((check) => (
               <article className="service-card" key={`warning-${check.id}`}>
                 <div className="service-card-header">

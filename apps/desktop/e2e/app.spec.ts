@@ -320,6 +320,8 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Start Service|Open Assets & Strategy/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Demo Data Loaded" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Switch to Real Setup" }).last()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Minimum Local Setup", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Troubleshooting Guidance", level: 2 })).toBeVisible();
 
   await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
   await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
