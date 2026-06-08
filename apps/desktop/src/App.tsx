@@ -1278,6 +1278,8 @@ function App() {
           onExportConfig={() => void handleExportConfig()}
           onImportConfig={() => void handleImportConfig()}
           onLoadAsset={(savedAsset) => void handleLoadAsset(savedAsset)}
+          onPatchAsset={patchAsset}
+          onPatchCredential={patchCredential}
         />
       ) : null}
 

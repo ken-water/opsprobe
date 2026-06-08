@@ -619,12 +619,35 @@ body {
   margin-top: 18px;
 }
 
+.runner-workspace,
+.reports-workspace,
+.assets-workspace,
+.service-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.4fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
 .history-list-panel,
-.history-detail-panel {
+.history-detail-panel,
+.runner-config-panel,
+.runner-results-panel,
+.reports-config-panel,
+.reports-side-panel,
+.assets-list-panel,
+.assets-detail-panel,
+.service-runtime-panel,
+.service-schedules-panel {
   min-width: 0;
 }
 
 .history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.assets-list {
   display: grid;
   gap: 12px;
 }
@@ -639,7 +662,25 @@ body {
   font: inherit;
 }
 
+.assets-list-item {
+  width: 100%;
+  padding: 18px;
+  border-radius: 18px;
+  text-align: left;
+  color: #d9e3ec;
+  cursor: pointer;
+  font: inherit;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(9, 18, 31, 0.82);
+  box-shadow: 0 18px 48px rgba(2, 6, 23, 0.2);
+}
+
 .history-list-item p {
+  margin: 8px 0 0;
+  color: #9db0c2;
+}
+
+.assets-list-item p {
   margin: 8px 0 0;
   color: #9db0c2;
 }
@@ -656,6 +697,11 @@ body {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(37, 99, 235, 0.18));
 }
 
+.assets-list-item-active {
+  border-color: rgba(125, 211, 252, 0.34);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(37, 99, 235, 0.18));
+}
+
 .history-detail-card,
 .history-empty-state,
 .history-side-card {
@@ -665,6 +711,20 @@ body {
 
 .history-side-card {
   margin-top: 16px;
+}
+
+.assets-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: #d9e3ec;
+}
+
+.assets-panel-header span {
+  color: #91a5b8;
+  font-size: 0.92rem;
 }
 
 .history-side-card h3 {
@@ -744,7 +804,11 @@ body {
 @media (max-width: 1180px) {
   .dashboard-hero,
   .dashboard-layout,
-  .history-workspace {
+  .history-workspace,
+  .runner-workspace,
+  .reports-workspace,
+  .assets-workspace,
+  .service-workspace {
     grid-template-columns: 1fr;
   }
 
