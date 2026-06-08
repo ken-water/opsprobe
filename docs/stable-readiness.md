@@ -122,6 +122,7 @@ These gaps already exist and must not stay implicit during the `1.0.0` decision:
 - desktop end-to-end coverage is still thin for crash recovery, first-run repair, and upgrade continuity, but `0.10.2` now includes automated evidence for malformed file-storage recovery, malformed status-file recovery, stale PID cleanup, and stopped-state continuity; see Issue 52
 - rebound credentials now require explicit SSH validation before recurring schedules can resume, but the overall recovery UX still needs broader pre-stable review; see Issue 51
 - local runtime supervision is still process-based and best-effort rather than a hardened cross-platform service-manager integration; see Issue 53
+- `0.10.3` should at minimum keep start, stop, restart, and recovery guidance explicit in both status output and operator-facing docs even if a full supervisor is deferred; see Issue 53
 
 Each gap needs one of these dispositions:
 

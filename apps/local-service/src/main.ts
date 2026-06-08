@@ -176,6 +176,70 @@ async function buildStatusResponse(
   const health = await bootstrap.ensureRuntime();
   const scheduleSummary = await scheduleStore.summarizeFailures();
   const failedScheduleLabels = scheduleSummary.failedSchedules.slice(0, 3).map((item) => item.asset.name).join(", ");
+  const recoveryActions: LocalServiceStatusResponse["snapshot"]["recoveryActions"] = [];
+  const serviceProcessCheck = health.checks.find((check) => check.id === "service.process");
+  const bootstrapCheck = health.checks.find((check) => check.id === "service.bootstrap");
+  const postgresDataDirCheck = health.checks.find((check) => check.id === "postgres.data_dir");
+  const sshCheck = health.checks.find((check) => check.id === "local.binary.ssh");
+  const reportDirCheck = health.checks.find((check) => check.id === "local.report_dir");
+
+  if (mode !== "ready") {
+    recoveryActions.push({
+      id: "service.start-or-restart",
+      label: mode === "stopped" ? "Start local service" : "Restart local service",
+      detail:
+        mode === "stopped"
+          ? "Use Start Service to launch the background local service before expecting schedules or service-owned runs."
+          : "Use Restart Service to rebuild the local-service process, refresh runtime markers, and re-check managed PostgreSQL state.",
+    });
+  }
+
+  if (bootstrapCheck?.status === "critical" || postgresDataDirCheck?.status === "warning") {
+    recoveryActions.push({
+      id: "postgres.bootstrap",
+      label: "Bootstrap managed PostgreSQL",
+      detail:
+        "Initialize the dedicated OpsProbe PostgreSQL data directory, then start PostgreSQL again so runtime data can move onto the managed store.",
+    });
+  }
+
+  if (serviceProcessCheck?.status !== "pass" && mode === "ready") {
+    recoveryActions.push({
+      id: "service.reconcile",
+      label: "Reconcile service runtime markers",
+      detail:
+        "The service was expected to be ready, but the process check disagrees. Restart the local service so PID and status markers are rebuilt cleanly.",
+    });
+  }
+
+  if (sshCheck?.status === "critical") {
+    recoveryActions.push({
+      id: "ssh.install",
+      label: "Install SSH client tooling",
+      detail:
+        "Install `ssh` before testing credentials or running inspections from this machine. Password-based connections also need `sshpass` if you want password mode.",
+    });
+  }
+
+  if (reportDirCheck?.status === "critical") {
+    recoveryActions.push({
+      id: "report-dir.repair",
+      label: "Repair report directory permissions",
+      detail:
+        `Fix write access under ${config.paths.reportDir} so report export and related smoke paths can complete successfully.`,
+    });
+  }
+
+  if (scheduleSummary.failedSchedules.length > 0) {
+    recoveryActions.push({
+      id: "schedule.failures.review",
+      label: "Review failed schedules",
+      detail:
+        scheduleSummary.failedSchedules.length === 1
+          ? `Inspect the latest saved error for ${scheduleSummary.failedSchedules[0]?.asset.name} before re-enabling unattended runs.`
+          : `Inspect the latest saved errors for ${scheduleSummary.failedSchedules.length} schedules before trusting unattended runs again.`,
+    });
+  }
 
   return {
     ok: true,
@@ -217,6 +281,7 @@ async function buildStatusResponse(
           },
         ],
       },
+      recoveryActions,
     },
   };
 }
@@ -272,16 +337,11 @@ async function readJsonStdin<T>(): Promise<T> {
   return JSON.parse(raw) as T;
 }
 
-async function stopCommand() {
+async function stopServiceRuntime() {
   if (!existsSync(config.paths.servicePidFile)) {
     await ensureRuntimeDirs();
     await writeStatusFile("stopped");
-    const response: LocalServiceCommandResponse = {
-      ok: true,
-      message: "Local service is already stopped.",
-    };
-    process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
-    return;
+    return "Local service is already stopped.";
   }
 
   const pid = Number((await readFile(config.paths.servicePidFile, "utf8")).trim());
@@ -303,9 +363,27 @@ async function stopCommand() {
   await writeStatusFile("stopped");
   await rm(config.paths.servicePidFile, { force: true });
 
+  return "Local service stop signal sent. Run status or Start Service again to confirm recovery state.";
+}
+
+async function stopCommand() {
+  const message = await stopServiceRuntime();
+
   const response: LocalServiceCommandResponse = {
     ok: true,
-    message: "Local service stop signal sent.",
+    message,
+  };
+  process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
+}
+
+async function restartCommand() {
+  await stopServiceRuntime();
+  await ensureRuntimeDirs();
+
+  const response: LocalServiceCommandResponse = {
+    ok: true,
+    message:
+      "Local service restart prepared. Start Service again to launch a fresh background process with rebuilt runtime markers.",
   };
   process.stdout.write(`${JSON.stringify(response, null, 2)}\n`);
 }
@@ -401,6 +479,11 @@ async function main() {
 
   if (mode === "stop") {
     await stopCommand();
+    return;
+  }
+
+  if (mode === "restart") {
+    await restartCommand();
     return;
   }
 

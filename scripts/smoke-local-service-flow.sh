@@ -43,6 +43,35 @@ printf '%s' "$assets_json" | node --input-type=module -e '
   });
 '
 
+stopped_status_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts status)"
+printf '%s' "$stopped_status_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    const actionIds = response.snapshot?.recoveryActions?.map((action) => action.id) ?? [];
+    if (!response.ok || !["starting", "degraded", "error", "stopped"].includes(response.snapshot?.status) || !actionIds.includes("service.start-or-restart")) {
+      process.exit(1);
+    }
+  });
+'
+
+restart_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts restart)"
+printf '%s' "$restart_json" | node --input-type=module -e '
+  let raw = "";
+  process.stdin.on("data", (chunk) => {
+    raw += chunk;
+  });
+  process.stdin.on("end", () => {
+    const response = JSON.parse(raw);
+    if (!response.ok || !String(response.message).includes("Start Service again")) {
+      process.exit(1);
+    }
+  });
+'
+
 preview_json="$(HOME="$tmp_home" node --experimental-strip-types ./apps/local-service/src/main.ts inspect-preview <<'EOF'
 {
   "asset": {

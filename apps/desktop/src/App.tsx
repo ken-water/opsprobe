@@ -643,6 +643,20 @@ function App() {
     }
   }
 
+  async function handleRestartLocalService() {
+    setIsRefreshingService(true);
+    setServiceMessage(null);
+    try {
+      const response = await invoke<LocalServiceCommandResponse>("restart_local_service");
+      setServiceMessage(response.message);
+      await refreshLocalServiceHealth();
+    } catch (error) {
+      setServiceMessage(formatActionError("Restarting local service", error));
+    } finally {
+      setIsRefreshingService(false);
+    }
+  }
+
   async function handleBootstrapLocalPostgres() {
     setIsRefreshingService(true);
     setServiceMessage(null);
@@ -1715,6 +1729,13 @@ function App() {
             </button>
             <button
               className="secondary-button"
+              onClick={() => void handleRestartLocalService()}
+              type="button"
+            >
+              Restart Service
+            </button>
+            <button
+              className="secondary-button"
               onClick={() => void handleBootstrapLocalPostgres()}
               type="button"
             >
@@ -1771,6 +1792,20 @@ function App() {
         )}
 
         {serviceMessage ? <p className="helper-text">{serviceMessage}</p> : null}
+
+        {serviceResponse?.snapshot.recoveryActions.length ? (
+          <div className="service-checks">
+            {serviceResponse.snapshot.recoveryActions.map((action) => (
+              <article className="service-card" key={action.id}>
+                <div className="service-card-header">
+                  <strong>{action.label}</strong>
+                  <span className="badge badge-warning">recovery</span>
+                </div>
+                <p>{action.detail}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="run-panel">

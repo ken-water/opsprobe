@@ -160,6 +160,20 @@ describe("local-service CLI functional flow", () => {
     expect(stopResponse.message).toContain("already stopped");
     expect(statusResponse.ok).toBe(true);
     expect(statusResponse.snapshot.status).toBe("stopped");
+    expect(statusResponse.snapshot.recoveryActions.map((action) => action.id)).toContain("service.start-or-restart");
+  });
+
+  it("prepares a clean restart path and returns explicit recovery guidance", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "opsprobe-functional-cli-"));
+    cleanupPaths.push(homeDir);
+
+    const restartResponse = await runLocalServiceCommand<LocalServiceCommandResponse>(homeDir, "restart");
+    const statusResponse = await runLocalServiceCommand<LocalServiceStatusResponse>(homeDir, "status");
+
+    expect(restartResponse.ok).toBe(true);
+    expect(restartResponse.message).toContain("Start Service again");
+    expect(statusResponse.ok).toBe(true);
+    expect(statusResponse.snapshot.recoveryActions.map((action) => action.id)).toContain("service.start-or-restart");
   });
 
   it("recovers from malformed file-backed storage and allows a fresh asset save afterward", async () => {

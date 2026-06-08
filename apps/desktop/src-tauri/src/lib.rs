@@ -307,6 +307,11 @@ fn stop_local_service() -> Result<Value, String> {
 }
 
 #[tauri::command]
+fn restart_local_service() -> Result<Value, String> {
+    run_local_service_json_command("restart", None, "local service restart command")
+}
+
+#[tauri::command]
 fn bootstrap_local_service_postgres() -> Result<Value, String> {
     run_local_service_json_command(
         "postgres-bootstrap",
@@ -2964,6 +2969,7 @@ pub fn run() {
             get_local_service_status,
             start_local_service,
             stop_local_service,
+            restart_local_service,
             bootstrap_local_service_postgres,
             start_local_service_postgres,
             stop_local_service_postgres,

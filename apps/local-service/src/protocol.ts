@@ -7,6 +7,11 @@ export interface LocalServiceRuntimeSnapshot {
   status: LocalServiceStatus;
   config: LocalServiceConfig;
   health: LocalServiceHealth;
+  recoveryActions: Array<{
+    id: string;
+    label: string;
+    detail: string;
+  }>;
 }
 
 export interface LocalServiceStatusResponse {
