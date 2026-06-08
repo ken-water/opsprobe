@@ -316,14 +316,16 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   await nav.getByRole("button", { name: "System Settings" }).click();
 
   await expect(page.getByRole("heading", { name: "System Settings", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "First-Run Wizard", level: 2 })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Start Service|Open Assets & Strategy/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Demo Data Loaded" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Switch to Real Setup" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Switch to Real Setup" }).last()).toBeVisible();
 
-  await page.getByRole("button", { name: "Switch to Real Setup" }).click();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
   await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
   await expect(page.getByText("Real setup mode is active")).toBeVisible();
 
-  await page.getByRole("button", { name: "Explore Demo Data" }).click();
+  await page.getByRole("button", { name: "Explore Demo Data" }).last().click();
   await expect(page.getByRole("button", { name: "Demo Data Loaded" })).toBeVisible();
 });
 
@@ -338,7 +340,7 @@ test("switches report audience and exports the selected history run with visible
   await expect(reportsPanel.getByText("manager", { exact: true })).toBeVisible();
 
   await nav.getByRole("button", { name: "System Settings" }).click();
-  await page.getByRole("button", { name: "Switch to Real Setup" }).click();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
   await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
 
   await nav.getByRole("button", { name: "Inspection Results" }).click();
@@ -375,7 +377,7 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
   const nav = page.getByRole("navigation", { name: "Primary" });
 
   await nav.getByRole("button", { name: "System Settings" }).click();
-  await page.getByRole("button", { name: "Switch to Real Setup" }).click();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
   await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
 
   await nav.getByRole("button", { name: "Assets & Strategy" }).click();

@@ -1625,6 +1625,7 @@ function App() {
                 sshMessage={sshResult?.message ?? null}
                 onEnterDemoMode={handleEnterDemoMode}
                 onSwitchToRealSetup={handleSwitchToRealSetup}
+                onOpenAssetsStrategy={() => handleWorkspaceChange("assets-strategy")}
               />
             </>
           ) : null}

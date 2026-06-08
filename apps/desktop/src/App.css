@@ -1190,6 +1190,32 @@ body {
   box-shadow: var(--ops-shadow-soft);
 }
 
+.wizard-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.wizard-step-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(11, 21, 34, 0.92), rgba(10, 18, 30, 0.78));
+}
+
+.wizard-step-card-done {
+  border-color: rgba(74, 222, 128, 0.18);
+  background: linear-gradient(180deg, rgba(12, 30, 25, 0.9), rgba(10, 24, 20, 0.76));
+}
+
+.wizard-step-card p {
+  margin: 0;
+  color: var(--ops-text-muted);
+  line-height: 1.65;
+}
+
 .workflow-step-header {
   display: flex;
   justify-content: space-between;

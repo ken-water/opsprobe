@@ -30,6 +30,7 @@ interface SetupWorkspaceProps {
   sshMessage: string | null;
   onEnterDemoMode: () => void;
   onSwitchToRealSetup: () => void;
+  onOpenAssetsStrategy: () => void;
 }
 
 export function SetupWorkspace({
@@ -44,9 +45,107 @@ export function SetupWorkspace({
   sshMessage,
   onEnterDemoMode,
   onSwitchToRealSetup,
+  onOpenAssetsStrategy,
 }: SetupWorkspaceProps) {
+  const currentSetupItem = firstRunChecklist.find((item) => !item.done) ?? null;
+  const wizardSteps = [
+    {
+      id: "mode",
+      label: "Choose workspace mode",
+      done: true,
+      detail: showingDemoExperience
+        ? "Demo mode is available for safe exploration before using real hosts."
+        : "Real mode is active so you can start configuring actual assets.",
+    },
+    ...firstRunChecklist.map((item) => ({
+      id: item.id,
+      label: item.label,
+      done: item.done,
+      detail: item.detail,
+    })),
+  ];
+
   return (
     <>
+      <section className="run-panel">
+        <DesktopSectionHeader
+          eyebrow="System Settings"
+          title="First-Run Wizard"
+          subtitle="Complete the first usable local setup in a guided order instead of jumping across pages."
+          meta={
+            <div className="summary-strip">
+              <span>{completedSetupSteps}/{firstRunChecklist.length} local checks complete</span>
+              <span>{showingDemoExperience ? "demo mode ready" : "real mode active"}</span>
+            </div>
+          }
+        />
+
+        <div className="workflow-stack">
+          <section className="workflow-step-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">Recommended Next Step</span>
+                <strong>{currentSetupItem?.label ?? "Local setup looks ready"}</strong>
+              </div>
+              <span className={`badge badge-${currentSetupItem ? "warning" : "pass"}`}>
+                {currentSetupItem ? "next action" : "ready"}
+              </span>
+            </div>
+
+            <p className="helper-text">
+              {currentSetupItem?.detail ??
+                "The local runtime, report directory, and asset prerequisites are in place. You can move to Assets & Strategy and start real inspection setup."}
+            </p>
+
+            <div className="service-actions">
+              {currentSetupItem?.action ? (
+                <button className="primary-button" onClick={currentSetupItem.action} type="button">
+                  {currentSetupItem.actionLabel}
+                </button>
+              ) : (
+                <button className="primary-button" onClick={onOpenAssetsStrategy} type="button">
+                  Open Assets & Strategy
+                </button>
+              )}
+              <button
+                className={showingDemoExperience ? "secondary-button" : "primary-button"}
+                onClick={showingDemoExperience ? onSwitchToRealSetup : onEnterDemoMode}
+                type="button"
+              >
+                {showingDemoExperience ? "Switch to Real Setup" : "Explore Demo Data"}
+              </button>
+              <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
+                Configure Assets
+              </button>
+            </div>
+          </section>
+
+          <section className="workflow-step-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">Wizard Progress</span>
+                <strong>Step-by-step onboarding path</strong>
+              </div>
+              <span className="badge badge-unknown">{wizardSteps.length} steps</span>
+            </div>
+
+            <div className="wizard-progress-grid">
+              {wizardSteps.map((step, index) => (
+                <article className={`wizard-step-card ${step.done ? "wizard-step-card-done" : ""}`} key={step.id}>
+                  <div className="service-card-header">
+                    <strong>{index + 1}. {step.label}</strong>
+                    <span className={`badge badge-${step.done ? "pass" : "warning"}`}>
+                      {step.done ? "done" : "todo"}
+                    </span>
+                  </div>
+                  <p>{step.detail}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+      </section>
+
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="System Settings"
