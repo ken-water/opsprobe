@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import type { Asset, InspectionRun } from "@opsprobe/core";
 import { buildSingleRunReportView, type ReportAudience, type ReportCheckView } from "@opsprobe/report";
+import { invokeDesktop } from "./tauri-client";
 
 async function loadPdfRuntime() {
   const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
@@ -174,7 +174,7 @@ export async function exportRunPdfReport(
 
   const blob = doc.output("blob");
   const base64Data = await blobToBase64(blob);
-  await invoke<string>("save_export_file", {
+  await invokeDesktop<string>("save_export_file", {
     input: {
       path,
       base64Data,

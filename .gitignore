@@ -3,6 +3,8 @@ dist/
 target/
 .DS_Store
 *.log
+playwright-report/
+test-results/
 apps/desktop/node_modules/
 apps/desktop/dist/
 apps/desktop/src-tauri/target/

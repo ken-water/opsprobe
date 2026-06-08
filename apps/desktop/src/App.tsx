@@ -1,5 +1,4 @@
 import { startTransition, useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import {
   builtInInspectionTemplateDefinitions,
   resolveTemplateChecks,
@@ -37,6 +36,7 @@ import { RunnerWorkspace } from "./components/RunnerWorkspace";
 import { AssetsWorkspace } from "./components/AssetsWorkspace";
 import { ServiceWorkspace } from "./components/ServiceWorkspace";
 import { HistoryWorkspace } from "./components/HistoryWorkspace";
+import { invokeDesktop } from "./tauri-client";
 
 const initialAsset: Asset = {
   id: "asset-linux-001",
@@ -322,7 +322,7 @@ const demoRuns: InspectionRun[] = [
 
 class TauriRunnerAdapter {
   async testConnection(asset: Asset): Promise<SshConnectionTestResult> {
-    return invoke<SshConnectionTestResult>("test_ssh_connection", {
+    return invokeDesktop<SshConnectionTestResult>("test_ssh_connection", {
       input: {
         host: asset.host,
         port: asset.port,
@@ -335,7 +335,7 @@ class TauriRunnerAdapter {
 
   async executeCheck(asset: Asset, check: CheckDefinition): Promise<CheckResult> {
     try {
-      return await invoke<CheckResult>("run_linux_check", {
+      return await invokeDesktop<CheckResult>("run_linux_check", {
         input: {
           host: asset.host,
           port: asset.port,
@@ -422,7 +422,7 @@ function App() {
   const activeTemplate = builtInTemplates.find((template) => template.id === selectedTemplateId) ?? defaultTemplate;
   const activeChecks = resolveTemplateChecks(activeTemplate.id);
   const hasRealData = savedAssets.length > 0 || serviceHistoryRuns.length > 0 || schedules.length > 0;
-  const showingDemoExperience = !hasRealData && onboardingMode === "demo";
+  const showingDemoExperience = onboardingMode === "demo";
   const visibleHistoryRuns = showingDemoExperience ? demoRuns : serviceHistoryRuns;
 
   const task: InspectionTask = {
@@ -469,7 +469,7 @@ function App() {
     }
 
     const timer = window.setTimeout(() => {
-      void invoke<LocalDesktopSettingsResponse>("upsert_local_service_settings", {
+      void invokeDesktop<LocalDesktopSettingsResponse>("upsert_local_service_settings", {
         input: {
           settings: {
             activeAsset: asset,
@@ -553,7 +553,7 @@ function App() {
 
   async function loadInitialState() {
     try {
-      const settingsResponse = await invoke<LocalDesktopSettingsResponse>("get_local_service_settings");
+      const settingsResponse = await invokeDesktop<LocalDesktopSettingsResponse>("get_local_service_settings");
       const restoredSettings = settingsResponse.settings;
 
       if (restoredSettings.activeAsset) {
@@ -636,7 +636,7 @@ function App() {
   async function refreshLocalServiceHealth() {
     setIsRefreshingService(true);
     try {
-      const response = await invoke<LocalServiceStatusResponse>("get_local_service_status");
+      const response = await invokeDesktop<LocalServiceStatusResponse>("get_local_service_status");
       setServiceResponse(response);
     } catch (error) {
       setServiceResponse(null);
@@ -650,7 +650,7 @@ function App() {
     setIsRefreshingService(true);
     setServiceMessage(null);
     try {
-      const message = await invoke<string>("start_local_service");
+      const message = await invokeDesktop<string>("start_local_service");
       setServiceMessage(message);
       await refreshLocalServiceHealth();
     } catch (error) {
@@ -664,7 +664,7 @@ function App() {
     setIsRefreshingService(true);
     setServiceMessage(null);
     try {
-      const response = await invoke<LocalServiceCommandResponse>("stop_local_service");
+      const response = await invokeDesktop<LocalServiceCommandResponse>("stop_local_service");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
     } catch (error) {
@@ -678,7 +678,7 @@ function App() {
     setIsRefreshingService(true);
     setServiceMessage(null);
     try {
-      const response = await invoke<LocalServiceCommandResponse>("restart_local_service");
+      const response = await invokeDesktop<LocalServiceCommandResponse>("restart_local_service");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
     } catch (error) {
@@ -692,7 +692,7 @@ function App() {
     setIsRefreshingService(true);
     setServiceMessage(null);
     try {
-      const response = await invoke<LocalServiceCommandResponse>("bootstrap_local_service_postgres");
+      const response = await invokeDesktop<LocalServiceCommandResponse>("bootstrap_local_service_postgres");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
     } catch (error) {
@@ -706,7 +706,7 @@ function App() {
     setIsRefreshingService(true);
     setServiceMessage(null);
     try {
-      const response = await invoke<LocalServiceCommandResponse>("start_local_service_postgres");
+      const response = await invokeDesktop<LocalServiceCommandResponse>("start_local_service_postgres");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
     } catch (error) {
@@ -720,7 +720,7 @@ function App() {
     setIsRefreshingService(true);
     setServiceMessage(null);
     try {
-      const response = await invoke<LocalServiceCommandResponse>("stop_local_service_postgres");
+      const response = await invokeDesktop<LocalServiceCommandResponse>("stop_local_service_postgres");
       setServiceMessage(response.message);
       await refreshLocalServiceHealth();
     } catch (error) {
@@ -754,7 +754,7 @@ function App() {
     setIsRefreshingServicePreview(true);
 
     try {
-      const response = await invoke<InspectionPreviewResponse>("get_local_service_inspection_preview", {
+      const response = await invokeDesktop<InspectionPreviewResponse>("get_local_service_inspection_preview", {
         input: {
           asset,
           templateId: activeTemplate.id,
@@ -772,7 +772,7 @@ function App() {
     setIsRunningServiceInspection(true);
 
     try {
-      const response = await invoke<InspectionExecutionResponse>("run_local_service_inspection", {
+      const response = await invokeDesktop<InspectionExecutionResponse>("run_local_service_inspection", {
         input: {
           asset,
           templateId: activeTemplate.id,
@@ -798,7 +798,7 @@ function App() {
       const assetId = filters?.assetId ?? historyAssetFilter;
       const dateFrom = filters?.dateFrom ?? historyDateFrom;
       const dateTo = filters?.dateTo ?? historyDateTo;
-      const response = await invoke<LocalServiceInspectionHistoryResponse>(
+      const response = await invokeDesktop<LocalServiceInspectionHistoryResponse>(
         "get_local_service_inspection_history",
         {
           input: {
@@ -832,7 +832,7 @@ function App() {
     setIsRefreshingSchedules(true);
 
     try {
-      const response = await invoke<LocalInspectionScheduleListResponse>("get_local_service_schedules");
+      const response = await invokeDesktop<LocalInspectionScheduleListResponse>("get_local_service_schedules");
       setSchedules(response.schedules);
     } catch (error) {
       setServiceMessage(formatActionError("Refreshing local schedules", error));
@@ -845,7 +845,7 @@ function App() {
     setIsRefreshingAssets(true);
 
     try {
-      const response = await invoke<LocalAssetListResponse>("get_local_service_assets");
+      const response = await invokeDesktop<LocalAssetListResponse>("get_local_service_assets");
       setSavedAssets(response.assets);
     } catch (error) {
       setServiceMessage(formatActionError("Refreshing saved assets", error));
@@ -867,7 +867,7 @@ function App() {
         },
       };
       setAsset(assetToSave);
-      const response = await invoke<LocalServiceCommandResponse>("upsert_local_service_asset", {
+      const response = await invokeDesktop<LocalServiceCommandResponse>("upsert_local_service_asset", {
         input: {
           asset: assetToSave,
         },
@@ -893,7 +893,7 @@ function App() {
     setServiceMessage(null);
 
     try {
-      const response = await invoke<LocalServiceCommandResponse>("export_local_service_config", {
+      const response = await invokeDesktop<LocalServiceCommandResponse>("export_local_service_config", {
         input: {
           path: migrationPath,
         },
@@ -909,7 +909,7 @@ function App() {
     setServiceMessage(null);
 
     try {
-      const response = await invoke<LocalConfigImportResponse>("import_local_service_config", {
+      const response = await invokeDesktop<LocalConfigImportResponse>("import_local_service_config", {
         input: {
           path: migrationPath,
         },
@@ -946,7 +946,7 @@ function App() {
     setServiceMessage(null);
 
     try {
-      const response = await invoke<LocalServiceCommandResponse>("export_local_service_html_report", {
+      const response = await invokeDesktop<LocalServiceCommandResponse>("export_local_service_html_report", {
         input: {
           path: reportPath,
           run,
@@ -977,7 +977,7 @@ function App() {
     setServiceMessage(null);
 
     try {
-      const response = await invoke<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
+      const response = await invokeDesktop<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
         input: {
           asset,
           templateId: activeTemplate.id,
@@ -998,7 +998,7 @@ function App() {
     setServiceMessage(null);
 
     try {
-      const response = await invoke<LocalServiceCommandResponse>("delete_local_service_schedule", {
+      const response = await invokeDesktop<LocalServiceCommandResponse>("delete_local_service_schedule", {
         input: { id },
       });
       setServiceMessage(response.message);
@@ -1014,7 +1014,7 @@ function App() {
     setServiceMessage(null);
 
     try {
-      const response = await invoke<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
+      const response = await invokeDesktop<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
         input: {
           id: schedule.id,
           asset: schedule.asset,
@@ -1151,7 +1151,7 @@ function App() {
     setSshResult(null);
 
     try {
-      const result = await invoke<SshConnectionTestResult>("test_ssh_connection", {
+      const result = await invokeDesktop<SshConnectionTestResult>("test_ssh_connection", {
         input: sshInput,
       });
       setSshResult(result);
@@ -1165,7 +1165,7 @@ function App() {
           updatedAt: new Date().toISOString(),
         };
         setAsset(verifiedAsset);
-        await invoke<LocalServiceCommandResponse>("upsert_local_service_asset", {
+        await invokeDesktop<LocalServiceCommandResponse>("upsert_local_service_asset", {
           input: {
             asset: verifiedAsset,
           },

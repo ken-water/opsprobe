@@ -55,8 +55,8 @@ const { invokeMock } = vi.hoisted(() => ({
   }),
 }));
 
-vi.mock("@tauri-apps/api/core", () => ({
-  invoke: invokeMock,
+vi.mock("./tauri-client", () => ({
+  invokeDesktop: invokeMock,
 }));
 
 vi.mock("./pdf", () => ({
