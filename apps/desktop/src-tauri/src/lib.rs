@@ -2,8 +2,9 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use tauri::Manager;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -183,21 +184,43 @@ struct SaveExportFileInput {
     base64_data: String,
 }
 
+fn local_service_entry(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    #[cfg(debug_assertions)]
+    {
+        let source_entry =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+        if source_entry.exists() {
+            return Ok(source_entry);
+        }
+    }
+
+    let bundled_entry = app
+        .path()
+        .resource_dir()
+        .map_err(|error| format!("Failed to resolve application resource directory: {error}"))?
+        .join("local-service")
+        .join("main.mjs");
+
+    if bundled_entry.exists() {
+        return Ok(bundled_entry);
+    }
+
+    Err(format!(
+        "Bundled local service runtime not found at {}.",
+        bundled_entry.display()
+    ))
+}
+
 fn run_local_service_json_command(
+    app: &tauri::AppHandle,
     mode: &str,
     payload: Option<String>,
     error_prefix: &str,
 ) -> Result<Value, String> {
-    let local_service_entry =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+    let local_service_entry = local_service_entry(app)?;
 
     let mut command = Command::new("node");
-    command
-        .arg("--experimental-strip-types")
-        .arg(local_service_entry)
-        .arg(mode)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped());
+    command.arg(local_service_entry).arg(mode).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped());
 
     if payload.is_some() {
         command.stdin(std::process::Stdio::piped());
@@ -236,12 +259,10 @@ fn run_local_service_json_command(
 }
 
 #[tauri::command]
-fn get_local_service_status() -> Result<Value, String> {
-    let local_service_entry =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+fn get_local_service_status(app: tauri::AppHandle) -> Result<Value, String> {
+    let local_service_entry = local_service_entry(&app)?;
 
     let output = Command::new("node")
-        .arg("--experimental-strip-types")
         .arg(local_service_entry)
         .output()
         .map_err(|error| format!("Failed to execute local service status command: {error}"))?;
@@ -262,12 +283,10 @@ fn get_local_service_status() -> Result<Value, String> {
 }
 
 #[tauri::command]
-fn start_local_service() -> Result<String, String> {
-    let local_service_entry =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+fn start_local_service(app: tauri::AppHandle) -> Result<String, String> {
+    let local_service_entry = local_service_entry(&app)?;
 
     let child = Command::new("node")
-        .arg("--experimental-strip-types")
         .arg(local_service_entry)
         .arg("serve")
         .spawn()
@@ -280,12 +299,10 @@ fn start_local_service() -> Result<String, String> {
 }
 
 #[tauri::command]
-fn stop_local_service() -> Result<Value, String> {
-    let local_service_entry =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../local-service/src/main.ts");
+fn stop_local_service(app: tauri::AppHandle) -> Result<Value, String> {
+    let local_service_entry = local_service_entry(&app)?;
 
     let output = Command::new("node")
-        .arg("--experimental-strip-types")
         .arg(local_service_entry)
         .arg("stop")
         .output()
@@ -307,13 +324,14 @@ fn stop_local_service() -> Result<Value, String> {
 }
 
 #[tauri::command]
-fn restart_local_service() -> Result<Value, String> {
-    run_local_service_json_command("restart", None, "local service restart command")
+fn restart_local_service(app: tauri::AppHandle) -> Result<Value, String> {
+    run_local_service_json_command(&app, "restart", None, "local service restart command")
 }
 
 #[tauri::command]
-fn bootstrap_local_service_postgres() -> Result<Value, String> {
+fn bootstrap_local_service_postgres(app: tauri::AppHandle) -> Result<Value, String> {
     run_local_service_json_command(
+        &app,
         "postgres-bootstrap",
         None,
         "local service postgres bootstrap command",
@@ -321,8 +339,9 @@ fn bootstrap_local_service_postgres() -> Result<Value, String> {
 }
 
 #[tauri::command]
-fn start_local_service_postgres() -> Result<Value, String> {
+fn start_local_service_postgres(app: tauri::AppHandle) -> Result<Value, String> {
     run_local_service_json_command(
+        &app,
         "postgres-start",
         None,
         "local service postgres start command",
@@ -330,18 +349,20 @@ fn start_local_service_postgres() -> Result<Value, String> {
 }
 
 #[tauri::command]
-fn stop_local_service_postgres() -> Result<Value, String> {
-    run_local_service_json_command("postgres-stop", None, "local service postgres stop command")
+fn stop_local_service_postgres(app: tauri::AppHandle) -> Result<Value, String> {
+    run_local_service_json_command(&app, "postgres-stop", None, "local service postgres stop command")
 }
 
 #[tauri::command]
 fn get_local_service_inspection_preview(
+    app: tauri::AppHandle,
     input: LocalServiceInspectionPreviewInput,
 ) -> Result<Value, String> {
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service preview input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "inspect-preview",
         Some(payload),
         "local service preview command",
@@ -350,12 +371,14 @@ fn get_local_service_inspection_preview(
 
 #[tauri::command]
 fn run_local_service_inspection(
+    app: tauri::AppHandle,
     input: LocalServiceInspectionPreviewInput,
 ) -> Result<Value, String> {
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service run input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "inspect-run",
         Some(payload),
         "local service inspection command",
@@ -364,6 +387,7 @@ fn run_local_service_inspection(
 
 #[tauri::command]
 fn get_local_service_inspection_history(
+    app: tauri::AppHandle,
     input: Option<LocalServiceInspectionHistoryInput>,
 ) -> Result<Value, String> {
     let payload = input
@@ -372,6 +396,7 @@ fn get_local_service_inspection_history(
         .map_err(|error| format!("Failed to serialize local service history input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "inspection-history",
         payload,
         "local service inspection history command",
@@ -379,8 +404,9 @@ fn get_local_service_inspection_history(
 }
 
 #[tauri::command]
-fn get_local_service_schedules() -> Result<Value, String> {
+fn get_local_service_schedules(app: tauri::AppHandle) -> Result<Value, String> {
     run_local_service_json_command(
+        &app,
         "schedules-list",
         None,
         "local service schedules list command",
@@ -388,11 +414,15 @@ fn get_local_service_schedules() -> Result<Value, String> {
 }
 
 #[tauri::command]
-fn upsert_local_service_schedule(input: LocalServiceScheduleUpsertInput) -> Result<Value, String> {
+fn upsert_local_service_schedule(
+    app: tauri::AppHandle,
+    input: LocalServiceScheduleUpsertInput,
+) -> Result<Value, String> {
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service schedule input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "schedules-upsert",
         Some(payload),
         "local service schedule upsert command",
@@ -400,12 +430,16 @@ fn upsert_local_service_schedule(input: LocalServiceScheduleUpsertInput) -> Resu
 }
 
 #[tauri::command]
-fn delete_local_service_schedule(input: LocalServiceScheduleDeleteInput) -> Result<Value, String> {
+fn delete_local_service_schedule(
+    app: tauri::AppHandle,
+    input: LocalServiceScheduleDeleteInput,
+) -> Result<Value, String> {
     let payload = serde_json::to_string(&input).map_err(|error| {
         format!("Failed to serialize local service schedule delete input: {error}")
     })?;
 
     run_local_service_json_command(
+        &app,
         "schedules-delete",
         Some(payload),
         "local service schedule delete command",
@@ -413,16 +447,20 @@ fn delete_local_service_schedule(input: LocalServiceScheduleDeleteInput) -> Resu
 }
 
 #[tauri::command]
-fn get_local_service_assets() -> Result<Value, String> {
-    run_local_service_json_command("assets-list", None, "local service assets list command")
+fn get_local_service_assets(app: tauri::AppHandle) -> Result<Value, String> {
+    run_local_service_json_command(&app, "assets-list", None, "local service assets list command")
 }
 
 #[tauri::command]
-fn upsert_local_service_asset(input: LocalServiceAssetUpsertInput) -> Result<Value, String> {
+fn upsert_local_service_asset(
+    app: tauri::AppHandle,
+    input: LocalServiceAssetUpsertInput,
+) -> Result<Value, String> {
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service asset input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "assets-upsert",
         Some(payload),
         "local service asset upsert command",
@@ -430,16 +468,20 @@ fn upsert_local_service_asset(input: LocalServiceAssetUpsertInput) -> Result<Val
 }
 
 #[tauri::command]
-fn get_local_service_settings() -> Result<Value, String> {
-    run_local_service_json_command("settings-get", None, "local service settings get command")
+fn get_local_service_settings(app: tauri::AppHandle) -> Result<Value, String> {
+    run_local_service_json_command(&app, "settings-get", None, "local service settings get command")
 }
 
 #[tauri::command]
-fn upsert_local_service_settings(input: LocalServiceSettingsUpsertInput) -> Result<Value, String> {
+fn upsert_local_service_settings(
+    app: tauri::AppHandle,
+    input: LocalServiceSettingsUpsertInput,
+) -> Result<Value, String> {
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service settings input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "settings-upsert",
         Some(payload),
         "local service settings upsert command",
@@ -447,11 +489,15 @@ fn upsert_local_service_settings(input: LocalServiceSettingsUpsertInput) -> Resu
 }
 
 #[tauri::command]
-fn export_local_service_config(input: LocalServiceFilePathInput) -> Result<Value, String> {
+fn export_local_service_config(
+    app: tauri::AppHandle,
+    input: LocalServiceFilePathInput,
+) -> Result<Value, String> {
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service export path input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "config-export",
         Some(payload),
         "local service config export command",
@@ -459,11 +505,15 @@ fn export_local_service_config(input: LocalServiceFilePathInput) -> Result<Value
 }
 
 #[tauri::command]
-fn import_local_service_config(input: LocalServiceFilePathInput) -> Result<Value, String> {
+fn import_local_service_config(
+    app: tauri::AppHandle,
+    input: LocalServiceFilePathInput,
+) -> Result<Value, String> {
     let payload = serde_json::to_string(&input)
         .map_err(|error| format!("Failed to serialize local service import path input: {error}"))?;
 
     run_local_service_json_command(
+        &app,
         "config-import",
         Some(payload),
         "local service config import command",
@@ -472,6 +522,7 @@ fn import_local_service_config(input: LocalServiceFilePathInput) -> Result<Value
 
 #[tauri::command]
 fn export_local_service_html_report(
+    app: tauri::AppHandle,
     input: LocalServiceHtmlReportExportInput,
 ) -> Result<Value, String> {
     let payload = serde_json::to_string(&input).map_err(|error| {
@@ -479,6 +530,7 @@ fn export_local_service_html_report(
     })?;
 
     run_local_service_json_command(
+        &app,
         "report-export-html",
         Some(payload),
         "local service HTML report export command",

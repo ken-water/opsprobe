@@ -4,6 +4,7 @@
   "version": "0.3.0-dev",
   "type": "module",
   "scripts": {
+    "build:bundle": "node ./scripts/build-bundle.mjs",
     "postgres-bootstrap": "node --experimental-strip-types ./src/main.ts postgres-bootstrap",
     "postgres-start": "node --experimental-strip-types ./src/main.ts postgres-start",
     "postgres-stop": "node --experimental-strip-types ./src/main.ts postgres-stop",
@@ -13,6 +14,9 @@
     "serve": "node --experimental-strip-types ./src/main.ts serve",
     "status": "node --experimental-strip-types ./src/main.ts status",
     "stop": "node --experimental-strip-types ./src/main.ts stop"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9"
   },
   "exports": {
     ".": "./src/index.ts"

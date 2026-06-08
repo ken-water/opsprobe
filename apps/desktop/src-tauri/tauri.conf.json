@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm --prefix ../.. --workspace @opsprobe/local-service run build:bundle && npm run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -25,6 +25,9 @@
   },
   "bundle": {
     "active": true,
+    "resources": [
+      "resources/local-service/main.mjs"
+    ],
     "targets": [
       "nsis",
       "deb",

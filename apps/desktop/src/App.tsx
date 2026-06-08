@@ -1257,7 +1257,6 @@ function App() {
           </div>
           <p className="sidebar-kicker">OpsProbe</p>
           <h1>Desktop Console</h1>
-          <p className="sidebar-copy">Local-first inspection workspace for operators, not a browser landing page.</p>
         </div>
 
         <nav className="sidebar-nav" aria-label="Primary">
@@ -1274,7 +1273,6 @@ function App() {
                     aria-busy={pendingWorkspace === section.id}
                   >
                     <span className="sidebar-link-label">{section.label}</span>
-                    <span className="sidebar-link-copy">{section.description}</span>
                     {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
                   </button>
                 ))}
