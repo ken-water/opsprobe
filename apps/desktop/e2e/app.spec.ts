@@ -39,6 +39,42 @@ async function installDesktopMock(page: Page) {
         createdAt: "2026-06-04T08:30:00.000Z",
         updatedAt: "2026-06-04T08:30:00.000Z",
       },
+      {
+        id: "history-2",
+        taskId: "task-history-2",
+        assetId: "asset-linux-001",
+        templateId: "template.linux.kubernetes",
+        status: "completed",
+        summary: {
+          total: 2,
+          pass: 0,
+          warning: 1,
+          critical: 1,
+          unknown: 0,
+        },
+        results: [
+          {
+            checkId: "linux.disk.usage",
+            title: "Disk Usage",
+            status: "critical",
+            severity: "critical",
+            summary: "Root filesystem usage is high enough to risk node instability.",
+            evidence: [{ label: "Usage", value: "92.1%" }],
+            remediation: "Free space on the node and review image, log, and container retention settings.",
+          },
+          {
+            checkId: "linux.kubernetes.node.runtime",
+            title: "Kubernetes Node Runtime",
+            status: "warning",
+            severity: "warning",
+            summary: "The node is still using an older cgroup driver.",
+            evidence: [{ label: "Runtime", value: "Runtime=containerd CgroupDriver=cgroupfs" }],
+            remediation: "Align the node runtime with the cluster baseline before the next rollout.",
+          },
+        ],
+        createdAt: "2026-06-04T09:10:00.000Z",
+        updatedAt: "2026-06-04T09:10:00.000Z",
+      },
     ];
 
     (window as Window & {
@@ -155,4 +191,30 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
 
   await page.getByRole("button", { name: "Explore Demo Data" }).click();
   await expect(page.getByRole("button", { name: "Demo Data Loaded" })).toBeVisible();
+});
+
+test("switches report audience and exports the selected history run with visible feedback", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Reports" }).click();
+  const reportsPanel = page.locator(".reports-config-panel");
+  await expect(reportsPanel.getByText("Export Audience")).toBeVisible();
+  await page.getByRole("button", { name: "Use Manager Mode" }).click();
+  await expect(reportsPanel.getByText("manager", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Setup" }).click();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).click();
+  await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
+
+  await page.getByRole("button", { name: "History" }).click();
+  await expect(page.getByRole("heading", { name: "Run History", level: 1 })).toBeVisible();
+  await page.getByRole("button", { name: /history-2/ }).click();
+  const historyDetail = page.locator(".history-detail-card");
+  await expect(historyDetail.getByRole("heading", { name: "Selected Run", level: 3 })).toBeVisible();
+  await expect(historyDetail.getByText(/history-2/)).toBeVisible();
+  await expect(historyDetail.getByText("Disk Usage")).toBeVisible();
+
+  await page.getByRole("button", { name: "Export manager HTML" }).click();
+  await expect(page.getByText("Workspace Update")).toBeVisible();
+  await expect(page.getByText("Exported HTML report.")).toBeVisible();
 });
