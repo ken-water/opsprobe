@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.10.4] - 2026-06-08
+
+### Added
+
+- A `System Settings` readiness summary that tells operators whether the desktop is ready for the first real inspection
+- Grouped repair packs for managed runtime, report exports, local SSH tooling, and recurring-inspection prerequisites
+- Browser UI assertions covering the new first-run readiness and repair surfaces
+
+### Changed
+
+- First-run setup guidance now explains why each repair theme matters and which action should happen next instead of only listing raw checks
+- System Settings now includes explicit refresh and workspace shortcuts from the readiness workflow
+- Release metadata is aligned to `0.10.4` across desktop packaging and repository version files
+
+### Known Limits
+
+- The desktop can now explain environment repair more clearly, but operators still perform package installation, PATH repair, and local permission fixes outside the app
+- Runtime lifecycle control is still process-based and best-effort rather than backed by a hardened service supervisor on each platform
+- `0.10.4` focuses on first-run readiness clarity; clean-machine install evidence and the broader stable-candidate decision remain deferred
+
 ## [0.10.3] - 2026-06-08
 
 ### Added

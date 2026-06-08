@@ -316,8 +316,14 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   await nav.getByRole("button", { name: "System Settings" }).click();
 
   await expect(page.getByRole("heading", { name: "System Settings", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Readiness Summary", level: 2 })).toBeVisible();
+  await expect(page.locator(".readiness-hero-card").getByText("Ready for first real inspection", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Actionable Repair Packs", level: 2 })).toBeVisible();
+  await expect(page.locator(".repair-pack-card").getByText("Managed runtime", { exact: true })).toBeVisible();
+  await expect(page.locator(".repair-pack-card").getByText("Report exports", { exact: true })).toBeVisible();
+  await expect(page.locator(".repair-pack-card").getByText("Local SSH tools", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "First-Run Wizard", level: 2 })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Start Service|Open Assets & Strategy/ })).toBeVisible();
+  await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: /Start Service|Open Assets & Strategy/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Demo Data Loaded" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Switch to Real Setup" }).last()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Minimum Local Setup", level: 2 })).toBeVisible();

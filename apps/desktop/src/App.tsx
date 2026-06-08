@@ -73,6 +73,17 @@ interface TroubleshootingCard {
   actions: string[];
 }
 
+interface RepairPack {
+  id: string;
+  title: string;
+  status: "pass" | "warning" | "critical";
+  summary: string;
+  whyItMatters: string;
+  nextAction: string;
+  actionLabel: string;
+  checks: ServiceHealthCheck[];
+}
+
 function isActionableServiceCheck(
   check: ServiceHealthCheck,
 ): check is ServiceHealthCheck & { status: "warning" | "critical" } {
@@ -239,6 +250,18 @@ function buildSshTroubleshooting(result: SshConnectionTestResult | null, asset: 
     "Review the exact SSH error text above and compare it with a manual `ssh` attempt from the same machine.",
     "If the same failure appears outside OpsProbe, fix the local network, credential, or host-side SSH issue first.",
   ];
+}
+
+function summarizePackStatus(checks: ServiceHealthCheck[]): RepairPack["status"] {
+  if (checks.some((check) => check.status === "critical")) {
+    return "critical";
+  }
+
+  if (checks.some((check) => check.status === "warning")) {
+    return "warning";
+  }
+
+  return "pass";
 }
 
 function createDemoRun(
@@ -1227,6 +1250,59 @@ function App() {
       detail: check.detail,
       actions: buildServiceCheckActions(check, serviceResponse),
     }));
+  const repairPacks: RepairPack[] = [
+    {
+      id: "runtime",
+      title: "Managed runtime",
+      checks: serviceChecks.filter((check) =>
+        [
+          "service.process",
+          "service.bootstrap",
+          "postgres.data_dir",
+          "postgres.port",
+          "postgres.process",
+          "storage.backend",
+        ].includes(check.id) || check.id.startsWith("postgres.binary."),
+      ),
+      summary: "Local service and dedicated PostgreSQL must stay healthy for schedules, saved history, and managed storage.",
+      whyItMatters: "If this pack is degraded, repeated inspections and durable history will be unreliable on this machine.",
+      nextAction:
+        "Start with missing PostgreSQL binaries or port conflicts, then bootstrap or restart the managed runtime and refresh status.",
+      actionLabel: "Recheck Runtime",
+    },
+    {
+      id: "reports",
+      title: "Report exports",
+      checks: serviceChecks.filter((check) => check.id === "local.report_dir"),
+      summary: "Exports need a writable local directory so HTML and PDF reports can be generated without manual repair.",
+      whyItMatters: "Broken report storage means inspection output cannot be handed off cleanly after a run finishes.",
+      nextAction: "Confirm the configured report directory exists, is writable by the desktop user, and then refresh the environment check.",
+      actionLabel: "Recheck Report Path",
+    },
+    {
+      id: "ssh-tools",
+      title: "Local SSH tools",
+      checks: serviceChecks.filter((check) =>
+        ["local.binary.ssh", "local.binary.sshpass"].includes(check.id),
+      ),
+      summary: "OpsProbe depends on the local SSH toolchain to validate credentials and run host checks from the desktop.",
+      whyItMatters: "Without a working SSH client, users cannot trust connectivity tests or real inspection runs.",
+      nextAction: "Install the missing local SSH dependency or switch the asset authentication mode, then retry the environment check.",
+      actionLabel: "Open Asset Setup",
+    },
+    {
+      id: "schedules",
+      title: "Recurring inspections",
+      checks: serviceChecks.filter((check) => check.id === "scheduling.local"),
+      summary: "Recurring jobs need healthy runtime state and valid assets so SMB teams can rely on unattended checks.",
+      whyItMatters: "If this pack is degraded, teams will miss expected evidence collection windows and drift detection.",
+      nextAction: "Open assets and schedules, repair the affected target, and rerun one manual inspection before re-enabling automation.",
+      actionLabel: "Open Assets & Strategy",
+    },
+  ].map((pack) => ({
+    ...pack,
+    status: summarizePackStatus(pack.checks),
+  }));
   const sshTroubleshooting = buildSshTroubleshooting(sshResult, asset);
   const firstRunChecklist = [
     {
@@ -1421,7 +1497,7 @@ function App() {
         </nav>
 
         <div className="sidebar-status">
-          <div className="status-tile">
+          <div className="status-tile" title="0.10.4 Current Release">
             <span className="status-label">Release</span>
             <strong>v0.10.4</strong>
           </div>
@@ -1620,12 +1696,15 @@ function App() {
                 firstRunChecklist={firstRunChecklist}
                 blockingChecks={blockingChecks}
                 warningChecks={warningChecks}
+                repairPacks={repairPacks}
                 troubleshootingCards={troubleshootingCards}
                 sshTroubleshooting={sshTroubleshooting}
                 sshMessage={sshResult?.message ?? null}
                 onEnterDemoMode={handleEnterDemoMode}
                 onSwitchToRealSetup={handleSwitchToRealSetup}
                 onOpenAssetsStrategy={() => handleWorkspaceChange("assets-strategy")}
+                onRefreshEnvironment={() => void refreshLocalServiceHealth()}
+                onOpenInspectionHub={() => handleWorkspaceChange("inspection-hub")}
               />
             </>
           ) : null}

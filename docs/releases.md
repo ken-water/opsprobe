@@ -341,7 +341,7 @@ Exit criteria:
 
 Release approach:
 
-- `0.10.0` through `0.10.3` each close one bounded pre-stable credibility gap
+- `0.10.0` through `0.10.4` each close one bounded pre-stable credibility gap
 - every `0.10.x` release must still ship concrete user-facing trust improvements, not only internal refactors
 - do not resume the `1.0.0` decision until the `0.10.x` line is either complete or explicitly cut short with written justification
 
@@ -351,6 +351,7 @@ Planned checkpoints:
 - `0.10.1`: rebound credential verification before recurring schedules resume
 - `0.10.2`: recovery and upgrade continuity evidence for crash, first-run repair, and upgrade-sensitive flows
 - `0.10.3`: local runtime supervision hardening and honest operator guidance for restart and machine replacement
+- `0.10.4`: post-install readiness summary, grouped repair packs, and stronger desktop UI gates for first-run recovery clarity
 
 Related issues:
 

@@ -126,6 +126,7 @@ Current planned checkpoints:
 - `0.10.1`: credential revalidation before recurring schedules resume
 - `0.10.2`: crash recovery, first-run repair, and upgrade continuity evidence
 - `0.10.3`: local runtime supervision and machine-move trust
+- `0.10.4`: post-install readiness summary and grouped repair guidance
 
 ## Phase 8: Stable-Candidate Evidence
 

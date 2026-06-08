@@ -9,6 +9,17 @@ interface TroubleshootingCard {
   actions: string[];
 }
 
+interface RepairPack {
+  id: string;
+  title: string;
+  status: "pass" | "warning" | "critical";
+  summary: string;
+  whyItMatters: string;
+  nextAction: string;
+  actionLabel: string;
+  checks: LocalServiceStatusResponse["snapshot"]["health"]["checks"];
+}
+
 interface SetupItem {
   id: string;
   label: string;
@@ -25,12 +36,15 @@ interface SetupWorkspaceProps {
   firstRunChecklist: SetupItem[];
   blockingChecks: LocalServiceStatusResponse["snapshot"]["health"]["checks"];
   warningChecks: LocalServiceStatusResponse["snapshot"]["health"]["checks"];
+  repairPacks: RepairPack[];
   troubleshootingCards: TroubleshootingCard[];
   sshTroubleshooting: string[];
   sshMessage: string | null;
   onEnterDemoMode: () => void;
   onSwitchToRealSetup: () => void;
   onOpenAssetsStrategy: () => void;
+  onRefreshEnvironment: () => void;
+  onOpenInspectionHub: () => void;
 }
 
 export function SetupWorkspace({
@@ -40,14 +54,19 @@ export function SetupWorkspace({
   firstRunChecklist,
   blockingChecks,
   warningChecks,
+  repairPacks,
   troubleshootingCards,
   sshTroubleshooting,
   sshMessage,
   onEnterDemoMode,
   onSwitchToRealSetup,
   onOpenAssetsStrategy,
+  onRefreshEnvironment,
+  onOpenInspectionHub,
 }: SetupWorkspaceProps) {
   const currentSetupItem = firstRunChecklist.find((item) => !item.done) ?? null;
+  const readyForRealInspection = completedSetupSteps === firstRunChecklist.length && blockingChecks.length === 0;
+  const repairPacksNeedingAttention = repairPacks.filter((pack) => pack.status !== "pass");
   const wizardSteps = [
     {
       id: "mode",
@@ -67,6 +86,124 @@ export function SetupWorkspace({
 
   return (
     <>
+      <section className="run-panel">
+        <DesktopSectionHeader
+          eyebrow="System Settings"
+          title="Readiness Summary"
+          subtitle="Start from one clear readiness view before touching schedules, exports, or real host inspections."
+          meta={
+            <div className="summary-strip">
+              <span>{readyForRealInspection ? "ready for first real inspection" : "action required before relying on automation"}</span>
+              <span>{repairPacksNeedingAttention.length} repair packs needing attention</span>
+              <span>{blockingChecks.length} blocking checks</span>
+            </div>
+          }
+        />
+
+        <div className="hub-readiness-grid">
+          <article className="service-card readiness-hero-card">
+            <div className="service-card-header">
+              <strong>{readyForRealInspection ? "Ready for first real inspection" : "Local desktop still needs repair"}</strong>
+              <span className={`badge badge-${readyForRealInspection ? "pass" : blockingChecks.length > 0 ? "critical" : "warning"}`}>
+                {readyForRealInspection ? "ready" : blockingChecks.length > 0 ? "blocked" : "attention"}
+              </span>
+            </div>
+            <p>
+              {readyForRealInspection
+                ? "The minimum runtime, report path, and asset prerequisites are in place. Move to Assets & Strategy and save the first production target."
+                : "Use the repair packs below to resolve local runtime, export, or SSH prerequisites before operators depend on repeated inspections."}
+            </p>
+            <div className="service-actions">
+              <button className="primary-button" onClick={readyForRealInspection ? onOpenAssetsStrategy : onRefreshEnvironment} type="button">
+                {readyForRealInspection ? "Open Assets & Strategy" : "Refresh Environment"}
+              </button>
+              <button className="secondary-button" onClick={onOpenInspectionHub} type="button">
+                Open Inspection Hub
+              </button>
+            </div>
+          </article>
+
+          <article className="service-card readiness-metrics-card">
+            <div className="service-card-header">
+              <strong>Operator checkpoints</strong>
+              <span className="badge badge-unknown">overview</span>
+            </div>
+            <div className="readiness-metrics-grid">
+              <div className="readiness-metric">
+                <span>Setup steps</span>
+                <strong>{completedSetupSteps}/{firstRunChecklist.length}</strong>
+              </div>
+              <div className="readiness-metric">
+                <span>Repair packs</span>
+                <strong>{repairPacksNeedingAttention.length}/{repairPacks.length}</strong>
+              </div>
+              <div className="readiness-metric">
+                <span>Warnings</span>
+                <strong>{warningChecks.length}</strong>
+              </div>
+              <div className="readiness-metric">
+                <span>Blocking</span>
+                <strong>{blockingChecks.length}</strong>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="run-panel">
+        <DesktopSectionHeader
+          eyebrow="System Settings"
+          title="Actionable Repair Packs"
+          subtitle="Grouped by repair theme so users can understand impact and take the next correct step instead of parsing raw checks."
+          meta={
+            <div className="summary-strip">
+              <span>{repairPacks.length} repair themes</span>
+              <span>{repairPacksNeedingAttention.length} active issues</span>
+            </div>
+          }
+        />
+
+        <div className="service-checks">
+          {repairPacks.map((pack) => (
+            <article className={`service-card repair-pack-card repair-pack-${pack.status}`} key={pack.id}>
+              <div className="service-card-header">
+                <strong>{pack.title}</strong>
+                <span className={`badge badge-${pack.status}`}>{pack.status === "pass" ? "healthy" : pack.status}</span>
+              </div>
+              <p>{pack.summary}</p>
+              <div className="inline-note">
+                <strong>Why it matters</strong>
+                <span>{pack.whyItMatters}</span>
+              </div>
+              <div className="inline-note">
+                <strong>Next action</strong>
+                <span>{pack.nextAction}</span>
+              </div>
+              <div className="repair-pack-checks">
+                {pack.checks.length > 0 ? (
+                  pack.checks.map((check) => (
+                    <span className={`repair-pack-check repair-pack-check-${check.status}`} key={`${pack.id}-${check.id}`}>
+                      {check.label}
+                    </span>
+                  ))
+                ) : (
+                  <span className="repair-pack-check repair-pack-check-pass">No issues detected</span>
+                )}
+              </div>
+              <div className="service-actions">
+                <button
+                  className={pack.id === "ssh-tools" || pack.id === "schedules" ? "secondary-button" : "primary-button"}
+                  onClick={pack.id === "ssh-tools" || pack.id === "schedules" ? onOpenAssetsStrategy : onRefreshEnvironment}
+                  type="button"
+                >
+                  {pack.actionLabel}
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="System Settings"
@@ -116,6 +253,9 @@ export function SetupWorkspace({
               </button>
               <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
                 Configure Assets
+              </button>
+              <button className="secondary-button" onClick={onRefreshEnvironment} type="button">
+                Refresh Environment
               </button>
             </div>
           </section>

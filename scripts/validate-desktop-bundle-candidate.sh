@@ -6,10 +6,10 @@ validation_dir=".opsprobe-validation"
 mkdir -p "${validation_dir}"
 
 bundle_root="apps/desktop/src-tauri/target/release/bundle"
-deb_path="${bundle_root}/deb/OpsProbe_0.10.3_amd64.deb"
-rpm_path="${bundle_root}/rpm/OpsProbe-0.10.3-1.x86_64.rpm"
+deb_path="${bundle_root}/deb/OpsProbe_0.10.4_amd64.deb"
+rpm_path="${bundle_root}/rpm/OpsProbe-0.10.4-1.x86_64.rpm"
 appdir_path="${bundle_root}/appimage/OpsProbe.AppDir"
-appimage_path="${bundle_root}/appimage/OpsProbe_0.10.3_amd64.AppImage"
+appimage_path="${bundle_root}/appimage/OpsProbe_0.10.4_amd64.AppImage"
 
 test -f "${deb_path}"
 test -f "${rpm_path}"
@@ -21,10 +21,10 @@ node --input-type=module - <<'EOF' > "${validation_dir}/desktop-bundle-candidate
 import fs from "node:fs";
 
 const bundleRoot = "apps/desktop/src-tauri/target/release/bundle";
-const debPath = `${bundleRoot}/deb/OpsProbe_0.10.3_amd64.deb`;
-const rpmPath = `${bundleRoot}/rpm/OpsProbe-0.10.3-1.x86_64.rpm`;
+const debPath = `${bundleRoot}/deb/OpsProbe_0.10.4_amd64.deb`;
+const rpmPath = `${bundleRoot}/rpm/OpsProbe-0.10.4-1.x86_64.rpm`;
 const appDirPath = `${bundleRoot}/appimage/OpsProbe.AppDir`;
-const appImagePath = `${bundleRoot}/appimage/OpsProbe_0.10.3_amd64.AppImage`;
+const appImagePath = `${bundleRoot}/appimage/OpsProbe_0.10.4_amd64.AppImage`;
 
 const output = {
   validatedAt: new Date().toISOString(),
