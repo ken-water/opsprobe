@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { Pool } from "pg";
 import type { Asset, InspectionRun, InspectionTemplate } from "@opsprobe/core";
@@ -484,17 +484,35 @@ export class LocalFileStorageAdapter implements StorageAdapter {
   private async readSnapshot(): Promise<FileStorageSnapshot> {
     await this.ensureFile();
     const raw = await readFile(this.filePath, "utf8");
-    const snapshot = JSON.parse(raw) as Partial<FileStorageSnapshot>;
-    return {
-      assets: snapshot.assets ?? [],
-      templates: snapshot.templates ?? [],
-      inspectionRuns: snapshot.inspectionRuns ?? [],
-      state: snapshot.state ?? {},
-    };
+
+    try {
+      const snapshot = JSON.parse(raw) as Partial<FileStorageSnapshot>;
+      return {
+        assets: snapshot.assets ?? [],
+        templates: snapshot.templates ?? [],
+        inspectionRuns: snapshot.inspectionRuns ?? [],
+        state: snapshot.state ?? {},
+      };
+    } catch {
+      await this.quarantineCorruptedSnapshot(raw);
+      await this.writeSnapshot(EMPTY_FILE_STORAGE_SNAPSHOT);
+      return EMPTY_FILE_STORAGE_SNAPSHOT;
+    }
   }
 
   private async writeSnapshot(snapshot: FileStorageSnapshot) {
     await mkdir(dirname(this.filePath), { recursive: true });
     await writeFile(this.filePath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+  }
+
+  private async quarantineCorruptedSnapshot(raw: string) {
+    const quarantinePath = `${this.filePath}.corrupt-${Date.now()}`;
+
+    try {
+      await rename(this.filePath, quarantinePath);
+      await writeFile(`${quarantinePath}.note.txt`, "OpsProbe quarantined a malformed local storage snapshot during automatic recovery.\n", "utf8");
+    } catch {
+      await writeFile(quarantinePath, raw, "utf8");
+    }
   }
 }

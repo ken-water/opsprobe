@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -160,5 +160,24 @@ describe("local-service CLI functional flow", () => {
     expect(stopResponse.message).toContain("already stopped");
     expect(statusResponse.ok).toBe(true);
     expect(statusResponse.snapshot.status).toBe("stopped");
+  });
+
+  it("recovers from malformed file-backed storage and allows a fresh asset save afterward", async () => {
+    const homeDir = await mkdtemp(join(tmpdir(), "opsprobe-functional-cli-"));
+    cleanupPaths.push(homeDir);
+
+    const dataDir = join(homeDir, ".opsprobe", "data");
+    await mkdir(dataDir, { recursive: true });
+    await writeFile(join(dataDir, "opsprobe-storage.json"), "{broken-json}\n", "utf8");
+
+    const statusResponse = await runLocalServiceCommand<LocalServiceStatusResponse>(homeDir, "status");
+    const saveResponse = await runLocalServiceCommand<LocalServiceCommandResponse>(homeDir, "assets-upsert", {
+      asset,
+    });
+    const listResponse = await runLocalServiceCommand<LocalAssetListResponse>(homeDir, "assets-list");
+
+    expect(statusResponse.ok).toBe(true);
+    expect(saveResponse.ok).toBe(true);
+    expect(listResponse.assets.map((item) => item.id)).toContain(asset.id);
   });
 });
