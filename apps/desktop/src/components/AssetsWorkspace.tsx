@@ -38,7 +38,7 @@ export function AssetsWorkspace({
     <section className="run-panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">0.10.3 Current Release</p>
+          <p className="eyebrow">Assets Workspace</p>
           <h2>Assets And Migration</h2>
         </div>
         <div className="service-actions">
@@ -93,7 +93,7 @@ export function AssetsWorkspace({
           <div className="history-detail-card">
             <div className="panel-header">
               <div>
-                <p className="eyebrow">Active Asset</p>
+                <p className="eyebrow">Asset Editor</p>
                 <h2>{asset.name}</h2>
               </div>
             </div>

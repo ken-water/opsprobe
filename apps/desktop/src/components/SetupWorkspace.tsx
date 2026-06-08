@@ -49,7 +49,7 @@ export function SetupWorkspace({
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
+            <p className="eyebrow">Setup Workspace</p>
             <h2>First-Run Demo Experience</h2>
           </div>
           <div className="service-actions">
@@ -92,7 +92,7 @@ export function SetupWorkspace({
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
+            <p className="eyebrow">Setup Workspace</p>
             <h2>Minimum Local Setup</h2>
           </div>
           <div className="summary-strip">
@@ -155,7 +155,7 @@ export function SetupWorkspace({
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
+            <p className="eyebrow">Setup Workspace</p>
             <h2>Troubleshooting Guidance</h2>
           </div>
           <div className="summary-strip">

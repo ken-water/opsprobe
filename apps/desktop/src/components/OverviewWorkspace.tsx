@@ -23,7 +23,7 @@ export function OverviewWorkspace({
     <>
       <section className="dashboard-hero">
         <div className="dashboard-hero-copy">
-          <p className="eyebrow">OpsProbe Open Source Edition</p>
+          <p className="eyebrow">Overview Workspace</p>
           <h1>Local-first infrastructure inspection for SMB teams.</h1>
           <p className="summary">
             Turn host checks, service checks, and remediation guidance into a desktop operator workflow

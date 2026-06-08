@@ -84,7 +84,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
+            <p className="eyebrow">History Workspace</p>
             <h2>Execution And Export</h2>
           </div>
           <div className="service-actions">
@@ -132,7 +132,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
       <section className="run-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">0.10.3 Current Release</p>
+            <p className="eyebrow">History Workspace</p>
             <h2>Recent Local Service Runs</h2>
           </div>
           <div className="service-actions">

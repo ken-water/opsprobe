@@ -13,7 +13,7 @@ export function ReportsWorkspace({
     <section className="run-panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Reports Center</p>
+          <p className="eyebrow">Reports Workspace</p>
           <h2>Audience And Feedback Hub</h2>
         </div>
       </div>

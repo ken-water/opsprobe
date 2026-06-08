@@ -43,7 +43,7 @@ export function RunnerWorkspace({
     <section className="run-panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Inspection Runner</p>
+          <p className="eyebrow">Runner Workspace</p>
           <h2>Manual Inspection Workspace</h2>
         </div>
       </div>

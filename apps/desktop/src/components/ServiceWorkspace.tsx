@@ -54,7 +54,7 @@ export function ServiceWorkspace({
     <section className="run-panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">0.10.3 Current Release</p>
+          <p className="eyebrow">Service Workspace</p>
           <h2>Service And Scheduling</h2>
         </div>
       </div>
