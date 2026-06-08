@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function installDesktopMock(page: Page) {
   await page.addInitScript(() => {
+    const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
     const historyRuns = [
       {
         id: "history-1",
@@ -76,6 +77,38 @@ async function installDesktopMock(page: Page) {
         updatedAt: "2026-06-04T09:10:00.000Z",
       },
     ];
+    const savedAssets = [
+      {
+        id: "asset-linux-001",
+        name: "opsprobe-demo-host",
+        kind: "linux-host",
+        protocol: "ssh",
+        host: "10.0.0.12",
+        port: 22,
+        tags: ["demo", "linux"],
+        credential: {
+          method: "private-key",
+          username: "root",
+          secretRef: "/home/user/.ssh/id_rsa",
+          bindingStatus: "linked",
+        },
+        createdAt: "2026-06-03T00:00:00.000Z",
+        updatedAt: "2026-06-03T00:00:00.000Z",
+      },
+    ];
+    const schedules = [
+      {
+        id: "schedule-0",
+        asset: clone(savedAssets[0]),
+        templateId: "template.linux.nginx",
+        intervalMinutes: 15,
+        enabled: true,
+        nextRunAt: "2026-06-05T10:00:00.000Z",
+        lastRunStatus: "completed",
+        lastRunAt: "2026-06-05T09:45:00.000Z",
+      },
+    ];
+    let serviceStatus = "ready";
 
     (window as Window & {
       __OPS_PROBE_DESKTOP__?: {
@@ -92,7 +125,7 @@ async function installDesktopMock(page: Page) {
             return {
               ok: true,
               snapshot: {
-                status: "ready",
+                status: serviceStatus,
                 config: {
                   postgres: { port: 15432 },
                   paths: {
@@ -122,35 +155,113 @@ async function installDesktopMock(page: Page) {
               },
             };
           case "get_local_service_assets":
-            return { assets: [] };
+            return { assets: clone(savedAssets) };
           case "get_local_service_schedules":
-            return { schedules: [] };
+            return { schedules: clone(schedules) };
           case "get_local_service_inspection_history":
-            return { runs: historyRuns };
+            return { runs: clone(historyRuns) };
           case "test_ssh_connection":
             return { ok: true, message: "SSH connection successful." };
+          case "run_linux_check":
+            return {
+              checkId: "linux.mock.check",
+              title: "Mock Linux Check",
+              status: "pass",
+              severity: "info",
+              summary: "Mock check passed.",
+              evidence: [{ label: "Command", value: "ok" }],
+              remediation: "No action required.",
+            };
           case "get_local_service_inspection_preview":
-            return { run: historyRuns[0] };
+            return { run: clone(historyRuns[0]) };
           case "run_local_service_inspection":
-            return { run: historyRuns[0] };
+            return { run: clone(historyRuns[0]) };
           case "export_local_service_html_report":
             return { message: "Exported HTML report." };
+          case "export_local_service_config":
+            return { message: "Exported local config package." };
+          case "import_local_service_config":
+            return {
+              importedAssets: 1,
+              importedTemplates: 2,
+              importedSchedules: 1,
+              importedFrom: { machineName: "opsprobe-devbox" },
+              requiresCredentialRebind: 1,
+              disabledSchedules: 1,
+            };
           case "save_export_file":
             return "Saved PDF export.";
-          case "upsert_local_service_asset":
+          case "upsert_local_service_asset": {
+            const nextAsset =
+              payload?.input && typeof payload.input === "object"
+                ? ((payload.input as { asset?: unknown }).asset as typeof savedAssets[number] | undefined)
+                : undefined;
+            if (nextAsset) {
+              const index = savedAssets.findIndex((asset) => asset.id === nextAsset.id);
+              if (index >= 0) {
+                savedAssets[index] = clone(nextAsset);
+              } else {
+                savedAssets.push(clone(nextAsset));
+              }
+            }
             return { message: "Asset saved." };
+          }
           case "upsert_local_service_schedule":
-            return {
-              schedule: {
-                id: "schedule-1",
-                asset: payload?.input && typeof payload.input === "object" ? (payload.input as { asset?: unknown }).asset : null,
-                templateId: "template.linux.nginx",
-                intervalMinutes: 15,
-                enabled: true,
-              },
+          {
+            const input =
+              payload?.input && typeof payload.input === "object"
+                ? (payload.input as {
+                    id?: string;
+                    asset?: typeof savedAssets[number];
+                    templateId?: string;
+                    intervalMinutes?: number;
+                    enabled?: boolean;
+                  })
+                : undefined;
+            const schedule = {
+              id: input?.id ?? `schedule-${schedules.length + 1}`,
+              asset: clone(input?.asset ?? savedAssets[0]),
+              templateId: input?.templateId ?? "template.linux.nginx",
+              intervalMinutes: input?.intervalMinutes ?? 15,
+              enabled: input?.enabled ?? true,
+              nextRunAt: "2026-06-05T10:15:00.000Z",
+              lastRunStatus: input?.enabled === false ? "disabled" : "pending",
+              lastRunAt: "2026-06-05T09:45:00.000Z",
             };
-          case "delete_local_service_schedule":
+            const index = schedules.findIndex((item) => item.id === schedule.id);
+            if (index >= 0) {
+              schedules[index] = schedule;
+            } else {
+              schedules.push(schedule);
+            }
+            return { schedule: clone(schedule) };
+          }
+          case "delete_local_service_schedule": {
+            const id =
+              payload?.input && typeof payload.input === "object"
+                ? ((payload.input as { id?: string }).id ?? "")
+                : "";
+            const index = schedules.findIndex((schedule) => schedule.id === id);
+            if (index >= 0) {
+              schedules.splice(index, 1);
+            }
             return { message: "Schedule deleted." };
+          }
+          case "start_local_service":
+            serviceStatus = "ready";
+            return "Local service started.";
+          case "stop_local_service":
+            serviceStatus = "stopped";
+            return { message: "Local service stopped." };
+          case "restart_local_service":
+            serviceStatus = "ready";
+            return { message: "Local service restarted." };
+          case "bootstrap_local_service_postgres":
+            return { message: "Managed PostgreSQL bootstrapped." };
+          case "start_local_service_postgres":
+            return { message: "Managed PostgreSQL started." };
+          case "stop_local_service_postgres":
+            return { message: "Managed PostgreSQL stopped." };
           default:
             return {};
         }
@@ -217,4 +328,54 @@ test("switches report audience and exports the selected history run with visible
   await page.getByRole("button", { name: "Export manager HTML" }).click();
   await expect(page.getByText("Workspace Update")).toBeVisible();
   await expect(page.getByText("Exported HTML report.")).toBeVisible();
+});
+
+test("shows immediate runner feedback for ssh test and preview refresh", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Runner" }).click();
+
+  await page.getByRole("button", { name: "Test SSH Connection" }).click();
+  await expect(page.getByText("Workspace Update")).toBeVisible();
+  await expect(page.getByText("SSH connection verified and asset state refreshed.")).toBeVisible();
+  await expect(page.getByText("SSH connection successful.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Refresh Inspection Preview" }).click();
+  await expect(page.getByText(/Inspection preview refreshed with \d+ checks\./)).toBeVisible();
+  await expect(page.getByText("Preview Results")).toBeVisible();
+});
+
+test("keeps assets and service actions visibly responsive", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Setup" }).click();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).click();
+  await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Assets" }).click();
+  await page.getByRole("button", { name: "Save Current Asset" }).click();
+  await expect(page.getByText("Asset saved.")).toBeVisible();
+  await expect(page.getByText("1 total")).toBeVisible();
+
+  await page.getByRole("button", { name: "Export Local Config" }).click();
+  await expect(page.getByText("Exported local config package.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Import Local Config" }).click();
+  await expect(page.getByText(/Imported 1 assets, 2 templates, and 1 schedules from opsprobe-devbox/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Service" }).click();
+  const servicePanel = page.locator(".service-runtime-panel");
+  await page.getByRole("button", { name: "Start Service", exact: true }).click();
+  await expect(page.getByRole("status").getByText("Local service started.")).toBeVisible();
+  await expect(servicePanel.locator(".service-pill").getByText("ready")).toBeVisible();
+
+  await page.getByRole("button", { name: "Create Schedule" }).click();
+  await expect(page.getByRole("status").getByText("Saved schedule schedule-2.")).toBeVisible();
+  await expect(page.getByText("2 total")).toBeVisible();
+
+  await page.getByRole("button", { name: "Disable" }).first().click();
+  await expect(page.getByRole("status").getByText("schedule-0 disabled successfully.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Delete" }).first().click();
+  await expect(page.getByRole("status").getByText("Schedule deleted.")).toBeVisible();
 });

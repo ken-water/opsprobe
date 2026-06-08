@@ -648,7 +648,7 @@ function App() {
 
   async function handleStartLocalService() {
     setIsRefreshingService(true);
-    setServiceMessage(null);
+    setServiceMessage("Starting local service...");
     try {
       const message = await invokeDesktop<string>("start_local_service");
       setServiceMessage(message);
@@ -662,7 +662,7 @@ function App() {
 
   async function handleStopLocalService() {
     setIsRefreshingService(true);
-    setServiceMessage(null);
+    setServiceMessage("Stopping local service...");
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("stop_local_service");
       setServiceMessage(response.message);
@@ -676,7 +676,7 @@ function App() {
 
   async function handleRestartLocalService() {
     setIsRefreshingService(true);
-    setServiceMessage(null);
+    setServiceMessage("Restarting local service...");
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("restart_local_service");
       setServiceMessage(response.message);
@@ -690,7 +690,7 @@ function App() {
 
   async function handleBootstrapLocalPostgres() {
     setIsRefreshingService(true);
-    setServiceMessage(null);
+    setServiceMessage("Bootstrapping managed PostgreSQL...");
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("bootstrap_local_service_postgres");
       setServiceMessage(response.message);
@@ -704,7 +704,7 @@ function App() {
 
   async function handleStartLocalPostgres() {
     setIsRefreshingService(true);
-    setServiceMessage(null);
+    setServiceMessage("Starting managed PostgreSQL...");
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("start_local_service_postgres");
       setServiceMessage(response.message);
@@ -718,7 +718,7 @@ function App() {
 
   async function handleStopLocalPostgres() {
     setIsRefreshingService(true);
-    setServiceMessage(null);
+    setServiceMessage("Stopping managed PostgreSQL...");
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("stop_local_service_postgres");
       setServiceMessage(response.message);
@@ -732,6 +732,7 @@ function App() {
 
   async function refreshInspectionPreview() {
     setIsRefreshingPreview(true);
+    setServiceMessage("Refreshing manual inspection preview...");
     const adapter = new TauriRunnerAdapter();
 
     try {
@@ -745,6 +746,7 @@ function App() {
         adapter,
       );
       setInspectionRun(run);
+      setServiceMessage(`Inspection preview refreshed with ${run.summary.total} checks.`);
     } finally {
       setIsRefreshingPreview(false);
     }
@@ -752,6 +754,7 @@ function App() {
 
   async function refreshLocalServiceInspectionPreview() {
     setIsRefreshingServicePreview(true);
+    setServiceMessage("Refreshing local service inspection preview...");
 
     try {
       const response = await invokeDesktop<InspectionPreviewResponse>("get_local_service_inspection_preview", {
@@ -761,6 +764,7 @@ function App() {
         },
       });
       setServiceInspectionRun(response.run);
+      setServiceMessage(`Local service preview refreshed with ${response.run.summary.total} checks.`);
     } catch (error) {
       setServiceMessage(formatActionError("Refreshing local service inspection preview", error));
     } finally {
@@ -770,6 +774,7 @@ function App() {
 
   async function runLocalServiceInspection() {
     setIsRunningServiceInspection(true);
+    setServiceMessage("Running inspection through local service...");
 
     try {
       const response = await invokeDesktop<InspectionExecutionResponse>("run_local_service_inspection", {
@@ -779,6 +784,7 @@ function App() {
         },
       });
       setServiceExecutionRun(response.run);
+      setServiceMessage(`Local service inspection completed with ${response.run.summary.total} checks.`);
       await refreshLocalServiceHistory();
     } catch (error) {
       setServiceMessage(formatActionError("Running local service inspection", error));
@@ -793,6 +799,7 @@ function App() {
     dateTo?: string;
   }) {
     setIsRefreshingHistory(true);
+    setServiceMessage("Refreshing local inspection history...");
 
     try {
       const assetId = filters?.assetId ?? historyAssetFilter;
@@ -821,6 +828,7 @@ function App() {
 
         return response.runs.find((run) => run.id === current.id) ?? response.runs[0];
       });
+      setServiceMessage(`Loaded ${response.runs.length} inspection run${response.runs.length === 1 ? "" : "s"}.`);
     } catch (error) {
       setServiceMessage(formatActionError("Refreshing local inspection history", error));
     } finally {
@@ -830,10 +838,12 @@ function App() {
 
   async function refreshLocalSchedules() {
     setIsRefreshingSchedules(true);
+    setServiceMessage("Refreshing local schedules...");
 
     try {
       const response = await invokeDesktop<LocalInspectionScheduleListResponse>("get_local_service_schedules");
       setSchedules(response.schedules);
+      setServiceMessage(`Loaded ${response.schedules.length} schedule${response.schedules.length === 1 ? "" : "s"}.`);
     } catch (error) {
       setServiceMessage(formatActionError("Refreshing local schedules", error));
     } finally {
@@ -843,10 +853,12 @@ function App() {
 
   async function refreshSavedAssets() {
     setIsRefreshingAssets(true);
+    setServiceMessage("Refreshing saved assets...");
 
     try {
       const response = await invokeDesktop<LocalAssetListResponse>("get_local_service_assets");
       setSavedAssets(response.assets);
+      setServiceMessage(`Loaded ${response.assets.length} saved asset${response.assets.length === 1 ? "" : "s"}.`);
     } catch (error) {
       setServiceMessage(formatActionError("Refreshing saved assets", error));
     } finally {
@@ -856,7 +868,7 @@ function App() {
 
   async function handleSaveAsset() {
     setIsRefreshingAssets(true);
-    setServiceMessage(null);
+    setServiceMessage("Saving current asset...");
 
     try {
       const assetToSave: Asset = {
@@ -872,8 +884,8 @@ function App() {
           asset: assetToSave,
         },
       });
-      setServiceMessage(response.message);
       await refreshSavedAssets();
+      setServiceMessage(response.message);
     } finally {
       setIsRefreshingAssets(false);
     }
@@ -890,7 +902,7 @@ function App() {
 
   async function handleExportConfig() {
     setIsExportingConfig(true);
-    setServiceMessage(null);
+    setServiceMessage("Exporting local config package...");
 
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("export_local_service_config", {
@@ -906,7 +918,7 @@ function App() {
 
   async function handleImportConfig() {
     setIsImportingConfig(true);
-    setServiceMessage(null);
+    setServiceMessage("Importing local config package...");
 
     try {
       const response = await invokeDesktop<LocalConfigImportResponse>("import_local_service_config", {
@@ -917,13 +929,13 @@ function App() {
       const importedFrom = response.importedFrom
         ? ` from ${response.importedFrom.machineName}`
         : "";
-      setServiceMessage(
-        `Imported ${response.importedAssets} assets, ${response.importedTemplates} templates, and ${response.importedSchedules} schedules${importedFrom}. ${response.requiresCredentialRebind} assets require credential rebind, ${response.disabledSchedules} schedules remain disabled, and you should complete SSH verification before resuming automation.`,
-      );
+      const importMessage =
+        `Imported ${response.importedAssets} assets, ${response.importedTemplates} templates, and ${response.importedSchedules} schedules${importedFrom}. ${response.requiresCredentialRebind} assets require credential rebind, ${response.disabledSchedules} schedules remain disabled, and you should complete SSH verification before resuming automation.`;
       await refreshSavedAssets();
       await refreshLocalSchedules();
       await refreshLocalServiceHealth();
       await refreshLocalServiceHistory();
+      setServiceMessage(importMessage);
     } finally {
       setIsImportingConfig(false);
     }
@@ -943,7 +955,7 @@ function App() {
 
   async function handleExportHtmlReport(run: InspectionRun) {
     setIsExportingReport(true);
-    setServiceMessage(null);
+    setServiceMessage(`Exporting ${reportAudience} HTML report...`);
 
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("export_local_service_html_report", {
@@ -962,7 +974,7 @@ function App() {
 
   async function handleExportPdfReport(run: InspectionRun) {
     setIsExportingPdfReport(true);
-    setServiceMessage(null);
+    setServiceMessage(`Exporting ${reportAudience} PDF report...`);
 
     try {
       await exportRunPdfReport(run, resolveAssetForRun(run), pdfReportPath, reportAudience);
@@ -974,7 +986,7 @@ function App() {
 
   async function handleSaveSchedule() {
     setIsSavingSchedule(true);
-    setServiceMessage(null);
+    setServiceMessage("Creating local schedule...");
 
     try {
       const response = await invokeDesktop<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
@@ -985,9 +997,10 @@ function App() {
           enabled: true,
         },
       });
-      setServiceMessage(`Saved schedule ${response.schedule.id}.`);
+      const successMessage = `Saved schedule ${response.schedule.id}.`;
       await refreshLocalSchedules();
       await refreshLocalServiceHealth();
+      setServiceMessage(successMessage);
     } finally {
       setIsSavingSchedule(false);
     }
@@ -995,15 +1008,15 @@ function App() {
 
   async function handleDeleteSchedule(id: string) {
     setIsRefreshingSchedules(true);
-    setServiceMessage(null);
+    setServiceMessage(`Deleting schedule ${id}...`);
 
     try {
       const response = await invokeDesktop<LocalServiceCommandResponse>("delete_local_service_schedule", {
         input: { id },
       });
-      setServiceMessage(response.message);
       await refreshLocalSchedules();
       await refreshLocalServiceHealth();
+      setServiceMessage(response.message);
     } finally {
       setIsRefreshingSchedules(false);
     }
@@ -1011,7 +1024,7 @@ function App() {
 
   async function handleToggleSchedule(schedule: LocalInspectionSchedule) {
     setIsRefreshingSchedules(true);
-    setServiceMessage(null);
+    setServiceMessage(`${schedule.enabled ? "Disabling" : "Enabling"} schedule ${schedule.id}...`);
 
     try {
       const response = await invokeDesktop<LocalInspectionScheduleUpsertResponse>("upsert_local_service_schedule", {
@@ -1023,11 +1036,11 @@ function App() {
           enabled: !schedule.enabled,
         },
       });
-      setServiceMessage(
-        `${response.schedule.id} ${response.schedule.enabled ? "enabled" : "disabled"} successfully.`,
-      );
+      const successMessage =
+        `${response.schedule.id} ${response.schedule.enabled ? "enabled" : "disabled"} successfully.`;
       await refreshLocalSchedules();
       await refreshLocalServiceHealth();
+      setServiceMessage(successMessage);
     } finally {
       setIsRefreshingSchedules(false);
     }
@@ -1149,6 +1162,7 @@ function App() {
   async function handleSshTest() {
     setIsTestingSsh(true);
     setSshResult(null);
+    setServiceMessage("Testing SSH connection...");
 
     try {
       const result = await invokeDesktop<SshConnectionTestResult>("test_ssh_connection", {
@@ -1173,9 +1187,13 @@ function App() {
           // Keep SSH verification feedback even if persistence is temporarily unavailable.
         });
         await refreshSavedAssets();
+        setServiceMessage("SSH connection verified and asset state refreshed.");
+      } else {
+        setServiceMessage(result.message);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "SSH test failed.";
+      setServiceMessage(message);
       setSshResult({
         ok: false,
         message,
