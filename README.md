@@ -76,6 +76,7 @@ See:
 - [Development Gate](./docs/development-gate.md)
 - [Clean User Profile Validation](./docs/clean-user-profile-validation.md)
 - [Stable Candidate Operator Notes](./docs/stable-candidate-operator-notes.md)
+- [Stable Candidate Operator Notes 0.11.0 Draft](./docs/stable-candidate-operator-notes-0.11.0.md)
 - [Stable Review Record](./docs/stable-review-record.md)
 
 ## Quick Start

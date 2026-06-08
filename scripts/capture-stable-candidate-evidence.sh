@@ -30,6 +30,7 @@ mkdir -p "${validation_dir}"
 notes_file="${validation_dir}/stable-candidate-notes.md"
 checkpoint_file="${validation_dir}/stable-candidate-checkpoint.txt"
 review_file="${validation_dir}/stable-review-record.md"
+operator_notes_file="${validation_dir}/stable-candidate-operator-notes-draft.md"
 
 if [[ "${allow_dirty}" == "--allow-dirty" ]]; then
   git status --short > "${validation_dir}/stable-worktree-gate.txt"
@@ -160,4 +161,29 @@ Version under review: ${version}
 
 - Not ready to decide automatically
 - Update from real operator notes before resuming Issue 47
+EOF
+
+cat > "${operator_notes_file}" <<EOF
+# Stable Candidate Operator Notes Draft
+
+Captured at: ${captured_at}
+
+Candidate version: ${version}
+
+## Current Environment Signal
+
+- PostgreSQL binaries visible:
+  - postgres=$(command -v postgres >/dev/null 2>&1 && echo yes || echo no)
+  - pg_ctl=$(command -v pg_ctl >/dev/null 2>&1 && echo yes || echo no)
+  - initdb=$(command -v initdb >/dev/null 2>&1 && echo yes || echo no)
+
+## Draft Conclusions
+
+- clean-user-profile validation passed
+- recovery guidance is present
+- stable install/bootstrap credibility still needs a real environment with PostgreSQL binaries available before Issue 47 is resumed
+
+## Next Step
+
+Promote this draft into [docs/stable-candidate-operator-notes-0.11.0.md](../docs/stable-candidate-operator-notes-0.11.0.md) after the corresponding operator observations are reviewed.
 EOF
