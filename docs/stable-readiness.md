@@ -123,6 +123,7 @@ These gaps already exist and must not stay implicit during the `1.0.0` decision:
 - rebound credentials now require explicit SSH validation before recurring schedules can resume, but the overall recovery UX still needs broader pre-stable review; see Issue 51
 - local runtime supervision is still process-based and best-effort rather than a hardened cross-platform service-manager integration; see Issue 53
 - `0.10.3` should at minimum keep start, stop, restart, and recovery guidance explicit in both status output and operator-facing docs even if a full supervisor is deferred; see Issue 53
+- clean-machine install, bootstrap, and stable-candidate evidence are still not captured strongly enough to defend `1.0.0`; see Issue 54
 
 Each gap needs one of these dispositions:
 

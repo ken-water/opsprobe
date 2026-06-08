@@ -384,6 +384,35 @@ Required review artifact:
 
 `1.0.0` should not be used just because enough code exists. It should represent the first stable and externally credible open source release.
 
+Deferred decision after `0.10.3`:
+
+- do not publish `1.0.0` yet
+- create one more pre-stable line focused on clean-machine install evidence, stable-candidate operator notes, and explicit acceptance or rejection of remaining runtime limits
+- resume Issue 47 only after that evidence line is complete or explicitly cut short with written justification
+
+## `0.11.x` Exploration IV: Stable-Candidate Evidence
+
+Goal:
+
+- prove whether OpsProbe can be installed, bootstrapped, and recovered credibly enough on a clean machine to justify a `1.0.0` release candidate
+
+Includes:
+
+- clean-machine or clean-user-profile validation notes for install, bootstrap, inspect, export, stop, and restart
+- operator-facing install and backup guidance tightened to match the real packaged runtime behavior
+- explicit acceptance or rejection of the remaining best-effort runtime supervision limits
+- stable-decision evidence capture in Issue 47 rather than relying only on release automation
+
+Exit criteria:
+
+- install/bootstrap credibility is documented and repeatable enough to review for `1.0.0`
+- the remaining runtime and migration limits are either accepted explicitly or moved into another pre-stable issue
+- Issue 47 has enough concrete evidence to choose between a stable release candidate and another defer decision
+
+Related issues:
+
+- Issue 54
+
 ## Post-Stable Direction
 
 ### `1.1.0`

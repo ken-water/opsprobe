@@ -127,6 +127,20 @@ Current planned checkpoints:
 - `0.10.2`: crash recovery, first-run repair, and upgrade continuity evidence
 - `0.10.3`: local runtime supervision and machine-move trust
 
+## Phase 8: Stable-Candidate Evidence
+
+- verify clean-machine install and bootstrap credibility
+- document stop, restart, backup, and recovery behavior as an operator workflow instead of only engineering assumptions
+- capture explicit stable-decision evidence before allowing a `1.0.0` tag
+
+Target release line:
+
+- `0.11.x`
+
+Current planned checkpoints:
+
+- `0.11.0`: clean-machine install, bootstrap, and stable-decision evidence
+
 ## Future Commercial Direction
 
 Potential future capabilities outside the open source scope:
@@ -143,6 +157,7 @@ Potential future capabilities outside the open source scope:
 ### `1.0.0` Stable Decision
 
 - Do not treat `1.0.0` as the automatic next coding milestone after `0.10.x`
+- After `0.10.3`, continue through `0.11.x` before revisiting the stable decision
 - Use `Issue 47` to decide whether current blockers must be fixed first or can be explicitly accepted
 - Require a defensible stable-release rationale, not just another finished release
 

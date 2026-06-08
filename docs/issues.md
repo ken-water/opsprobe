@@ -34,6 +34,9 @@ Release mapping:
   `0.10.1`: Issue 51
   `0.10.2`: Issue 52
   `0.10.3`: Issue 53
+- `0.11.x`: pre-stable evidence line after the `0.10.x` hardening cycle
+  Current issue line:
+  `0.11.0`: Issue 54
 - `1.0.0`: stable-release decision line
   Current issue line:
   `1.0.0`: Issue 47
