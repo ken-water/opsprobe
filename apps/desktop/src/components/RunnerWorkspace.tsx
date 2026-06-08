@@ -40,6 +40,11 @@ export function RunnerWorkspace({
   onTestSsh,
   onRefreshInspectionPreview,
 }: RunnerWorkspaceProps) {
+  const connectionReady =
+    asset.host.trim().length > 0 &&
+    asset.credential.username.trim().length > 0 &&
+    asset.credential.secretRef.trim().length > 0;
+
   return (
     <section className="run-panel">
       <DesktopSectionHeader
@@ -53,11 +58,16 @@ export function RunnerWorkspace({
         }
       />
 
-      <div className="runner-workspace">
-        <div className="runner-config-panel">
-          <div className="assets-panel-header">
-            <strong>Inspection Setup</strong>
-            <span>{activeChecksCount} checks</span>
+      <div className="workflow-stack">
+        <section className="workflow-step-card">
+          <div className="workflow-step-header">
+            <div>
+              <span className="workflow-step-index">Step 1</span>
+              <strong>Target And Access</strong>
+            </div>
+            <span className={`badge badge-${connectionReady ? "pass" : "warning"}`}>
+              {connectionReady ? "ready" : "incomplete"}
+            </span>
           </div>
 
           <section className="form-section">
@@ -131,6 +141,24 @@ export function RunnerWorkspace({
             </div>
           </section>
 
+          {sshResult ? (
+            <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`}>
+              {sshResult.message}
+            </p>
+          ) : (
+            <p className="helper-text">Fill the target and credential fields, then verify the SSH path before previewing checks.</p>
+          )}
+        </section>
+
+        <section className="workflow-step-card">
+          <div className="workflow-step-header">
+            <div>
+              <span className="workflow-step-index">Step 2</span>
+              <strong>Template And Preview</strong>
+            </div>
+            <span className="badge badge-unknown">{activeChecksCount} checks</span>
+          </div>
+
           <section className="form-section">
             <div className="form-section-header">
               <strong>Check Scope</strong>
@@ -182,17 +210,18 @@ export function RunnerWorkspace({
           </div>
 
           <p className="helper-text">
-            Asset fields are shared by the SSH test and the inspection runner preview. Password mode requires `sshpass` on the local machine.
+            Asset fields are shared by the SSH test and inspection preview. Password mode requires `sshpass` on the local machine.
           </p>
+        </section>
 
-          {sshResult ? (
-            <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`}>
-              {sshResult.message}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="runner-results-panel">
+        <section className="workflow-step-card runner-results-panel">
+          <div className="workflow-step-header">
+            <div>
+              <span className="workflow-step-index">Step 3</span>
+              <strong>Preview Output</strong>
+            </div>
+            <span className="badge badge-unknown">{inspectionRun ? "available" : "waiting"}</span>
+          </div>
           <div className="assets-panel-header">
             <strong>Inspection Preview</strong>
             <span>{inspectionRun ? inspectionRun.summary.total : 0} checks</span>
@@ -246,7 +275,7 @@ export function RunnerWorkspace({
               detail="Run a manual preview to inspect normalized results before handing execution to the local service."
             />
           )}
-        </div>
+        </section>
       </div>
     </section>
   );

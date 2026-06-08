@@ -55,186 +55,208 @@ export function ServiceWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Assets & Strategy"
-        title="Schedules And Managed Runtime"
-        subtitle="Define recurring inspection cadence for the active asset and keep the local runtime healthy enough to execute it."
+        title="Plan Recurring Inspection"
+        subtitle="Only after the target and preview are stable, define recurring schedules and keep the local runtime healthy enough to execute them."
       />
 
-      <div className="service-workspace">
-        <div className="service-runtime-panel">
-          <div className="assets-panel-header">
-            <strong>Runtime Control</strong>
-            <span>{formatStatusLabel(serviceResponse?.snapshot.status ?? "unknown")}</span>
+      <div className="workflow-stack">
+        <section className="workflow-step-card">
+          <div className="workflow-step-header">
+            <div>
+              <span className="workflow-step-index">Step 6</span>
+              <strong>Create Schedule</strong>
+            </div>
+            <span className="badge badge-unknown">{schedules.length} schedules</span>
           </div>
 
-          <div className="service-actions">
-            <button className="secondary-button" onClick={onRefreshServiceHealth} type="button">
-              {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
-            </button>
-            <button className="primary-button" onClick={onStartLocalService} type="button">Start Service</button>
-            <button className="secondary-button" onClick={onStopLocalService} type="button">Stop Service</button>
-            <button className="secondary-button" onClick={onRestartLocalService} type="button">Restart Service</button>
-            <button className="secondary-button" onClick={onBootstrapLocalPostgres} type="button">Bootstrap PostgreSQL</button>
-            <button className="secondary-button" onClick={onStartLocalPostgres} type="button">Start PostgreSQL</button>
-            <button className="secondary-button" onClick={onStopLocalPostgres} type="button">Stop PostgreSQL</button>
-          </div>
-          <div className="inline-note">
-            <strong>Managed runtime</strong>
-            <span>Keep the local background service running if you want schedules, history, and exports to stay current.</span>
-          </div>
-
-          {serviceResponse ? (
-            <>
-              <div className="service-banner">
-                <span className={`service-pill service-${serviceResponse.snapshot.status}`}>
-                  {serviceResponse.snapshot.status}
-                </span>
-                {serviceResponse.snapshot.health.runtime ? (
-                  <>
-                    <span>port {serviceResponse.snapshot.health.runtime.port}</span>
-                    <span>{serviceResponse.snapshot.config.paths.postgresDataDir}</span>
-                    <span>{serviceResponse.snapshot.config.paths.postgresLogDir}</span>
-                  </>
-                ) : (
-                  <span>No runtime metadata available</span>
-                )}
+          <div className="service-workspace service-workspace-compact">
+            <div className="service-schedules-panel">
+              <div className="assets-panel-header">
+                <strong>Schedule Plan</strong>
+                <span>{schedules.length} total</span>
               </div>
 
+              <div className="ssh-grid">
+                <label>
+                  <span>Scheduled Asset</span>
+                  <input value={assetId} readOnly />
+                </label>
+                <label>
+                  <span>Template</span>
+                  <input value={activeTemplateName} readOnly />
+                </label>
+                <label>
+                  <span>Interval Minutes</span>
+                  <input
+                    type="number"
+                    min="5"
+                    step="5"
+                    value={scheduleIntervalMinutes}
+                    onChange={(event) => onScheduleIntervalChange(event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="service-actions">
+                <button className="secondary-button" onClick={onRefreshSchedules} type="button">
+                  {isRefreshingSchedules ? "Refreshing..." : "Refresh Schedules"}
+                </button>
+                <button className="primary-button" onClick={onSaveSchedule} type="button">
+                  {isSavingSchedule ? "Saving..." : "Create Schedule"}
+                </button>
+              </div>
+              <div className="inline-note">
+                <strong>Recurring plan</strong>
+                <span>The active asset and template above are what the local service will execute on each schedule tick.</span>
+              </div>
+
+              <p className="helper-text">
+                Assets with `verification-required` credentials should pass SSH verification before you depend on recurring schedules.
+              </p>
+
+              <DesktopDataTable
+                columns={[
+                  {
+                    key: "asset",
+                    header: "Asset",
+                    width: "minmax(220px, 1.3fr)",
+                    render: (schedule) => (
+                      <div className="data-table-primary">
+                        <strong>{schedule.asset.name}</strong>
+                        <span>{schedule.id}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "plan",
+                    header: "Schedule",
+                    width: "minmax(220px, 1.2fr)",
+                    render: (schedule) => (
+                      <div className="data-table-primary">
+                        <strong>Every {schedule.intervalMinutes} min</strong>
+                        <span>Next {formatListDate(schedule.nextRunAt)}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    header: "Last Result",
+                    width: "minmax(170px, 1fr)",
+                    render: (schedule) => (
+                      <div className="data-table-primary">
+                        <strong>{formatStatusLabel(schedule.lastRunStatus ?? "pending")}</strong>
+                        <span>{schedule.lastRunAt ? formatDateTime(schedule.lastRunAt) : "No run yet"}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "actions",
+                    header: "Actions",
+                    width: "minmax(180px, 0.9fr)",
+                    render: (schedule) => (
+                      <div className="data-table-actions">
+                        <button className="secondary-button" onClick={() => onToggleSchedule(schedule)} type="button">
+                          {schedule.enabled ? "Disable" : "Enable"}
+                        </button>
+                        <button className="secondary-button" onClick={() => onDeleteSchedule(schedule.id)} type="button">
+                          Delete
+                        </button>
+                      </div>
+                    ),
+                  },
+                ]}
+                rows={schedules}
+                getRowKey={(schedule) => schedule.id}
+                emptyTitle="No Local Schedules"
+                emptyDetail="Create the first recurring inspection after the asset and local runtime are ready."
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="workflow-step-card">
+          <div className="workflow-step-header">
+            <div>
+              <span className="workflow-step-index">Step 7</span>
+              <strong>Keep Local Runtime Healthy</strong>
+            </div>
+            <span className={`badge badge-${serviceResponse?.snapshot.status === "ready" ? "pass" : "warning"}`}>
+              {formatStatusLabel(serviceResponse?.snapshot.status ?? "unknown")}
+            </span>
+          </div>
+
+          <div className="service-runtime-panel">
+            <div className="assets-panel-header">
+              <strong>Runtime Control</strong>
+              <span>{formatStatusLabel(serviceResponse?.snapshot.status ?? "unknown")}</span>
+            </div>
+
+            <div className="service-actions">
+              <button className="secondary-button" onClick={onRefreshServiceHealth} type="button">
+                {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
+              </button>
+              <button className="primary-button" onClick={onStartLocalService} type="button">Start Service</button>
+              <button className="secondary-button" onClick={onStopLocalService} type="button">Stop Service</button>
+              <button className="secondary-button" onClick={onRestartLocalService} type="button">Restart Service</button>
+              <button className="secondary-button" onClick={onBootstrapLocalPostgres} type="button">Bootstrap PostgreSQL</button>
+              <button className="secondary-button" onClick={onStartLocalPostgres} type="button">Start PostgreSQL</button>
+              <button className="secondary-button" onClick={onStopLocalPostgres} type="button">Stop PostgreSQL</button>
+            </div>
+            <div className="inline-note">
+              <strong>Managed runtime</strong>
+              <span>Keep the local background service running if you want schedules, history, and exports to stay current.</span>
+            </div>
+
+            {serviceResponse ? (
+              <>
+                <div className="service-banner">
+                  <span className={`service-pill service-${serviceResponse.snapshot.status}`}>
+                    {serviceResponse.snapshot.status}
+                  </span>
+                  {serviceResponse.snapshot.health.runtime ? (
+                    <>
+                      <span>port {serviceResponse.snapshot.health.runtime.port}</span>
+                      <span>{serviceResponse.snapshot.config.paths.postgresDataDir}</span>
+                      <span>{serviceResponse.snapshot.config.paths.postgresLogDir}</span>
+                    </>
+                  ) : (
+                    <span>No runtime metadata available</span>
+                  )}
+                </div>
+
+                <div className="service-checks">
+                  {serviceResponse.snapshot.health.checks.map((check) => (
+                    <article className="service-card" key={check.id}>
+                      <div className="service-card-header">
+                        <strong>{check.label}</strong>
+                        <span className={`badge badge-${check.status}`}>{formatStatusLabel(check.status)}</span>
+                      </div>
+                      <p>{check.detail}</p>
+                    </article>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="helper-text">Local service bootstrap has not been queried yet.</p>
+            )}
+
+            {serviceMessage ? <p className="helper-text">{serviceMessage}</p> : null}
+
+            {serviceResponse?.snapshot.recoveryActions.length ? (
               <div className="service-checks">
-                {serviceResponse.snapshot.health.checks.map((check) => (
-                  <article className="service-card" key={check.id}>
+                {serviceResponse.snapshot.recoveryActions.map((action) => (
+                  <article className="service-card" key={action.id}>
                     <div className="service-card-header">
-                      <strong>{check.label}</strong>
-                      <span className={`badge badge-${check.status}`}>{formatStatusLabel(check.status)}</span>
+                      <strong>{action.label}</strong>
+                      <span className="badge badge-warning">recovery</span>
                     </div>
-                    <p>{check.detail}</p>
+                    <p>{action.detail}</p>
                   </article>
                 ))}
               </div>
-            </>
-          ) : (
-            <p className="helper-text">Local service bootstrap has not been queried yet.</p>
-          )}
-
-          {serviceMessage ? <p className="helper-text">{serviceMessage}</p> : null}
-
-          {serviceResponse?.snapshot.recoveryActions.length ? (
-            <div className="service-checks">
-              {serviceResponse.snapshot.recoveryActions.map((action) => (
-                <article className="service-card" key={action.id}>
-                  <div className="service-card-header">
-                    <strong>{action.label}</strong>
-                    <span className="badge badge-warning">recovery</span>
-                  </div>
-                  <p>{action.detail}</p>
-                </article>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="service-schedules-panel">
-          <div className="assets-panel-header">
-            <strong>Schedules</strong>
-            <span>{schedules.length} total</span>
+            ) : null}
           </div>
-
-          <div className="ssh-grid">
-            <label>
-              <span>Scheduled Asset</span>
-              <input value={assetId} readOnly />
-            </label>
-            <label>
-              <span>Template</span>
-              <input value={activeTemplateName} readOnly />
-            </label>
-            <label>
-              <span>Interval Minutes</span>
-              <input
-                type="number"
-                min="5"
-                step="5"
-                value={scheduleIntervalMinutes}
-                onChange={(event) => onScheduleIntervalChange(event.target.value)}
-              />
-            </label>
-          </div>
-
-          <div className="service-actions">
-            <button className="secondary-button" onClick={onRefreshSchedules} type="button">
-              {isRefreshingSchedules ? "Refreshing..." : "Refresh Schedules"}
-            </button>
-            <button className="primary-button" onClick={onSaveSchedule} type="button">
-              {isSavingSchedule ? "Saving..." : "Create Schedule"}
-            </button>
-          </div>
-          <div className="inline-note">
-            <strong>Recurring plan</strong>
-            <span>The active asset and template above are what the local service will execute on each schedule tick.</span>
-          </div>
-
-          <p className="helper-text">
-            Schedules are stored locally by the service and executed by the background process. Keep
-            the local service running for recurring inspections. Assets with `verification-required`
-            credentials cannot resume schedules until SSH validation succeeds.
-          </p>
-
-          <DesktopDataTable
-            columns={[
-              {
-                key: "asset",
-                header: "Asset",
-                width: "minmax(220px, 1.3fr)",
-                render: (schedule) => (
-                  <div className="data-table-primary">
-                    <strong>{schedule.asset.name}</strong>
-                    <span>{schedule.id}</span>
-                  </div>
-                ),
-              },
-              {
-                key: "plan",
-                header: "Schedule",
-                width: "minmax(220px, 1.2fr)",
-                render: (schedule) => (
-                  <div className="data-table-primary">
-                    <strong>Every {schedule.intervalMinutes} min</strong>
-                    <span>Next {formatListDate(schedule.nextRunAt)}</span>
-                  </div>
-                ),
-              },
-              {
-                key: "status",
-                header: "Last Result",
-                width: "minmax(170px, 1fr)",
-                render: (schedule) => (
-                  <div className="data-table-primary">
-                    <strong>{formatStatusLabel(schedule.lastRunStatus ?? "pending")}</strong>
-                    <span>{schedule.lastRunAt ? formatDateTime(schedule.lastRunAt) : "No run yet"}</span>
-                  </div>
-                ),
-              },
-              {
-                key: "actions",
-                header: "Actions",
-                width: "minmax(180px, 0.9fr)",
-                render: (schedule) => (
-                  <div className="data-table-actions">
-                    <button className="secondary-button" onClick={() => onToggleSchedule(schedule)} type="button">
-                      {schedule.enabled ? "Disable" : "Enable"}
-                    </button>
-                    <button className="secondary-button" onClick={() => onDeleteSchedule(schedule.id)} type="button">
-                      Delete
-                    </button>
-                  </div>
-                ),
-              },
-            ]}
-            rows={schedules}
-            getRowKey={(schedule) => schedule.id}
-            emptyTitle="No Local Schedules"
-            emptyDetail="Create the first recurring inspection after the asset and local runtime are ready."
-          />
-        </div>
+        </section>
       </div>
     </section>
   );
