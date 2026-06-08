@@ -17,6 +17,7 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 - Managed PostgreSQL validation port: temporary `OPSPROBE_POSTGRES_PORT` chosen by the validation script to avoid same-machine port collisions
 - Desktop stable-candidate validation command: `./scripts/validate-desktop-stable-candidate.sh`
 - Desktop operator walk-through command: `./scripts/validate-desktop-operator-walkthrough.sh`
+- Desktop bundle-candidate validation command: `./scripts/validate-desktop-bundle-candidate.sh`
 
 ## 1. Install And Bootstrap
 
@@ -74,6 +75,14 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 - The walk-through also proves the matching Tauri command handlers still exist for those operator-facing actions
 - The validation now leaves a structured artifact at `.opsprobe-validation/desktop-operator-walkthrough.json`
 - This is stronger than relying on memory or screenshots, but it still does not replace a real packaged desktop acceptance pass
+
+### Desktop bundle candidate evidence
+
+- Command path: `./scripts/validate-desktop-bundle-candidate.sh`
+- The current candidate now proves that real Linux packaging artifacts were produced, not only a frontend build or Tauri compile
+- The current recorded evidence confirms `.deb` and `.rpm` bundle candidates plus an AppImage `AppDir` staging tree
+- The validation now leaves a structured artifact at `.opsprobe-validation/desktop-bundle-candidate.json`
+- This is the strongest packaging evidence in the current `0.11.0` line so far, but it still does not replace a real installer-driven operator acceptance pass
 
 ## 3. Report export
 
@@ -140,6 +149,7 @@ Reasoning:
 - Clean-profile managed PostgreSQL bootstrap is now credibly proven on a real Linux machine where the binaries were installed but not on the default shell `PATH`
 - Desktop build and Tauri-shell evidence are now stronger because the candidate is validated through a repeatable desktop script with structured artifacts
 - Desktop operator walk-through evidence is also stronger because the expected UI actions and Tauri command boundary are now checked by a repeatable repository gate
+- Desktop packaging evidence is stronger again because the repository now proves real Linux bundle candidates exist, including `.deb` and `.rpm` outputs
 - However, the remaining evidence gap is still packaging and operator experience, not bootstrap mechanics alone
 - The next step should stay evidence-focused and capture packaged or near-packaged desktop operator notes before resuming Issue `47`
 
@@ -149,4 +159,5 @@ Reasoning:
 - [Stable Candidate Operator Notes Template](./stable-candidate-operator-notes.md)
 - [Desktop Stable Candidate Validation](./desktop-stable-candidate-validation.md)
 - [Desktop Operator Walk-Through](./desktop-operator-walkthrough.md)
+- [Desktop Bundle Candidate Validation](./desktop-bundle-candidate-validation.md)
 - [Stable Review Record](./stable-review-record.md)
