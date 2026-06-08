@@ -29,13 +29,13 @@ import { runInspection, type SshConnectionTestInput, type SshConnectionTestResul
 import { exportRunPdfReport } from "./pdf";
 import "./App.css";
 import type { ReportAudience } from "@opsprobe/report";
-import { OverviewWorkspace } from "./components/OverviewWorkspace";
 import { ReportsWorkspace } from "./components/ReportsWorkspace";
 import { SetupWorkspace } from "./components/SetupWorkspace";
 import { RunnerWorkspace } from "./components/RunnerWorkspace";
 import { AssetsWorkspace } from "./components/AssetsWorkspace";
 import { ServiceWorkspace } from "./components/ServiceWorkspace";
 import { HistoryWorkspace } from "./components/HistoryWorkspace";
+import { InspectionHubWorkspace } from "./components/InspectionHubWorkspace";
 import { invokeDesktop } from "./tauri-client";
 
 const initialAsset: Asset = {
@@ -373,15 +373,12 @@ function nextCredentialBindingStatus(
 
 function App() {
   type WorkspaceId =
-    | "overview"
-    | "setup"
-    | "service"
-    | "reports"
-    | "history"
-    | "assets"
-    | "runner";
+    | "inspection-hub"
+    | "assets-strategy"
+    | "inspection-results"
+    | "system-settings";
 
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId>("overview");
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId>("inspection-hub");
   const [pendingWorkspace, setPendingWorkspace] = useState<WorkspaceId | null>(null);
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
@@ -1203,34 +1200,32 @@ function App() {
     }
   }
 
-  const workspaceGroups: Array<{
-    title: string;
-    items: Array<{ id: WorkspaceId; label: string; title: string; description: string }>;
-  }> = [
+  const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string; description: string }> = [
     {
-      title: "Operate",
-      items: [
-        { id: "overview", label: "Overview", title: "Overview", description: "Current posture and first-run progress." },
-        { id: "runner", label: "Runner", title: "Inspection Runner", description: "Manual SSH validation and inspection preview." },
-        { id: "history", label: "History", title: "Run History", description: "Recent evidence, exports, and repeated problems." },
-      ],
+      id: "inspection-hub",
+      label: "Inspection Hub",
+      title: "Inspection Hub",
+      description: "One clear entry for starting inspection, checking readiness, and seeing the latest result.",
     },
     {
-      title: "Configure",
-      items: [
-        { id: "setup", label: "Setup", title: "First-Run Setup", description: "Environment readiness and operator guidance." },
-        { id: "assets", label: "Assets", title: "Assets And Migration", description: "Saved hosts, credentials, and machine transfer." },
-        { id: "service", label: "Service", title: "Local Service", description: "Managed runtime, PostgreSQL, and schedules." },
-      ],
+      id: "assets-strategy",
+      label: "Assets & Strategy",
+      title: "Assets & Strategy",
+      description: "Prepare targets, validate SSH, choose templates, and define recurring inspection plans.",
     },
     {
-      title: "Output",
-      items: [
-        { id: "reports", label: "Reports", title: "Reports And Feedback", description: "Audience-specific exports and demand intake." },
-      ],
+      id: "inspection-results",
+      label: "Inspection Results",
+      title: "Inspection Results",
+      description: "Review run history, export HTML or PDF reports, and collect product-fit feedback.",
+    },
+    {
+      id: "system-settings",
+      label: "System Settings",
+      title: "System Settings",
+      description: "Handle first-run setup, managed runtime health, PostgreSQL, and local environment repair.",
     },
   ];
-  const workspaceSections = workspaceGroups.flatMap((group) => group.items);
   const activeWorkspaceMeta =
     workspaceSections.find((section) => section.id === activeWorkspace) ?? workspaceSections[0];
   const runtimeStatus = serviceResponse?.snapshot.status ?? "unknown";
@@ -1249,6 +1244,7 @@ function App() {
   const currentAssetSummary = `${asset.host}:${asset.port} · ${asset.credential.username}`;
   const sidebarStatusLabel =
     showingDemoExperience ? "Demo dataset loaded" : hasRealData ? "Live workspace active" : "Awaiting first saved asset";
+  const latestVisibleRun = selectedHistoryRun ?? visibleHistoryRuns[0] ?? serviceExecutionRun ?? serviceInspectionRun ?? null;
 
   useEffect(() => {
     if (pendingWorkspace === null || pendingWorkspace !== activeWorkspace) {
@@ -1274,35 +1270,36 @@ function App() {
             </svg>
           </div>
           <p className="sidebar-kicker">OpsProbe</p>
-          <h1>Desktop Console</h1>
+          <h1>Desktop App</h1>
         </div>
 
         <nav className="sidebar-nav" aria-label="Primary">
-          {workspaceGroups.map((group) => (
-            <div className="sidebar-group" key={group.title}>
-              <p className="sidebar-group-title">{group.title}</p>
-              <div className="sidebar-group-links">
-                {group.items.map((section) => (
-                  <button
-                    key={section.id}
-                    className={`sidebar-link ${activeWorkspace === section.id ? "sidebar-link-active" : ""} ${pendingWorkspace === section.id ? "sidebar-link-pending" : ""}`}
-                    onClick={() => handleWorkspaceChange(section.id)}
-                    type="button"
-                    aria-busy={pendingWorkspace === section.id}
-                  >
+          <div className="sidebar-group">
+            <p className="sidebar-group-title">Workflow</p>
+            <div className="sidebar-group-links">
+              {workspaceSections.map((section) => (
+                <button
+                  key={section.id}
+                  className={`sidebar-link ${activeWorkspace === section.id ? "sidebar-link-active" : ""} ${pendingWorkspace === section.id ? "sidebar-link-pending" : ""}`}
+                  onClick={() => handleWorkspaceChange(section.id)}
+                  type="button"
+                  aria-busy={pendingWorkspace === section.id}
+                >
+                  <span className="sidebar-link-main">
                     <span className="sidebar-link-label">{section.label}</span>
-                    {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
-                  </button>
-                ))}
-              </div>
+                    <span className="sidebar-link-copy">{section.description}</span>
+                  </span>
+                  {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
+                </button>
+              ))}
             </div>
-          ))}
+          </div>
         </nav>
 
         <div className="sidebar-status">
           <div className="status-tile">
             <span className="status-label">Release</span>
-            <strong>v0.10.3</strong>
+            <strong>v0.10.4</strong>
           </div>
           <div className="status-tile">
             <span className="status-label">Mode</span>
@@ -1342,7 +1339,7 @@ function App() {
 
           <section className="workspace-hero">
             <div className="workspace-hero-main">
-              <p className="eyebrow">Active Workspace</p>
+              <p className="eyebrow">Current Step</p>
               <h1>{activeWorkspaceMeta.title}</h1>
               <p>{activeWorkspaceMeta.description}</p>
             </div>
@@ -1360,8 +1357,11 @@ function App() {
             </div>
           </section>
 
-          {activeWorkspace === "overview" ? (
-            <OverviewWorkspace
+          {activeWorkspace === "inspection-hub" ? (
+            <InspectionHubWorkspace
+              asset={asset}
+              runtimeStatus={runtimeStatus}
+              runtimeSummary={runtimeSummary}
               completedSetupSteps={completedSetupSteps}
               totalSetupSteps={firstRunChecklist.length}
               warningCount={warningChecks.length}
@@ -1369,132 +1369,135 @@ function App() {
               assetCount={savedAssets.length}
               scheduleCount={schedules.length}
               historyCount={visibleHistoryRuns.length}
-              serviceStatus={runtimeStatus}
-            />
-          ) : null}
-
-          {activeWorkspace === "reports" ? (
-            <ReportsWorkspace
-              reportAudience={reportAudience}
-              setReportAudience={setReportAudience}
-            />
-          ) : null}
-
-          {activeWorkspace === "setup" ? (
-            <SetupWorkspace
+              selectedTemplateName={activeTemplate.name}
+              latestRun={latestVisibleRun}
               showingDemoExperience={showingDemoExperience}
-              isSwitchingMode={isSwitchingMode}
-              completedSetupSteps={completedSetupSteps}
-              firstRunChecklist={firstRunChecklist}
-              blockingChecks={blockingChecks}
-              warningChecks={warningChecks}
-              troubleshootingCards={troubleshootingCards}
-              sshTroubleshooting={sshTroubleshooting}
-              sshMessage={sshResult?.message ?? null}
-              onEnterDemoMode={handleEnterDemoMode}
-              onSwitchToRealSetup={handleSwitchToRealSetup}
+              onStartInspection={() => handleWorkspaceChange("assets-strategy")}
+              onOpenAssetsStrategy={() => handleWorkspaceChange("assets-strategy")}
+              onOpenResults={() => handleWorkspaceChange("inspection-results")}
+              onOpenSettings={() => handleWorkspaceChange("system-settings")}
             />
           ) : null}
 
-          {activeWorkspace === "assets" ? (
-            <AssetsWorkspace
-              asset={asset}
-              savedAssets={savedAssets}
-              migrationPath={migrationPath}
-              isRefreshingAssets={isRefreshingAssets}
-              isExportingConfig={isExportingConfig}
-              isImportingConfig={isImportingConfig}
-              onMigrationPathChange={setMigrationPath}
-              onRefreshSavedAssets={() => void refreshSavedAssets()}
-              onSaveCurrentAsset={() => void handleSaveAsset()}
-              onExportConfig={() => void handleExportConfig()}
-              onImportConfig={() => void handleImportConfig()}
-              onLoadAsset={(savedAsset) => void handleLoadAsset(savedAsset)}
-              onPatchAsset={patchAsset}
-              onPatchCredential={patchCredential}
-            />
+          {activeWorkspace === "assets-strategy" ? (
+            <>
+              <RunnerWorkspace
+                asset={asset}
+                builtInTemplates={builtInTemplates}
+                selectedTemplateId={selectedTemplateId}
+                activeTemplate={activeTemplate}
+                activeChecksCount={activeChecks.length}
+                inspectionRun={inspectionRun}
+                isTestingSsh={isTestingSsh}
+                isRefreshingPreview={isRefreshingPreview}
+                sshResult={sshResult}
+                onPatchAsset={patchAsset}
+                onPatchCredential={patchCredential}
+                onSelectTemplate={setSelectedTemplateId}
+                onTestSsh={() => void handleSshTest()}
+                onRefreshInspectionPreview={() => void refreshInspectionPreview()}
+              />
+              <AssetsWorkspace
+                asset={asset}
+                savedAssets={savedAssets}
+                migrationPath={migrationPath}
+                isRefreshingAssets={isRefreshingAssets}
+                isExportingConfig={isExportingConfig}
+                isImportingConfig={isImportingConfig}
+                onMigrationPathChange={setMigrationPath}
+                onRefreshSavedAssets={() => void refreshSavedAssets()}
+                onSaveCurrentAsset={() => void handleSaveAsset()}
+                onExportConfig={() => void handleExportConfig()}
+                onImportConfig={() => void handleImportConfig()}
+                onLoadAsset={(savedAsset) => void handleLoadAsset(savedAsset)}
+                onPatchAsset={patchAsset}
+                onPatchCredential={patchCredential}
+              />
+              <ServiceWorkspace
+                assetId={asset.id}
+                activeTemplateName={activeTemplate.name}
+                scheduleIntervalMinutes={scheduleIntervalMinutes}
+                schedules={schedules}
+                serviceResponse={serviceResponse}
+                serviceMessage={serviceMessage}
+                isRefreshingSchedules={isRefreshingSchedules}
+                isSavingSchedule={isSavingSchedule}
+                isRefreshingService={isRefreshingService}
+                onScheduleIntervalChange={setScheduleIntervalMinutes}
+                onRefreshSchedules={() => void refreshLocalSchedules()}
+                onSaveSchedule={() => void handleSaveSchedule()}
+                onToggleSchedule={(schedule) => void handleToggleSchedule(schedule)}
+                onDeleteSchedule={(id) => void handleDeleteSchedule(id)}
+                onRefreshServiceHealth={() => void refreshLocalServiceHealth()}
+                onStartLocalService={() => void handleStartLocalService()}
+                onStopLocalService={() => void handleStopLocalService()}
+                onRestartLocalService={() => void handleRestartLocalService()}
+                onBootstrapLocalPostgres={() => void handleBootstrapLocalPostgres()}
+                onStartLocalPostgres={() => void handleStartLocalPostgres()}
+                onStopLocalPostgres={() => void handleStopLocalPostgres()}
+              />
+            </>
           ) : null}
 
-          {activeWorkspace === "service" ? (
-            <ServiceWorkspace
-              assetId={asset.id}
-              activeTemplateName={activeTemplate.name}
-              scheduleIntervalMinutes={scheduleIntervalMinutes}
-              schedules={schedules}
-              serviceResponse={serviceResponse}
-              serviceMessage={serviceMessage}
-              isRefreshingSchedules={isRefreshingSchedules}
-              isSavingSchedule={isSavingSchedule}
-              isRefreshingService={isRefreshingService}
-              onScheduleIntervalChange={setScheduleIntervalMinutes}
-              onRefreshSchedules={() => void refreshLocalSchedules()}
-              onSaveSchedule={() => void handleSaveSchedule()}
-              onToggleSchedule={(schedule) => void handleToggleSchedule(schedule)}
-              onDeleteSchedule={(id) => void handleDeleteSchedule(id)}
-              onRefreshServiceHealth={() => void refreshLocalServiceHealth()}
-              onStartLocalService={() => void handleStartLocalService()}
-              onStopLocalService={() => void handleStopLocalService()}
-              onRestartLocalService={() => void handleRestartLocalService()}
-              onBootstrapLocalPostgres={() => void handleBootstrapLocalPostgres()}
-              onStartLocalPostgres={() => void handleStartLocalPostgres()}
-              onStopLocalPostgres={() => void handleStopLocalPostgres()}
-            />
+          {activeWorkspace === "inspection-results" ? (
+            <>
+              <HistoryWorkspace
+                asset={asset}
+                activeTemplateName={activeTemplate.name}
+                reportAudience={reportAudience}
+                reportPath={reportPath}
+                pdfReportPath={pdfReportPath}
+                serviceExecutionRun={serviceExecutionRun}
+                serviceInspectionRun={serviceInspectionRun}
+                visibleHistoryRuns={visibleHistoryRuns}
+                selectedHistoryRun={selectedHistoryRun}
+                repeatedProblems={repeatedProblems}
+                showingDemoExperience={showingDemoExperience}
+                onboardingMode={onboardingMode}
+                historyAssetFilter={historyAssetFilter}
+                historyDateFrom={historyDateFrom}
+                historyDateTo={historyDateTo}
+                isRunningServiceInspection={isRunningServiceInspection}
+                isRefreshingServicePreview={isRefreshingServicePreview}
+                isRefreshingHistory={isRefreshingHistory}
+                isExportingReport={isExportingReport}
+                isExportingPdfReport={isExportingPdfReport}
+                onReportPathChange={setReportPath}
+                onPdfReportPathChange={setPdfReportPath}
+                onHistoryAssetFilterChange={setHistoryAssetFilter}
+                onHistoryDateFromChange={setHistoryDateFrom}
+                onHistoryDateToChange={setHistoryDateTo}
+                onRunLocalServiceInspection={() => void runLocalServiceInspection()}
+                onRefreshLocalServiceInspectionPreview={() => void refreshLocalServiceInspectionPreview()}
+                onRefreshLocalServiceHistory={() => void refreshLocalServiceHistory()}
+                onSelectHistoryRun={setSelectedHistoryRun}
+                onExportHtmlReport={(run) => void handleExportHtmlReport(run)}
+                onExportPdfReport={(run) => void handleExportPdfReport(run)}
+                templateLabel={templateLabel}
+              />
+              <ReportsWorkspace
+                reportAudience={reportAudience}
+                setReportAudience={setReportAudience}
+              />
+            </>
           ) : null}
 
-          {activeWorkspace === "history" ? (
-            <HistoryWorkspace
-              asset={asset}
-              activeTemplateName={activeTemplate.name}
-              reportAudience={reportAudience}
-              reportPath={reportPath}
-              pdfReportPath={pdfReportPath}
-              serviceExecutionRun={serviceExecutionRun}
-              serviceInspectionRun={serviceInspectionRun}
-              visibleHistoryRuns={visibleHistoryRuns}
-              selectedHistoryRun={selectedHistoryRun}
-              repeatedProblems={repeatedProblems}
-              showingDemoExperience={showingDemoExperience}
-              onboardingMode={onboardingMode}
-              historyAssetFilter={historyAssetFilter}
-              historyDateFrom={historyDateFrom}
-              historyDateTo={historyDateTo}
-              isRunningServiceInspection={isRunningServiceInspection}
-              isRefreshingServicePreview={isRefreshingServicePreview}
-              isRefreshingHistory={isRefreshingHistory}
-              isExportingReport={isExportingReport}
-              isExportingPdfReport={isExportingPdfReport}
-              onReportPathChange={setReportPath}
-              onPdfReportPathChange={setPdfReportPath}
-              onHistoryAssetFilterChange={setHistoryAssetFilter}
-              onHistoryDateFromChange={setHistoryDateFrom}
-              onHistoryDateToChange={setHistoryDateTo}
-              onRunLocalServiceInspection={() => void runLocalServiceInspection()}
-              onRefreshLocalServiceInspectionPreview={() => void refreshLocalServiceInspectionPreview()}
-              onRefreshLocalServiceHistory={() => void refreshLocalServiceHistory()}
-              onSelectHistoryRun={setSelectedHistoryRun}
-              onExportHtmlReport={(run) => void handleExportHtmlReport(run)}
-              onExportPdfReport={(run) => void handleExportPdfReport(run)}
-              templateLabel={templateLabel}
-            />
-          ) : null}
-
-          {activeWorkspace === "runner" ? (
-            <RunnerWorkspace
-              asset={asset}
-              builtInTemplates={builtInTemplates}
-              selectedTemplateId={selectedTemplateId}
-              activeTemplate={activeTemplate}
-              activeChecksCount={activeChecks.length}
-              inspectionRun={inspectionRun}
-              isTestingSsh={isTestingSsh}
-              isRefreshingPreview={isRefreshingPreview}
-              sshResult={sshResult}
-              onPatchAsset={patchAsset}
-              onPatchCredential={patchCredential}
-              onSelectTemplate={setSelectedTemplateId}
-              onTestSsh={() => void handleSshTest()}
-              onRefreshInspectionPreview={() => void refreshInspectionPreview()}
-            />
+          {activeWorkspace === "system-settings" ? (
+            <>
+              <SetupWorkspace
+                showingDemoExperience={showingDemoExperience}
+                isSwitchingMode={isSwitchingMode}
+                completedSetupSteps={completedSetupSteps}
+                firstRunChecklist={firstRunChecklist}
+                blockingChecks={blockingChecks}
+                warningChecks={warningChecks}
+                troubleshootingCards={troubleshootingCards}
+                sshTroubleshooting={sshTroubleshooting}
+                sshMessage={sshResult?.message ?? null}
+                onEnterDemoMode={handleEnterDemoMode}
+                onSwitchToRealSetup={handleSwitchToRealSetup}
+              />
+            </>
           ) : null}
         </div>
       </div>

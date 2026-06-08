@@ -91,8 +91,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     <>
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="History Workspace"
-          title="Execution And Export"
+          eyebrow="Inspection Results"
+          title="Run And Export"
           subtitle="Run service-owned inspections and choose where HTML or PDF evidence is written before sharing results."
           actions={
             <div className="service-actions">
@@ -144,8 +144,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
 
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="History Workspace"
-          title="Recent Local Service Runs"
+          eyebrow="Inspection Results"
+          title="Recent Runs"
           subtitle="Filter recent runs, inspect repeated failures, and reopen normalized results without leaving the desktop workflow."
           actions={
             <div className="service-actions">

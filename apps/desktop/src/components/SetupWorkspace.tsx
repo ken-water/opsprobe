@@ -49,8 +49,8 @@ export function SetupWorkspace({
     <>
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="Setup Workspace"
-          title="First-Run Demo Experience"
+          eyebrow="System Settings"
+          title="First-Run And Demo Mode"
           subtitle="Use demo mode to validate report clarity and workflow fit before connecting a real host."
           actions={
             <div className="service-actions">
@@ -93,7 +93,7 @@ export function SetupWorkspace({
 
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="Setup Workspace"
+          eyebrow="System Settings"
           title="Minimum Local Setup"
           subtitle="Finish the minimum local requirements before relying on saved assets, schedules, history, and export automation."
           meta={
@@ -157,7 +157,7 @@ export function SetupWorkspace({
 
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="Setup Workspace"
+          eyebrow="System Settings"
           title="Troubleshooting Guidance"
           subtitle="Surface the next repair steps when the local runtime or SSH path is not ready for repeatable inspections."
           meta={

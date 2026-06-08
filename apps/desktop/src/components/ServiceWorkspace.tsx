@@ -54,9 +54,9 @@ export function ServiceWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Service Workspace"
-        title="Service And Scheduling"
-        subtitle="Operate the managed local runtime, keep PostgreSQL healthy, and define recurring inspection cadence for the active asset."
+        eyebrow="Assets & Strategy"
+        title="Schedules And Managed Runtime"
+        subtitle="Define recurring inspection cadence for the active asset and keep the local runtime healthy enough to execute it."
       />
 
       <div className="service-workspace">

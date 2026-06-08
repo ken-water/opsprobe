@@ -129,11 +129,11 @@ body {
 
 .sidebar-link {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: flex-start;
   gap: 10px;
-  min-height: 48px;
-  padding: 10px 12px;
+  min-height: 74px;
+  padding: 14px 14px;
   border: 1px solid rgba(148, 163, 184, 0.08);
   border-radius: 12px;
   color: #d7e6f5;
@@ -164,8 +164,15 @@ body {
 }
 
 .sidebar-link-label {
+  display: block;
   font-weight: 700;
   color: inherit;
+}
+
+.sidebar-link-main {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
 
 .sidebar-link::before {
@@ -184,6 +191,7 @@ body {
 }
 
 .sidebar-link-copy {
+  display: block;
   font-size: 0.82rem;
   line-height: 1.4;
   color: #88a0b7;
@@ -355,7 +363,7 @@ body {
 
 .workspace-hero-main h1 {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 3.2rem);
+  font-size: clamp(1.8rem, 2.6vw, 2.7rem);
   line-height: 1.02;
   color: #f8fbff;
 }
@@ -487,6 +495,157 @@ body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+}
+
+.hub-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.hub-hero-main,
+.hub-side-card,
+.hub-card,
+.hub-step-button {
+  border: 1px solid var(--ops-border-soft);
+  background: var(--ops-bg-soft);
+  box-shadow: var(--ops-shadow);
+}
+
+.hub-hero-main {
+  padding: 32px;
+  border-radius: 30px;
+}
+
+.hub-hero-main h1 {
+  margin: 0;
+  max-width: 700px;
+  font-size: clamp(2.2rem, 3.2vw, 3.6rem);
+  line-height: 1.02;
+  color: var(--ops-text-strong);
+}
+
+.hub-hero-side {
+  display: grid;
+  gap: 16px;
+}
+
+.hub-side-card {
+  padding: 22px;
+  border-radius: 22px;
+}
+
+.hub-side-card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.15rem;
+  color: var(--ops-text-strong);
+}
+
+.hub-side-card p {
+  margin: 10px 0 0;
+  line-height: 1.6;
+  color: var(--ops-text-muted);
+}
+
+.hub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.hub-actions-compact {
+  margin-top: 18px;
+}
+
+.primary-button-large {
+  min-width: 220px;
+  min-height: 52px;
+  font-size: 1rem;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.hub-card {
+  padding: 22px;
+  border-radius: 24px;
+}
+
+.hub-card-emphasis {
+  background:
+    linear-gradient(160deg, rgba(10, 20, 33, 0.96), rgba(11, 24, 40, 0.84)),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 35%);
+}
+
+.hub-readiness-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.hub-kpi-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.hub-kpi-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.hub-kpi-list div:last-child {
+  border-bottom: 0;
+}
+
+.hub-kpi-list span {
+  color: var(--ops-text-muted);
+}
+
+.hub-kpi-list strong {
+  color: var(--ops-text-strong);
+}
+
+.hub-step-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.hub-step-button {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 18px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.hub-step-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(125, 211, 252, 0.24);
+  background: rgba(15, 23, 42, 0.92);
+}
+
+.hub-step-button strong {
+  color: var(--ops-text-strong);
+}
+
+.hub-step-button span {
+  color: var(--ops-text-muted);
+  line-height: 1.6;
 }
 
 .ops-snapshot-grid {
@@ -1364,7 +1523,10 @@ button.data-table-row {
 }
 
 @media (max-width: 1180px) {
+  .hub-hero,
   .dashboard-hero,
+  .hub-grid,
+  .hub-readiness-grid,
   .dashboard-layout,
   .workspace-hero,
   .history-workspace,
@@ -1381,6 +1543,8 @@ button.data-table-row {
 }
 
 @media (max-width: 860px) {
+  .hub-grid,
+  .hub-readiness-grid,
   .dashboard-metrics,
   .ops-snapshot-grid {
     grid-template-columns: 1fr;
@@ -1446,6 +1610,7 @@ button.data-table-row {
   }
 
   .workspace-hero-main,
+  .hub-hero-main,
   .hero-stat {
     padding: 18px;
   }

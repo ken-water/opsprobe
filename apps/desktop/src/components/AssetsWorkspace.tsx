@@ -38,8 +38,8 @@ export function AssetsWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Assets Workspace"
-        title="Assets And Migration"
+        eyebrow="Assets & Strategy"
+        title="Saved Targets And Transfer"
         subtitle="Capture reusable targets locally, then move non-secret inspection state between machines without exposing credentials."
         actions={
           <div className="service-actions">

@@ -43,9 +43,9 @@ export function RunnerWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Runner Workspace"
-        title="Manual Inspection Workspace"
-        subtitle="Validate SSH access, switch templates, and inspect normalized check output before handing execution to the local service."
+        eyebrow="Inspection Flow"
+        title="Start Inspection"
+        subtitle="Validate SSH access, choose the template, and preview normalized check output before running repeatable inspections."
         meta={
           <div className="summary-strip">
             <span>{activeChecksCount} checks in current template</span>
@@ -56,7 +56,7 @@ export function RunnerWorkspace({
       <div className="runner-workspace">
         <div className="runner-config-panel">
           <div className="assets-panel-header">
-            <strong>Target Configuration</strong>
+            <strong>Inspection Setup</strong>
             <span>{activeChecksCount} checks</span>
           </div>
 
@@ -177,7 +177,7 @@ export function RunnerWorkspace({
               {isTestingSsh ? "Testing..." : "Test SSH Connection"}
             </button>
             <button className="secondary-button" onClick={onRefreshInspectionPreview} type="button">
-              {isRefreshingPreview ? "Refreshing..." : "Refresh Inspection Preview"}
+              {isRefreshingPreview ? "Refreshing..." : "Preview Inspection Results"}
             </button>
           </div>
 
@@ -194,7 +194,7 @@ export function RunnerWorkspace({
 
         <div className="runner-results-panel">
           <div className="assets-panel-header">
-            <strong>Preview Results</strong>
+            <strong>Inspection Preview</strong>
             <span>{inspectionRun ? inspectionRun.summary.total : 0} checks</span>
           </div>
 

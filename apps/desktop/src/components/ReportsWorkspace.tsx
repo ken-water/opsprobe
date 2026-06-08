@@ -13,8 +13,8 @@ export function ReportsWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Reports Workspace"
-        title="Audience And Feedback Hub"
+        eyebrow="Inspection Results"
+        title="Report Audience And Feedback"
         subtitle="Choose how reports read before export, then route product and report fit feedback into structured issue intake."
         meta={
           <div className="summary-strip">
