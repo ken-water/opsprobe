@@ -29,6 +29,7 @@ mkdir -p "${validation_dir}"
 
 notes_file="${validation_dir}/stable-candidate-notes.md"
 checkpoint_file="${validation_dir}/stable-candidate-checkpoint.txt"
+review_file="${validation_dir}/stable-review-record.md"
 
 if [[ "${allow_dirty}" == "--allow-dirty" ]]; then
   git status --short > "${validation_dir}/stable-worktree-gate.txt"
@@ -124,4 +125,39 @@ $(cat "${validation_dir}/stable-version-gate-summary.txt")
 ## Next Step
 
 Fill in [docs/stable-candidate-operator-notes.md](../docs/stable-candidate-operator-notes.md) with operator observations from the same validation run.
+EOF
+
+cat > "${review_file}" <<EOF
+# Stable Review Draft
+
+Captured at: ${captured_at}
+
+Version under review: ${version}
+
+## Release Discipline
+
+- Checkpoint gate:
+  - see \`.opsprobe-validation/stable-worktree-gate-summary.txt\`
+- Version gate:
+  - see \`.opsprobe-validation/stable-version-gate-summary.txt\`
+
+## Install And Bootstrap Credibility
+
+- Clean-user-profile validation:
+  - passed via \`./scripts/validate-clean-user-profile.sh\`
+- PostgreSQL binaries visible:
+  - postgres=$(command -v postgres >/dev/null 2>&1 && echo yes || echo no)
+  - pg_ctl=$(command -v pg_ctl >/dev/null 2>&1 && echo yes || echo no)
+  - initdb=$(command -v initdb >/dev/null 2>&1 && echo yes || echo no)
+
+## Coverage
+
+- Clean-user-profile evidence captured
+- Raw gate outputs captured
+- Operator notes still need to be filled in from \`docs/stable-candidate-operator-notes.md\`
+
+## Draft Decision
+
+- Not ready to decide automatically
+- Update from real operator notes before resuming Issue 47
 EOF
