@@ -81,6 +81,7 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 - Command path: `./scripts/validate-desktop-bundle-candidate.sh`
 - The current candidate now proves that real Linux packaging artifacts were produced, not only a frontend build or Tauri compile
 - The current recorded evidence confirms `.deb` and `.rpm` bundle candidates plus an AppImage `AppDir` staging tree
+- The evidence also confirms that the packaged Linux outputs still contain the desktop binary, desktop entry, icon assets, and AppImage runtime wrapper structure
 - The validation now leaves a structured artifact at `.opsprobe-validation/desktop-bundle-candidate.json`
 - This is the strongest packaging evidence in the current `0.11.0` line so far, but it still does not replace a real installer-driven operator acceptance pass
 
@@ -150,6 +151,7 @@ Reasoning:
 - Desktop build and Tauri-shell evidence are now stronger because the candidate is validated through a repeatable desktop script with structured artifacts
 - Desktop operator walk-through evidence is also stronger because the expected UI actions and Tauri command boundary are now checked by a repeatable repository gate
 - Desktop packaging evidence is stronger again because the repository now proves real Linux bundle candidates exist, including `.deb` and `.rpm` outputs
+- Packaging evidence is also more honest because it now checks bundle structure rather than only the presence of top-level package files
 - However, the remaining evidence gap is still packaging and operator experience, not bootstrap mechanics alone
 - The next step should stay evidence-focused and capture packaged or near-packaged desktop operator notes before resuming Issue `47`
 
