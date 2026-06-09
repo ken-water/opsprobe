@@ -1410,7 +1410,7 @@ function App() {
     {
       id: "inspection-hub",
       label: "Start",
-      title: "Start Inspection",
+      title: "Start",
     },
     {
       id: "assets-strategy",
@@ -1420,12 +1420,12 @@ function App() {
     {
       id: "inspection-results",
       label: "Reports",
-      title: "Results And Reports",
+      title: "Reports",
     },
     {
       id: "system-settings",
       label: "System",
-      title: "System Setup",
+      title: "System",
     },
   ];
   const activeWorkspaceMeta =

@@ -39,6 +39,7 @@ export function InspectionHubWorkspace({
   onOpenSettings,
 }: InspectionHubWorkspaceProps) {
   const readyForInspection = completedSetupSteps === totalSetupSteps && blockingCount === 0;
+  const primaryActionLabel = readyForInspection ? "Start Inspection" : "Finish Local Checks";
   const nextStepLabel =
     blockingCount > 0
       ? "Repair local system first"
@@ -63,18 +64,22 @@ export function InspectionHubWorkspace({
           <p className="eyebrow">Desktop Status</p>
           <h1>Know if this machine is ready before the first real inspection.</h1>
           <p className="summary">
-            OpsProbe should feel obvious after install: check local readiness, take the next correct step, then run inspection without guessing where to begin.
+            Check this machine, confirm the next step, then either start a real inspection or fix the local runtime first.
           </p>
           <div className={`hub-launch-banner ${readyForInspection ? "hub-launch-banner-ready" : "hub-launch-banner-attention"}`}>
             <strong>{readyForInspection ? "Ready for a first real inspection" : "This machine still needs setup attention"}</strong>
             <span>{runtimeSummary}</span>
           </div>
           <div className="hub-actions">
-            <button className="primary-button primary-button-large" onClick={onStartInspection} type="button">
-              {readyForInspection ? "Start Inspection" : "Open Inspect Anyway"}
+            <button
+              className="primary-button primary-button-large"
+              onClick={readyForInspection ? onStartInspection : onOpenSettings}
+              type="button"
+            >
+              {primaryActionLabel}
             </button>
-            <button className="secondary-button" onClick={onOpenSettings} type="button">
-              Check Local System
+            <button className="secondary-button" onClick={readyForInspection ? onOpenResults : onStartInspection} type="button">
+              {readyForInspection ? "Open Latest Result" : "Inspect Anyway"}
             </button>
           </div>
         </div>
@@ -93,12 +98,30 @@ export function InspectionHubWorkspace({
         </div>
       </section>
 
+      <section className="hub-guided-strip" aria-label="Operator path">
+        <button className="guided-step-card guided-step-card-active" onClick={readyForInspection ? onStartInspection : onOpenSettings} type="button">
+          <span className="guided-step-index">1</span>
+          <strong>{readyForInspection ? "Start with inspection" : "Fix this machine first"}</strong>
+          <span>{readyForInspection ? "The runtime is usable. Open the inspection workflow directly." : runtimeSummary}</span>
+        </button>
+        <button className="guided-step-card" onClick={onOpenAssets} type="button">
+          <span className="guided-step-index">2</span>
+          <strong>Save the target</strong>
+          <span>Store SSH targets and credentials only after the first preview looks correct.</span>
+        </button>
+        <button className="guided-step-card" onClick={onOpenResults} type="button">
+          <span className="guided-step-index">3</span>
+          <strong>Read the result</strong>
+          <span>Open the latest conclusion, export files, and remediation trail.</span>
+        </button>
+      </section>
+
       <section className="hub-grid">
         <article className="hub-card hub-card-emphasis">
           <DesktopSectionHeader
             eyebrow="Local Readiness"
-            title="What OpsProbe checked on this machine"
-            subtitle="These are the checks that matter immediately after install and before recurring use."
+            title="Readiness at a glance"
+            subtitle="Only the checks that matter before you trust recurring inspection on this machine."
           />
           <div className="hub-readiness-grid">
             <div className="snapshot-tile">
@@ -123,8 +146,8 @@ export function InspectionHubWorkspace({
         <article className="hub-card">
           <DesktopSectionHeader
             eyebrow="Installed State"
-            title="What already exists locally"
-            subtitle="This is the quickest way to see whether the desktop is still empty or already in active use."
+            title="What already exists"
+            subtitle="Quick proof of whether this desktop is still empty or already in use."
           />
           <div className="hub-kpi-list">
             <div><span>Saved assets</span><strong>{assetCount}</strong></div>
@@ -164,9 +187,9 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Fast Paths"
-            title="Open the exact area you need"
-            subtitle="Use these focused entry points instead of hunting across multiple sections."
+            eyebrow="Open Directly"
+            title="Main actions"
+            subtitle="Each action opens one focused area instead of another overview page."
           />
           <div className="hub-step-list">
             <button className="hub-step-button" onClick={onStartInspection} type="button">

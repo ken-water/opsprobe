@@ -109,7 +109,7 @@ body {
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   margin-top: 28px;
 }
 
@@ -138,10 +138,10 @@ body {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
-  min-height: 54px;
-  padding: 12px 14px;
+  min-height: 48px;
+  padding: 10px 14px;
   border: 1px solid rgba(148, 163, 184, 0.08);
-  border-radius: 12px;
+  border-radius: 14px;
   color: #d7e6f5;
   width: 100%;
   background: rgba(11, 19, 31, 0.24);
@@ -171,6 +171,7 @@ body {
 
 .sidebar-link-label {
   display: block;
+  font-size: 0.95rem;
   font-weight: 700;
   color: inherit;
 }
@@ -260,7 +261,7 @@ body {
 
 .app-topbar h2 {
   margin: 6px 0 0;
-  font-size: 1.55rem;
+  font-size: 1.32rem;
   color: #f8fbff;
 }
 
@@ -651,6 +652,61 @@ body {
 .hub-launch-banner-attention {
   background: linear-gradient(180deg, rgba(42, 29, 10, 0.52), rgba(10, 18, 30, 0.76));
   border-color: rgba(251, 191, 36, 0.18);
+}
+
+.hub-guided-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 20px;
+}
+
+.guided-step-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 18px;
+  background: rgba(10, 18, 30, 0.74);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.guided-step-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(125, 211, 252, 0.22);
+  background: rgba(12, 22, 36, 0.92);
+}
+
+.guided-step-card strong {
+  color: var(--ops-text-strong);
+  font-size: 0.98rem;
+}
+
+.guided-step-card span:last-child {
+  color: var(--ops-text-muted);
+  line-height: 1.55;
+}
+
+.guided-step-card-active {
+  border-color: rgba(125, 211, 252, 0.3);
+  background: linear-gradient(180deg, rgba(12, 24, 39, 0.96), rgba(10, 18, 30, 0.86));
+  box-shadow: var(--ops-shadow-soft);
+}
+
+.guided-step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.14);
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .hub-hero-side {
@@ -1986,6 +2042,7 @@ button.data-table-row {
 }
 
 @media (max-width: 1180px) {
+  .hub-guided-strip,
   .hub-hero,
   .dashboard-hero,
   .hub-grid,
@@ -2009,6 +2066,7 @@ button.data-table-row {
 }
 
 @media (max-width: 860px) {
+  .hub-guided-strip,
   .hub-grid,
   .hub-readiness-grid,
   .dashboard-metrics,
@@ -2078,6 +2136,10 @@ button.data-table-row {
   .hub-hero-main,
   .hub-side-card {
     padding: 18px;
+  }
+
+  .hub-guided-strip {
+    grid-template-columns: 1fr;
   }
 
   .data-table-header,
