@@ -54,7 +54,7 @@ export function InspectionHubWorkspace({
               Start Inspection
             </button>
             <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
-              Open Configuration
+              Open Inspect
             </button>
           </div>
         </div>
@@ -150,12 +150,12 @@ export function InspectionHubWorkspace({
           />
           <div className="hub-step-list">
             <button className="hub-step-button" onClick={onOpenAssetsStrategy} type="button">
-              <strong>Configuration</strong>
-              <span>Targets, SSH, templates, and schedules.</span>
+              <strong>Inspect</strong>
+              <span>Target, SSH, preview, and automation.</span>
             </button>
             <button className="hub-step-button" onClick={onOpenSettings} type="button">
-              <strong>System Settings</strong>
-              <span>Runtime, PostgreSQL, and local repair.</span>
+              <strong>System</strong>
+              <span>Runtime, PostgreSQL, and repair.</span>
             </button>
           </div>
         </article>

@@ -300,22 +300,22 @@ test("keeps sidebar concise and switches workspaces with visible feedback", asyn
   await page.goto("/");
 
   const nav = page.getByRole("navigation", { name: "Primary" });
-  await expect(nav.getByRole("button", { name: "Inspection Hub" })).toBeVisible();
-  await expect(nav.getByRole("button", { name: "Assets & Strategy" })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Home" })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Inspect" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start Inspection" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Inspection Results" }).click();
-  await expect(page.getByRole("heading", { name: "Inspection Results", level: 2 })).toBeVisible();
+  await nav.getByRole("button", { name: "Results", exact: true }).click();
+  await expect(page.locator(".app-topbar").getByRole("heading", { name: "Results", level: 2 })).toBeVisible();
   await expect(page.getByText("Workspace Update")).toBeVisible();
-  await expect(page.getByText("Opening Inspection Results...")).toBeVisible();
+  await expect(page.getByText("Opening Results...")).toBeVisible();
 });
 
 test("makes setup mode and demo entry explicit", async ({ page }) => {
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
-  await nav.getByRole("button", { name: "System Settings" }).click();
+  await nav.getByRole("button", { name: "System" }).click();
 
-  await expect(page.getByRole("heading", { name: "System Settings", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "System", level: 2 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Readiness Summary", level: 2 })).toBeVisible();
   await expect(page.locator(".readiness-hero-card").getByText("Ready for first real inspection", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Actionable Repair Packs", level: 2 })).toBeVisible();
@@ -341,18 +341,18 @@ test("switches report audience and exports the selected history run with visible
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Inspection Results" }).click();
+  await nav.getByRole("button", { name: "Results", exact: true }).click();
   const reportsPanel = page.locator(".reports-config-panel");
   await expect(reportsPanel.getByText("Export Audience")).toBeVisible();
   await page.getByRole("button", { name: "Use Manager Mode" }).click();
   await expect(reportsPanel.getByText("manager", { exact: true })).toBeVisible();
 
-  await nav.getByRole("button", { name: "System Settings" }).click();
+  await nav.getByRole("button", { name: "System" }).click();
   await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
   await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
 
-  await nav.getByRole("button", { name: "Inspection Results" }).click();
-  await expect(page.getByRole("heading", { name: "Inspection Results", level: 2 })).toBeVisible();
+  await nav.getByRole("button", { name: "Results", exact: true }).click();
+  await expect(page.locator(".app-topbar").getByRole("heading", { name: "Results", level: 2 })).toBeVisible();
   await page.getByRole("button", { name: /history-2/ }).click();
   const historyDetail = page.locator(".history-detail-card");
   await expect(historyDetail.getByRole("heading", { name: "Selected Run", level: 3 })).toBeVisible();
@@ -368,7 +368,8 @@ test("shows immediate runner feedback for ssh test and preview refresh", async (
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Assets & Strategy" }).click();
+  await nav.getByRole("button", { name: "Inspect" }).click();
+  await expect(page.locator(".journey-strip")).toBeVisible();
 
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
   await expect(page.getByText("Workspace Update")).toBeVisible();
@@ -384,11 +385,11 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "System Settings" }).click();
+  await nav.getByRole("button", { name: "System" }).click();
   await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
   await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
 
-  await nav.getByRole("button", { name: "Assets & Strategy" }).click();
+  await nav.getByRole("button", { name: "Inspect" }).click();
   await page.getByRole("button", { name: "Save Current Asset" }).click();
   await expect(page.getByRole("status").getByText("Asset saved.")).toBeVisible();
   await expect(page.locator(".assets-list-panel").getByText("1 total")).toBeVisible();
@@ -422,11 +423,11 @@ test("surfaces ssh failure clearly and lets the operator retry successfully", as
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Assets & Strategy" }).click();
+  await nav.getByRole("button", { name: "Inspect" }).click();
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
   await expect(page.getByRole("status").getByText(/SSH authentication failed/)).toBeVisible();
   await expect(page.locator(".global-feedback-error")).toBeVisible();
-  await expect(page.getByText("Repair Guide")).toBeVisible();
+  await expect(page.locator(".ssh-repair-guide").getByText("Repair", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Retry SSH Test" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Switch To Password" })).toBeVisible();
 
@@ -440,7 +441,7 @@ test("shows loading feedback when history refresh is slow", async ({ page }) => 
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Inspection Results" }).click();
+  await nav.getByRole("button", { name: "Results", exact: true }).click();
   await page.getByRole("button", { name: "Refresh History" }).click();
   await expect(page.getByText("Loading run history")).toBeVisible();
   await expect(page.getByRole("status").getByText(/Loaded \d+ inspection runs?/)).toBeVisible();
@@ -450,7 +451,7 @@ test("supports opening exported files and revealing them in the local folder", a
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Inspection Results" }).click();
+  await nav.getByRole("button", { name: "Results", exact: true }).click();
 
   await page.getByRole("button", { name: "Open HTML File" }).click();
   await expect(page.getByRole("status").getByText(/Opened exported file .*opsprobe-report.*\.html/)).toBeVisible();

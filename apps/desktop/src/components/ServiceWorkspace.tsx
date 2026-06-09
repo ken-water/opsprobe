@@ -54,17 +54,17 @@ export function ServiceWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Assets & Strategy"
-        title="Plan Recurring Inspection"
-        subtitle="Only after the target and preview are stable, define recurring schedules and keep the local runtime healthy enough to execute them."
+        eyebrow="Automation"
+        title="Automate Inspection"
+        subtitle="Create schedules only after the target and preview are stable."
       />
 
       <div className="workflow-stack">
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Step 6</span>
-              <strong>Create Schedule</strong>
+              <span className="workflow-step-index">Schedule</span>
+              <strong>Create A Schedule</strong>
             </div>
             <span className="badge badge-unknown">{schedules.length} schedules</span>
           </div>
@@ -107,7 +107,7 @@ export function ServiceWorkspace({
               </div>
               <div className="inline-note">
                 <strong>Recurring plan</strong>
-                <span>The active asset and template above are what the local service will execute on each schedule tick.</span>
+                <span>The current target and template will run on each schedule.</span>
               </div>
 
               <p className="helper-text">
@@ -180,7 +180,7 @@ export function ServiceWorkspace({
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Step 7</span>
+              <span className="workflow-step-index">Runtime</span>
               <strong>Keep Local Runtime Healthy</strong>
             </div>
             <span className={`badge badge-${serviceResponse?.snapshot.status === "ready" ? "pass" : "warning"}`}>
@@ -207,7 +207,7 @@ export function ServiceWorkspace({
             </div>
             <div className="inline-note">
               <strong>Managed runtime</strong>
-              <span>Keep the local background service running if you want schedules, history, and exports to stay current.</span>
+              <span>Keep the local service running if you want schedules, history, and exports to stay current.</span>
             </div>
 
             {serviceResponse ? (

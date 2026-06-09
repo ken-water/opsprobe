@@ -70,9 +70,9 @@ export function RunnerWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Inspection Flow"
-        title="Start Inspection"
-        subtitle="Validate SSH access, choose the template, and preview normalized check output before running repeatable inspections."
+        eyebrow="Inspect"
+        title="Run An Inspection"
+        subtitle="Set the target, confirm access, and preview the result."
         meta={
           <div className="summary-strip">
             <span>{activeChecksCount} checks in current template</span>
@@ -84,8 +84,8 @@ export function RunnerWorkspace({
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Step 1</span>
-              <strong>Target And Access</strong>
+              <span className="workflow-step-index">Target</span>
+              <strong>Host And SSH Access</strong>
             </div>
             <span className={`badge badge-${connectionReady ? "pass" : "warning"}`}>
               {connectionReady ? "ready" : "incomplete"}
@@ -168,14 +168,14 @@ export function RunnerWorkspace({
               {sshResult.message}
             </p>
           ) : (
-            <p className="helper-text">Fill the target and credential fields, then verify the SSH path before previewing checks.</p>
+            <p className="helper-text">Fill the host and credential fields, then test SSH.</p>
           )}
 
           {showRepairGuide ? (
             <article className="ssh-repair-guide">
               <div className="workflow-step-header">
                 <div>
-                  <span className="workflow-step-index">Repair Guide</span>
+                  <span className="workflow-step-index">Repair</span>
                   <strong>{failureLabel}</strong>
                 </div>
                 <span className="badge badge-warning">action needed</span>
@@ -235,8 +235,8 @@ export function RunnerWorkspace({
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Step 2</span>
-              <strong>Template And Preview</strong>
+              <span className="workflow-step-index">Preview</span>
+              <strong>What To Check</strong>
             </div>
             <span className="badge badge-unknown">{activeChecksCount} checks</span>
           </div>
@@ -292,15 +292,15 @@ export function RunnerWorkspace({
           </div>
 
           <p className="helper-text">
-            Asset fields are shared by the SSH test and inspection preview. Password mode requires `sshpass` on the local machine.
+            Password mode requires `sshpass` on the local machine.
           </p>
         </section>
 
         <section className="workflow-step-card runner-results-panel">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Step 3</span>
-              <strong>Preview Output</strong>
+              <span className="workflow-step-index">Result</span>
+              <strong>Preview Result</strong>
             </div>
             <span className="badge badge-unknown">{inspectionRun ? "available" : "waiting"}</span>
           </div>
@@ -354,7 +354,7 @@ export function RunnerWorkspace({
           ) : (
             <DesktopEmptyState
               title="No Preview Yet"
-              detail="Run a manual preview to inspect normalized results before handing execution to the local service."
+              detail="Run a preview before you save schedules or export reports."
             />
           )}
         </section>

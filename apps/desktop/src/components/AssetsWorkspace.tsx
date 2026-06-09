@@ -38,9 +38,9 @@ export function AssetsWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Configuration"
-        title="Targets And Transfer"
-        subtitle="Save targets for reuse and move them between machines when needed."
+        eyebrow="Target"
+        title="Save Or Move Targets"
+        subtitle="Keep reusable targets simple and portable."
         actions={
           <div className="service-actions">
             <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
@@ -57,8 +57,8 @@ export function AssetsWorkspace({
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Step 4</span>
-              <strong>Reuse This Target</strong>
+              <span className="workflow-step-index">Saved</span>
+              <strong>Reuse A Target</strong>
             </div>
             <span className="badge badge-unknown">{savedAssets.length} saved</span>
           </div>
@@ -128,7 +128,7 @@ export function AssetsWorkspace({
                 <DesktopSectionHeader
                   eyebrow="Selected Target"
                   title={asset.name}
-                  subtitle="Edit the saved target without leaving this screen."
+                  subtitle="Edit the current target here."
                   meta={
                     <div className="summary-strip">
                       <span>{asset.protocol.toUpperCase()}</span>
@@ -211,7 +211,7 @@ export function AssetsWorkspace({
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Step 5</span>
+              <span className="workflow-step-index">Transfer</span>
               <strong>Move To Another Machine</strong>
             </div>
             <span className="badge badge-unknown">optional</span>

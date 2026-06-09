@@ -1403,23 +1403,23 @@ function App() {
   const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string }> = [
     {
       id: "inspection-hub",
-      label: "Inspection Hub",
-      title: "Inspection Hub",
+      label: "Home",
+      title: "Home",
     },
     {
       id: "assets-strategy",
-      label: "Assets & Strategy",
-      title: "Assets & Strategy",
+      label: "Inspect",
+      title: "Inspect",
     },
     {
       id: "inspection-results",
-      label: "Inspection Results",
-      title: "Inspection Results",
+      label: "Results",
+      title: "Results",
     },
     {
       id: "system-settings",
-      label: "System Settings",
-      title: "System Settings",
+      label: "System",
+      title: "System",
     },
   ];
   const activeWorkspaceMeta =
@@ -1466,12 +1466,12 @@ function App() {
             </svg>
           </div>
           <p className="sidebar-kicker">OpsProbe</p>
-          <h1>Local Inspection</h1>
+          <h1>Ops Console</h1>
         </div>
 
         <nav className="sidebar-nav" aria-label="Primary">
           <div className="sidebar-group">
-            <p className="sidebar-group-title">Workflow</p>
+            <p className="sidebar-group-title">Workspace</p>
             <div className="sidebar-group-links">
               {workspaceSections.map((section) => (
                 <button
@@ -1558,6 +1558,23 @@ function App() {
 
           {activeWorkspace === "assets-strategy" ? (
             <>
+              <section className="journey-strip" aria-label="Inspection journey">
+                <article className="journey-card journey-card-active">
+                  <span className="journey-label">1</span>
+                  <strong>Target</strong>
+                  <p>Pick a host and verify SSH.</p>
+                </article>
+                <article className="journey-card journey-card-active">
+                  <span className="journey-label">2</span>
+                  <strong>Preview</strong>
+                  <p>Choose checks and inspect the result.</p>
+                </article>
+                <article className="journey-card">
+                  <span className="journey-label">3</span>
+                  <strong>Automation</strong>
+                  <p>Save the target and add schedules.</p>
+                </article>
+              </section>
               <RunnerWorkspace
                 asset={asset}
                 builtInTemplates={builtInTemplates}
