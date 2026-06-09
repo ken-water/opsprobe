@@ -181,4 +181,32 @@ describe("desktop app shell", () => {
     expect(screen.getByText("Current Conclusion")).toBeTruthy();
     expect(screen.getByText("Result Snapshot")).toBeTruthy();
   });
+
+  it("keeps the primary operator path visible across start inspect and reports", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Start Inspection" })).toBeTruthy();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Start Inspection" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("One step at a time")).toBeTruthy();
+    });
+
+    await user.click(screen.getByRole("tab", { name: /Enable automation/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Automate Later")).toBeTruthy();
+    });
+
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
+    await user.click(getNavButton(nav, "Reports"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Current Conclusion")).toBeTruthy();
+    });
+  });
 });

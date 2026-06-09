@@ -872,12 +872,12 @@ body {
 
 .run-panel {
   margin-top: 28px;
-  padding: 22px;
+  padding: 20px;
   border-radius: var(--ops-radius-panel);
 }
 
 .run-panel > .panel-header {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .ssh-grid {
@@ -968,9 +968,9 @@ body {
 
 .form-section {
   display: grid;
-  gap: 14px;
-  margin-top: 18px;
-  padding: 18px;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.08);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(10, 18, 30, 0.58), rgba(10, 18, 30, 0.36));
@@ -1008,8 +1008,8 @@ body {
 }
 
 .primary-button {
-  min-height: 42px;
-  padding: 12px 18px;
+  min-height: 40px;
+  padding: 10px 16px;
   border: 0;
   border-radius: 999px;
   background: linear-gradient(135deg, #0ea5e9, #2563eb);
@@ -1036,8 +1036,8 @@ body {
 }
 
 .secondary-button {
-  min-height: 42px;
-  padding: 12px 18px;
+  min-height: 40px;
+  padding: 10px 16px;
   border: 1px solid var(--ops-border-soft);
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(18, 30, 48, 0.88));
@@ -1064,8 +1064,8 @@ body {
 
 .helper-text {
   color: var(--ops-text-muted);
-  line-height: 1.7;
-  font-size: 0.94rem;
+  line-height: 1.6;
+  font-size: 0.92rem;
 }
 
 .helper-empty-state {
@@ -1117,14 +1117,14 @@ body {
 
 .panel-header {
   display: flex;
-  gap: 18px;
+  gap: 16px;
   justify-content: space-between;
   align-items: flex-start;
 }
 
 .panel-header h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.42rem;
   color: var(--ops-text-strong);
   line-height: 1.12;
 }
@@ -1250,8 +1250,8 @@ body {
 .service-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 18px;
+  gap: 10px;
+  padding: 16px;
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(11, 21, 34, 0.92), rgba(10, 18, 30, 0.82));
   border: 1px solid rgba(148, 163, 184, 0.08);
@@ -1385,7 +1385,7 @@ body {
 .service-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -1400,7 +1400,7 @@ body {
 }
 
 .workflow-step-card {
-  padding: 22px;
+  padding: 18px;
   border: 1px solid var(--ops-border-soft);
   border-radius: var(--ops-radius-panel);
   background: linear-gradient(180deg, rgba(10, 20, 33, 0.96), rgba(10, 18, 30, 0.88));
@@ -1466,14 +1466,14 @@ body {
 .results-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-  margin-top: 18px;
+  gap: 14px;
+  margin-top: 16px;
 }
 
 .results-overview-stack {
   display: grid;
-  gap: 18px;
-  margin-top: 18px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .results-overview-hero,
@@ -1522,8 +1522,8 @@ body {
 .history-workspace {
   display: grid;
   grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.4fr);
-  gap: 18px;
-  margin-top: 18px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .runner-workspace,
@@ -1532,8 +1532,8 @@ body {
 .service-workspace {
   display: grid;
   grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.4fr);
-  gap: 18px;
-  margin-top: 18px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .assets-workspace-compact,
@@ -1566,7 +1566,7 @@ body {
 
 .data-table-shell {
   --ops-table-columns: repeat(auto-fit, minmax(140px, 1fr));
-  margin-top: 10px;
+  margin-top: 8px;
   border: 1px solid var(--ops-border-soft);
   border-radius: 20px;
   background: var(--ops-bg-panel);
@@ -1587,7 +1587,7 @@ body {
 }
 
 .data-table-head {
-  min-height: 48px;
+  min-height: 44px;
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -1630,8 +1630,8 @@ button.data-table-row {
 .data-table-cell {
   display: flex;
   align-items: center;
-  min-height: 64px;
-  padding: 12px 16px;
+  min-height: 58px;
+  padding: 10px 14px;
   color: var(--ops-text-soft);
   line-height: 1.5;
 }
@@ -1658,8 +1658,8 @@ button.data-table-row {
 
 .data-table-actions .secondary-button,
 .data-table-actions .primary-button {
-  padding: 9px 14px;
-  font-size: 0.92rem;
+  padding: 8px 12px;
+  font-size: 0.88rem;
 }
 
 .data-table-empty {
@@ -1728,18 +1728,18 @@ button.data-table-row {
 .history-detail-card,
 .history-empty-state,
 .history-side-card {
-  padding: 20px;
+  padding: 18px;
   border-radius: var(--ops-radius-card);
 }
 
 .history-detail-card,
 .history-side-card {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .history-side-card {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .assets-panel-header {
