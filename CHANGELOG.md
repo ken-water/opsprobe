@@ -4,7 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
-## [0.10.5] - Unreleased
+## [0.10.6] - Unreleased
+
+### Planned
+
+- tighten the simplified desktop flow with denser action hierarchy and less secondary clutter
+- continue consistency work across spacing, table density, and operator feedback timing
+- add any extra packaged-release validation needed for the simplified desktop workflow
+
+## [0.10.5] - 2026-06-09
 
 ### Added
 
@@ -19,8 +27,8 @@ The format is based on Keep a Changelog and the project follows semantic version
 
 ### Known Limits
 
-- `0.10.5` is a development line, not a published release yet
-- A tag and GitHub release should only be created after release readiness validation and release notes are finalized
+- `0.10.5` simplifies the main operator path, but the `Inspect` page still needs another round of hierarchy and density tightening
+- Additional packaged desktop validation may still be needed before the broader `1.0.0` stability decision resumes
 
 ## [0.10.4] - 2026-06-08
 
