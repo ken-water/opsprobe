@@ -18,6 +18,7 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 - Desktop stable-candidate validation command: `./scripts/validate-desktop-stable-candidate.sh`
 - Desktop operator walk-through command: `./scripts/validate-desktop-operator-walkthrough.sh`
 - Desktop bundle-candidate validation command: `./scripts/validate-desktop-bundle-candidate.sh`
+- Desktop packaged-acceptance preflight command: `./scripts/validate-desktop-packaged-acceptance-preflight.sh`
 
 ## 1. Install And Bootstrap
 
@@ -86,6 +87,14 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 - The validation now leaves a structured artifact at `.opsprobe-validation/desktop-bundle-candidate.json`
 - This is the strongest packaging evidence in the current `0.11.0` line so far, but it still does not replace a real installer-driven operator acceptance pass
 
+### Desktop packaged-acceptance preflight
+
+- Command path: `./scripts/validate-desktop-packaged-acceptance-preflight.sh`
+- The current candidate now distinguishes between "bundle artifacts exist" and "this environment can actually attempt a GUI packaged launch"
+- On the current repository machine, Linux package artifacts are present, but the shell session still has no `DISPLAY` and no `xvfb-run`, so a real packaged GUI acceptance pass cannot be claimed honestly from this environment alone
+- The preflight now leaves a structured artifact at `.opsprobe-validation/desktop-packaged-acceptance-preflight.json`
+- This reduces ambiguity for Issue `54`, because the remaining gap is now explicit environment readiness for GUI launch, not uncertainty about whether packaging artifacts were produced
+
 ## 3. Report export
 
 - Command or UI path: `config-export` for migration package export is validated; report export remains stronger in smoke coverage than in this specific draft
@@ -133,6 +142,7 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 List anything that still blocks a credible stable release:
 
 - Blocker 1: current evidence is still mostly repository-driven; desktop build credibility is better now, but a packaged desktop-oriented stable candidate walk-through is still not captured strongly enough
+- Blocker 2: the current validation shell has no `DISPLAY` and no `xvfb-run`, so this machine cannot honestly claim a real GUI packaged acceptance pass yet
 
 List any limit that might be acceptable for `1.0.0` if documented honestly:
 
@@ -154,6 +164,7 @@ Reasoning:
 - The operator review path is also better defined because the repository now includes a dedicated packaged-acceptance note template instead of relying on ad-hoc reviewer memory
 - Desktop packaging evidence is stronger again because the repository now proves real Linux bundle candidates exist, including `.deb` and `.rpm` outputs
 - Packaging evidence is also more honest because it now checks bundle structure rather than only the presence of top-level package files
+- Packaged-acceptance readiness is also more honest now because the repository distinguishes bundle availability from actual GUI-launch capability in the current environment
 - However, the remaining evidence gap is still packaging and operator experience, not bootstrap mechanics alone
 - The next step should stay evidence-focused and capture packaged or near-packaged desktop operator notes before resuming Issue `47`
 

@@ -4,6 +4,14 @@ Use this template when running a real near-packaged or packaged desktop acceptan
 
 This template is intentionally operator-facing. It should capture what a user actually experienced from launch to first useful inspection, not only whether engineering scripts passed.
 
+Before using this template, run:
+
+```bash
+./scripts/validate-desktop-packaged-acceptance-preflight.sh
+```
+
+If the preflight says GUI launch is not currently possible, record that limitation first instead of pretending the packaged acceptance pass already happened.
+
 ## Candidate Metadata
 
 - Candidate version:

@@ -70,6 +70,7 @@ When a near-packaged desktop candidate is reviewed manually, walk through these 
    - `Open PDF File`
    - `Show PDF In Folder`
 9. Record the manual acceptance outcome in [desktop-packaged-acceptance-template.md](./desktop-packaged-acceptance-template.md) when a real near-packaged or packaged pass is performed
+10. Before claiming packaged acceptance readiness, run `./scripts/validate-desktop-packaged-acceptance-preflight.sh` and confirm the environment can actually launch a GUI app
 
 ## What This Still Does Not Prove
 
