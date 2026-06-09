@@ -31,6 +31,7 @@ Before starting a new issue, before ending a work session, and before starting a
 2. The current branch must track an upstream branch
 3. There must be no unpushed local commits
 4. The local branch must not be behind upstream
+5. If new commits exist after the latest published tag, the repository version must already be bumped to a new development version
 
 If the gate fails, work should stop until code is committed and pushed or local state is reconciled.
 
@@ -44,6 +45,7 @@ For every new issue:
 2. Commit the checkpoint locally
 3. Push the checkpoint to GitHub
 4. Run the checkpoint gate before opening the next issue
+5. If the previous release has already been tagged, bump to the next development version before larger follow-up work begins
 
 For every new version:
 
@@ -80,6 +82,7 @@ Pass example:
 [pass] branch main tracks origin/main
 [pass] no unpushed commits
 [pass] local branch is not behind upstream
+[pass] current development version 0.10.5 is distinct from latest published tag 0.10.4
 Checkpoint gate passed
 [pass] previous milestone 0.1.0 is closed
 [pass] previous version v0.1.0 has a GitHub release
@@ -97,6 +100,7 @@ Patch example:
 [pass] branch main tracks origin/main
 [pass] no unpushed commits
 [pass] local branch is not behind upstream
+[pass] current development version 0.10.4 is distinct from latest published tag 0.10.3
 Checkpoint gate passed
 [pass] previous milestone 0.10.3 is closed
 [pass] previous version v0.10.3 has a GitHub release
@@ -111,6 +115,7 @@ Failure example:
 ```text
 [fail] working tree is not clean
 [fail] found 2 unpushed commit(s)
+[fail] current version 0.10.4 still matches latest tag v0.10.4 while new commits exist; bump the development version before continuing
 Checkpoint gate failed
 [fail] previous milestone 0.1.0 is still open
 [fail] previous version v0.1.0 is missing a GitHub release

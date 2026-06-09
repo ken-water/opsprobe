@@ -15,6 +15,8 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
+current_version="$(node --input-type=module -e "import fs from 'node:fs'; const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); process.stdout.write(pkg.version);")"
+latest_tag="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 
 if [[ -n "$(git status --short)" ]]; then
   echo "[fail] working tree is not clean"
@@ -47,6 +49,23 @@ if git rev-parse --abbrev-ref "${branch}@{upstream}" >/dev/null 2>&1; then
 else
   echo "[fail] branch ${branch} has no upstream tracking branch"
   failures=$((failures + 1))
+fi
+
+if [[ -n "${latest_tag}" ]]; then
+  latest_tag_version="${latest_tag#v}"
+  latest_tag_commit="$(git rev-list -n 1 "${latest_tag}")"
+  head_commit="$(git rev-parse HEAD)"
+
+  if [[ "${current_version}" == "${latest_tag_version}" && "${head_commit}" != "${latest_tag_commit}" ]]; then
+    echo "[fail] current version ${current_version} still matches latest tag ${latest_tag} while new commits exist; bump the development version before continuing"
+    failures=$((failures + 1))
+  elif [[ "${current_version}" == "${latest_tag_version}" ]]; then
+    echo "[pass] current version ${current_version} matches latest published tag at the same commit"
+  else
+    echo "[pass] current development version ${current_version} is distinct from latest published tag ${latest_tag_version}"
+  fi
+else
+  echo "[pass] no published git tag found yet"
 fi
 
 if [[ "${failures}" -gt 0 ]]; then

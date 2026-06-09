@@ -6,6 +6,24 @@ The format is based on Keep a Changelog and the project follows semantic version
 
 ## [0.10.4] - 2026-06-08
 
+## [0.10.5] - Unreleased
+
+### Added
+
+- A version-state gate that fails when new development continues on top of an already published release version
+- A draft release-notes entry for `0.10.5` so current work has a visible version target before tagging
+
+### Changed
+
+- Desktop navigation now uses the shorter `Home`, `Inspect`, `Results`, and `System` labels
+- The inspection workspace is clearer about the operator path: target first, then preview, then automation
+- Repository version files now point to `0.10.5` so current work is traceable without relying on commit hashes
+
+### Known Limits
+
+- `0.10.5` is a development line, not a published release yet
+- A tag and GitHub release should only be created after release readiness validation and release notes are finalized
+
 ### Added
 
 - A `System Settings` readiness summary that tells operators whether the desktop is ready for the first real inspection

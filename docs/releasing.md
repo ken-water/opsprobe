@@ -14,23 +14,25 @@ OpsProbe releases should be created with all three artifacts aligned:
    - if the previous minor has no tag or GitHub release yet, publish it before starting the next one
    - for patch releases, still run the checkpoint gate and version gate, but milestone creation may be skipped when the patch only covers bounded fixes, docs, UX polish, or release metadata
 1. Before switching to another issue or ending the work session, commit and push the current checkpoint
-2. Update version references in:
+2. After a version is tagged and released, immediately bump repository version files to the next development version before substantial follow-up work begins
+3. Update version references in:
    - root `package.json`
    - `apps/desktop/package.json`
    - `apps/desktop/src-tauri/Cargo.toml`
    - `apps/desktop/src-tauri/tauri.conf.json`
    - `CHANGELOG.md`
-3. Verify the release scope matches the current milestone in [releases.md](./releases.md)
+4. Verify the release scope matches the current milestone in [releases.md](./releases.md)
    - for `1.0.0`, complete the review in [stable-readiness.md](./stable-readiness.md)
-4. Run build and validation commands
+5. Run build and validation commands
    - `./scripts/smoke-release-candidate.sh`
    - `./scripts/check-release-readiness.sh <target-version>`
    - for desktop packaging, also verify the target-specific bundle command succeeds
-5. Commit with a release-oriented message
-6. Create an annotated tag
-7. Push branch and tags
-8. Publish a GitHub release with structured notes
-9. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
+6. Commit with a release-oriented message
+7. Create an annotated tag
+8. Push branch and tags
+9. Publish a GitHub release with structured notes
+10. Bump to the next development version and push that checkpoint before starting broader follow-up work
+11. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
 
 Patch-release note:
 
