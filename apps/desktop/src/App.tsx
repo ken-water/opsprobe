@@ -1400,30 +1400,26 @@ function App() {
     }
   }
 
-  const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string; description: string }> = [
+  const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string }> = [
     {
       id: "inspection-hub",
       label: "Inspection Hub",
       title: "Inspection Hub",
-      description: "One clear entry for starting inspection, checking readiness, and seeing the latest result.",
     },
     {
       id: "assets-strategy",
       label: "Assets & Strategy",
       title: "Assets & Strategy",
-      description: "Prepare targets, validate SSH, choose templates, and define recurring inspection plans.",
     },
     {
       id: "inspection-results",
       label: "Inspection Results",
       title: "Inspection Results",
-      description: "Review run history, export HTML or PDF reports, and collect product-fit feedback.",
     },
     {
       id: "system-settings",
       label: "System Settings",
       title: "System Settings",
-      description: "Handle first-run setup, managed runtime health, PostgreSQL, and local environment repair.",
     },
   ];
   const activeWorkspaceMeta =
@@ -1441,7 +1437,6 @@ function App() {
             : runtimeStatus === "error"
               ? "Runtime reported an error state. Review service recovery guidance."
         : "Runtime still needs setup before local scheduling is reliable.";
-  const currentAssetSummary = `${asset.host}:${asset.port} · ${asset.credential.username}`;
   const sidebarStatusLabel =
     showingDemoExperience ? "Demo dataset loaded" : hasRealData ? "Live workspace active" : "Awaiting first saved asset";
   const latestVisibleRun = selectedHistoryRun ?? visibleHistoryRuns[0] ?? serviceExecutionRun ?? serviceInspectionRun ?? null;
@@ -1464,13 +1459,14 @@ function App() {
         <div className="sidebar-brand">
           <div className="sidebar-brand-mark" aria-hidden="true">
             <svg className="brand-mark-svg" viewBox="0 0 64 64" role="img">
-              <path d="M14 18h20c8.837 0 16 7.163 16 16s-7.163 16-16 16H14z" />
-              <path d="M22 26h12c4.418 0 8 3.582 8 8s-3.582 8-8 8H22z" />
-              <path d="M43 14h7L35 50h-7z" />
+              <path d="M14 14h18c11.046 0 20 8.954 20 20s-8.954 20-20 20H14V14z" />
+              <path d="M22 22h10c6.627 0 12 5.373 12 12s-5.373 12-12 12H22V22z" />
+              <path d="M41 12h9L31 52h-9z" />
+              <circle cx="43" cy="20" r="4" />
             </svg>
           </div>
           <p className="sidebar-kicker">OpsProbe</p>
-          <h1>Desktop App</h1>
+          <h1>Local Inspection</h1>
         </div>
 
         <nav className="sidebar-nav" aria-label="Primary">
@@ -1487,7 +1483,6 @@ function App() {
                 >
                   <span className="sidebar-link-main">
                     <span className="sidebar-link-label">{section.label}</span>
-                    <span className="sidebar-link-copy">{section.description}</span>
                   </span>
                   {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
                 </button>
@@ -1519,7 +1514,7 @@ function App() {
       <div className="app-main">
         <header className="app-topbar">
           <div>
-            <p className="eyebrow">OpsProbe Open Source Edition</p>
+            <p className="eyebrow">OpsProbe</p>
             <h2>{activeWorkspaceMeta.title}</h2>
           </div>
           <div className="topbar-metrics">
@@ -1538,26 +1533,6 @@ function App() {
               <span>{serviceMessage}</span>
             </div>
           ) : null}
-
-          <section className="workspace-hero">
-            <div className="workspace-hero-main">
-              <p className="eyebrow">Current Step</p>
-              <h1>{activeWorkspaceMeta.title}</h1>
-              <p>{activeWorkspaceMeta.description}</p>
-            </div>
-            <div className="workspace-hero-side">
-              <div className="hero-stat">
-                <span className="status-label">Current Asset</span>
-                <strong>{asset.name}</strong>
-                <p>{currentAssetSummary}</p>
-              </div>
-              <div className="hero-stat">
-                <span className="status-label">Runtime Summary</span>
-                <strong>{runtimeStatus}</strong>
-                <p>{runtimeSummary}</p>
-              </div>
-            </div>
-          </section>
 
           {activeWorkspace === "inspection-hub" ? (
             <InspectionHubWorkspace

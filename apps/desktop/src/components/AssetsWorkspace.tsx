@@ -38,9 +38,9 @@ export function AssetsWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Assets & Strategy"
-        title="Save And Reuse Targets"
-        subtitle="After the connection test and preview look correct, save the target for reuse, scheduling, and machine transfer."
+        eyebrow="Configuration"
+        title="Targets And Transfer"
+        subtitle="Save targets for reuse and move them between machines when needed."
         actions={
           <div className="service-actions">
             <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
@@ -126,9 +126,9 @@ export function AssetsWorkspace({
             <div className="assets-detail-panel">
               <div className="history-detail-card">
                 <DesktopSectionHeader
-                  eyebrow="Asset Editor"
+                  eyebrow="Selected Target"
                   title={asset.name}
-                  subtitle="Keep metadata and credential binding editable without forcing the full connection form to stay on screen."
+                  subtitle="Edit the saved target without leaving this screen."
                   meta={
                     <div className="summary-strip">
                       <span>{asset.protocol.toUpperCase()}</span>
@@ -219,8 +219,8 @@ export function AssetsWorkspace({
 
           <section className="form-section">
             <div className="form-section-header">
-              <strong>Migration Package</strong>
-              <span>Portable bundle</span>
+              <strong>Transfer Package</strong>
+              <span>Optional</span>
             </div>
             <label className="field-block field-block-inline">
               <span>Migration File</span>
@@ -242,10 +242,10 @@ export function AssetsWorkspace({
 
           <div className="helper-stack">
             <p className="helper-text">
-              Exported packages exclude secret values. Imported assets are marked for credential rebind before use on the new machine.
+              Exported packages exclude secret values.
             </p>
             <p className="helper-text">
-              After rebinding, run a successful SSH test before resuming schedules or trusting imported runtime state.
+              After import, rebind credentials and rerun SSH verification before enabling schedules.
             </p>
           </div>
         </section>

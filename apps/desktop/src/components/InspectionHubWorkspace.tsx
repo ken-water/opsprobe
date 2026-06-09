@@ -44,18 +44,17 @@ export function InspectionHubWorkspace({
     <>
       <section className="hub-hero">
         <div className="hub-hero-main">
-          <p className="eyebrow">Inspection Hub</p>
-          <h1>Start inspection from one clear entry.</h1>
+          <p className="eyebrow">Start Here</p>
+          <h1>Inspect first. Configure only when needed.</h1>
           <p className="summary">
-            Configure the target, validate SSH, and run host or service checks without hunting across multiple
-            technical pages.
+            The main workflow is simple: choose a target, run inspection, then read or export the result.
           </p>
           <div className="hub-actions">
             <button className="primary-button primary-button-large" onClick={onStartInspection} type="button">
               Start Inspection
             </button>
             <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
-              Prepare Assets
+              Open Configuration
             </button>
           </div>
         </div>
@@ -78,8 +77,8 @@ export function InspectionHubWorkspace({
         <article className="hub-card hub-card-emphasis">
           <DesktopSectionHeader
             eyebrow="Run Readiness"
-            title="Can you start right now?"
-            subtitle="This card answers the first question an operator has before clicking start."
+            title="Ready to inspect?"
+            subtitle="If blocked, use configuration or settings below."
           />
           <div className="hub-readiness-grid">
             <div className="snapshot-tile">
@@ -104,8 +103,8 @@ export function InspectionHubWorkspace({
         <article className="hub-card">
           <DesktopSectionHeader
             eyebrow="Workspace"
-            title="Current coverage"
-            subtitle="A small view of what is already configured in this desktop workspace."
+            title="Configured items"
+            subtitle="What already exists in this workspace."
           />
           <div className="hub-kpi-list">
             <div><span>Saved assets</span><strong>{assetCount}</strong></div>
@@ -121,7 +120,7 @@ export function InspectionHubWorkspace({
             subtitle={
               latestRun
                 ? `Latest run created at ${formatDateTime(latestRun.createdAt)}.`
-                : "Run the first inspection to generate evidence, remediation, and exportable reports."
+                : "Run the first inspection to generate a report."
             }
           />
           {latestRun ? (
@@ -146,17 +145,17 @@ export function InspectionHubWorkspace({
         <article className="hub-card">
           <DesktopSectionHeader
             eyebrow="Next Step"
-            title="Where to go if start is blocked"
-            subtitle="Use these focused entry points instead of jumping through unrelated menus."
+            title="If start is blocked"
+            subtitle="Use one of these two focused entry points."
           />
           <div className="hub-step-list">
             <button className="hub-step-button" onClick={onOpenAssetsStrategy} type="button">
-              <strong>Assets & Strategy</strong>
-              <span>Save targets, test SSH, select templates, and set schedules.</span>
+              <strong>Configuration</strong>
+              <span>Targets, SSH, templates, and schedules.</span>
             </button>
             <button className="hub-step-button" onClick={onOpenSettings} type="button">
               <strong>System Settings</strong>
-              <span>Resolve local runtime, PostgreSQL, and first-run environment problems.</span>
+              <span>Runtime, PostgreSQL, and local repair.</span>
             </button>
           </div>
         </article>

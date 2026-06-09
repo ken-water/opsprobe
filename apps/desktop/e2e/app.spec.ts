@@ -305,7 +305,7 @@ test("keeps sidebar concise and switches workspaces with visible feedback", asyn
   await expect(page.getByRole("button", { name: "Start Inspection" })).toBeVisible();
 
   await page.getByRole("button", { name: "Inspection Results" }).click();
-  await expect(page.getByRole("heading", { name: "Inspection Results", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Inspection Results", level: 2 })).toBeVisible();
   await expect(page.getByText("Workspace Update")).toBeVisible();
   await expect(page.getByText("Opening Inspection Results...")).toBeVisible();
 });
@@ -315,7 +315,7 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   const nav = page.getByRole("navigation", { name: "Primary" });
   await nav.getByRole("button", { name: "System Settings" }).click();
 
-  await expect(page.getByRole("heading", { name: "System Settings", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "System Settings", level: 2 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Readiness Summary", level: 2 })).toBeVisible();
   await expect(page.locator(".readiness-hero-card").getByText("Ready for first real inspection", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Actionable Repair Packs", level: 2 })).toBeVisible();
@@ -352,7 +352,7 @@ test("switches report audience and exports the selected history run with visible
   await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
 
   await nav.getByRole("button", { name: "Inspection Results" }).click();
-  await expect(page.getByRole("heading", { name: "Inspection Results", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Inspection Results", level: 2 })).toBeVisible();
   await page.getByRole("button", { name: /history-2/ }).click();
   const historyDetail = page.locator(".history-detail-card");
   await expect(historyDetail.getByRole("heading", { name: "Selected Run", level: 3 })).toBeVisible();

@@ -102,8 +102,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="Inspection Results"
-          title="Run, Review, And Export"
-          subtitle="Start the service-owned inspection, see the most important findings first, and export the report once the conclusions are clear."
+          title="Run And Read Results"
+          subtitle="Run inspection, review the most important findings, then export the report."
           actions={
             <div className="service-actions">
               <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
@@ -201,7 +201,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 </div>
                 <div className="inline-note">
                   <strong>Audience: {reportAudience}</strong>
-                  <span>HTML and PDF export use the audience selected in the report settings panel.</span>
+                  <span>Exports follow the audience selected in report settings.</span>
                 </div>
                 <div className="service-actions">
                   <button className="secondary-button" onClick={() => onOpenExportFile(reportPath)} type="button">

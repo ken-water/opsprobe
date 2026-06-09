@@ -70,9 +70,10 @@ export function DesktopEmptyState({
     <div className="history-empty-state data-table-empty">
       <div className="empty-state-mark" aria-hidden="true">
         <svg className="empty-state-mark-svg" viewBox="0 0 64 64" role="img">
-          <path d="M14 18h20c8.837 0 16 7.163 16 16s-7.163 16-16 16H14z" />
-          <path d="M22 26h12c4.418 0 8 3.582 8 8s-3.582 8-8 8H22z" />
-          <path d="M43 14h7L35 50h-7z" />
+          <path d="M14 14h18c11.046 0 20 8.954 20 20s-8.954 20-20 20H14V14z" />
+          <path d="M22 22h10c6.627 0 12 5.373 12 12s-5.373 12-12 12H22V22z" />
+          <path d="M41 12h9L31 52h-9z" />
+          <circle cx="43" cy="20" r="4" />
         </svg>
       </div>
       <strong className="empty-state-title">{title}</strong>
