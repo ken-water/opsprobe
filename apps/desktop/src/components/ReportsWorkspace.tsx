@@ -14,8 +14,8 @@ export function ReportsWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Inspection Results"
-        title="Report Audience And Feedback"
-        subtitle="Choose how reports read before export, then route product and report fit feedback into structured issue intake."
+        title="Report View And Feedback"
+        subtitle="Pick the audience once, then use the right feedback entry when the report or workflow still misses the real need."
         meta={
           <div className="summary-strip">
             <span>Current audience {reportAudience}</span>
@@ -26,7 +26,7 @@ export function ReportsWorkspace({
       <div className="reports-workspace">
         <div className="reports-config-panel">
           <div className="assets-panel-header">
-            <strong>Export Audience</strong>
+            <strong>Report Audience</strong>
             <span>{reportAudience}</span>
           </div>
 
@@ -38,7 +38,7 @@ export function ReportsWorkspace({
                   {reportAudience === "operator" ? "selected" : "available"}
                 </span>
               </div>
-              <p>Detailed evidence, grouped results, and remediation text for the engineer doing the repair work.</p>
+              <p>Detailed evidence, grouped results, and remediation text for the person actually doing the repair work.</p>
               <button
                 className="secondary-button"
                 onClick={() => setReportAudience("operator")}
@@ -55,7 +55,7 @@ export function ReportsWorkspace({
                   {reportAudience === "manager" ? "selected" : "available"}
                 </span>
               </div>
-              <p>Risk summary, host overview, and priority actions for readers who need a concise decision view.</p>
+              <p>Risk summary, host overview, and priority actions for readers who need a short decision view.</p>
               <button
                 className="secondary-button"
                 onClick={() => setReportAudience("manager")}
@@ -67,20 +67,20 @@ export function ReportsWorkspace({
           </div>
 
           <p className="helper-text">
-            The selected audience affects both HTML and PDF export behavior throughout the desktop workflow.
+            This choice affects both HTML and PDF export everywhere in the desktop flow.
           </p>
         </div>
 
         <div className="reports-side-panel">
           <div className="history-side-card">
-            <h3>Feedback Intake</h3>
+            <h3>Request The Missing Thing</h3>
             <div className="history-side-list">
               <article className="service-card">
                 <div className="service-card-header">
                   <strong>Inspection Need</strong>
                   <span className="badge badge-warning">missing check</span>
                 </div>
-                <p>Use this when a template, evidence field, or service check is missing from your real workflow.</p>
+                <p>Use this when a template, evidence field, or service check is missing from the real workflow you need.</p>
                 <a
                   className="support-link"
                   href="https://github.com/ken-water/opsprobe/issues/new?template=inspection-need.yml"
@@ -96,7 +96,7 @@ export function ReportsWorkspace({
                   <strong>Report Feedback</strong>
                   <span className="badge badge-warning">report fit</span>
                 </div>
-                <p>Use this when the report exists, but the structure, detail level, or wording is wrong.</p>
+                <p>Use this when the report exists, but the structure, detail level, or wording is still wrong.</p>
                 <a
                   className="support-link"
                   href="https://github.com/ken-water/opsprobe/issues/new?template=report-feedback.yml"
@@ -126,21 +126,21 @@ export function ReportsWorkspace({
           </div>
 
           <div className="history-side-card">
-            <h3>Roadmap Context</h3>
+            <h3>Current Product Boundary</h3>
             <div className="history-side-list">
               <article className="service-card">
                 <div className="service-card-header">
                   <strong>Current Scope</strong>
                   <span className="badge badge-pass">0.10.x</span>
                 </div>
-                <p>Report audience variants, desktop operator flows, and runtime hardening are the current line.</p>
+                <p>Desktop operator flow, report readability, and runtime hardening are the current line.</p>
               </article>
               <article className="service-card">
                 <div className="service-card-header">
                   <strong>Deferred</strong>
                   <span className="badge badge-warning">later</span>
                 </div>
-                <p>Web report publishing, customer login, notification delivery, and multi-user collaboration stay out of scope for now.</p>
+                <p>Web publishing, customer login, notifications, and collaboration stay out of scope for now.</p>
               </article>
             </div>
           </div>

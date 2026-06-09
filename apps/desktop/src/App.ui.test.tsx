@@ -130,7 +130,7 @@ describe("desktop app shell", () => {
       expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Readiness Summary")).toBe(true);
     });
 
-    expect(screen.getByRole("button", { name: "Demo Data Loaded" })).toBeTruthy();
+    expect(screen.getByText("Demo mode is active")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Switch to Real Setup" }).length).toBeGreaterThan(0);
   });
 

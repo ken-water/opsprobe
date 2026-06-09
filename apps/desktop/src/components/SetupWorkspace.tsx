@@ -49,7 +49,6 @@ interface SetupWorkspaceProps {
 
 export function SetupWorkspace({
   showingDemoExperience,
-  isSwitchingMode,
   completedSetupSteps,
   firstRunChecklist,
   blockingChecks,
@@ -208,7 +207,7 @@ export function SetupWorkspace({
         <DesktopSectionHeader
           eyebrow="System Settings"
           title="First-Run Wizard"
-          subtitle="Complete the first usable local setup in a guided order instead of jumping across pages."
+          subtitle="Use one guided setup block instead of jumping between repeated environment, demo, and onboarding sections."
           meta={
             <div className="summary-strip">
               <span>{completedSetupSteps}/{firstRunChecklist.length} local checks complete</span>
@@ -241,7 +240,7 @@ export function SetupWorkspace({
                 </button>
               ) : (
                 <button className="primary-button" onClick={onOpenAssetsStrategy} type="button">
-                  Open Assets & Strategy
+                  Open Inspect Setup
                 </button>
               )}
               <button
@@ -251,12 +250,18 @@ export function SetupWorkspace({
               >
                 {showingDemoExperience ? "Switch to Real Setup" : "Explore Demo Data"}
               </button>
-              <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
-                Configure Assets
-              </button>
               <button className="secondary-button" onClick={onRefreshEnvironment} type="button">
                 Refresh Environment
               </button>
+            </div>
+
+            <div className={`onboarding-banner ${showingDemoExperience ? "onboarding-demo" : "onboarding-real"}`}>
+              <strong>{showingDemoExperience ? "Demo mode is active" : "Real setup mode is active"}</strong>
+              <span>
+                {showingDemoExperience
+                  ? "Bundled example runs stay separate from local service history, so you can review workflow and report quality safely."
+                  : "Demo data is hidden. Save a real target and run one inspection to start building your own history."}
+              </span>
             </div>
           </section>
 
@@ -289,52 +294,8 @@ export function SetupWorkspace({
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="System Settings"
-          title="First-Run And Demo Mode"
-          subtitle="Use demo mode to validate report clarity and workflow fit before connecting a real host."
-          actions={
-            <div className="service-actions">
-              <button
-                className={`secondary-button ${showingDemoExperience ? "button-active-state" : ""}`}
-                onClick={onEnterDemoMode}
-                type="button"
-                disabled={isSwitchingMode}
-                aria-pressed={showingDemoExperience}
-              >
-                {isSwitchingMode && showingDemoExperience ? "Loading Demo..." : showingDemoExperience ? "Demo Data Loaded" : "Explore Demo Data"}
-              </button>
-              <button
-                className={`primary-button ${!showingDemoExperience ? "button-active-state" : ""}`}
-                onClick={onSwitchToRealSetup}
-                type="button"
-                disabled={isSwitchingMode}
-                aria-pressed={!showingDemoExperience}
-              >
-                {isSwitchingMode && !showingDemoExperience ? "Switching..." : !showingDemoExperience ? "Real Setup Active" : "Switch to Real Setup"}
-              </button>
-            </div>
-          }
-        />
-
-        <div className={`onboarding-banner ${showingDemoExperience ? "onboarding-demo" : "onboarding-real"}`}>
-          <strong>{showingDemoExperience ? "Sample runs are visible" : "Real setup mode is active"}</strong>
-          <span>
-            {showingDemoExperience
-              ? "These results are bundled examples and are not written into your local service history."
-              : "Demo data is hidden. Save an asset and run inspections to build your own history."}
-          </span>
-        </div>
-
-        <p className="helper-text">
-          Use demo mode to review report quality, remediation wording, and result layout. Switch to
-          real setup when you are ready to connect your own hosts.
-        </p>
-      </section>
-
-      <section className="run-panel">
-        <DesktopSectionHeader
-          eyebrow="System Settings"
           title="Minimum Local Setup"
-          subtitle="Finish the minimum local requirements before relying on saved assets, schedules, history, and export automation."
+          subtitle="Only the concrete minimum checks still missing before relying on saved assets, schedules, history, and export automation."
           meta={
             <div className="summary-strip">
               <span>{completedSetupSteps}/{firstRunChecklist.length} steps complete</span>
