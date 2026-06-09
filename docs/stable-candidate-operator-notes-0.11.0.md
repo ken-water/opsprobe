@@ -71,8 +71,9 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 ### Desktop operator walk-through coverage
 
 - Command path: `./scripts/validate-desktop-operator-walkthrough.sh`
-- The current candidate now proves the desktop UI still exposes the expected service, PostgreSQL, asset-save, preview, inspection, config export/import, and report-export actions
+- The current candidate now proves the desktop UI still exposes the expected first-run repair, service, PostgreSQL, asset-save, preview, inspection, config export/import, and report-export actions
 - The walk-through also proves the matching Tauri command handlers still exist for those operator-facing actions
+- The walk-through now also proves that current-version Linux bundle artifacts exist before treating the review as a near-packaged acceptance surface
 - The validation now leaves a structured artifact at `.opsprobe-validation/desktop-operator-walkthrough.json`
 - This is stronger than relying on memory or screenshots, but it still does not replace a real packaged desktop acceptance pass
 
@@ -150,6 +151,7 @@ Reasoning:
 - Clean-profile managed PostgreSQL bootstrap is now credibly proven on a real Linux machine where the binaries were installed but not on the default shell `PATH`
 - Desktop build and Tauri-shell evidence are now stronger because the candidate is validated through a repeatable desktop script with structured artifacts
 - Desktop operator walk-through evidence is also stronger because the expected UI actions and Tauri command boundary are now checked by a repeatable repository gate
+- The operator review path is also better defined because the repository now includes a dedicated packaged-acceptance note template instead of relying on ad-hoc reviewer memory
 - Desktop packaging evidence is stronger again because the repository now proves real Linux bundle candidates exist, including `.deb` and `.rpm` outputs
 - Packaging evidence is also more honest because it now checks bundle structure rather than only the presence of top-level package files
 - However, the remaining evidence gap is still packaging and operator experience, not bootstrap mechanics alone
