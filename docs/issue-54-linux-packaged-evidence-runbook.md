@@ -201,6 +201,10 @@ After the refreshed evidence exists, update Issue `54` with:
 - whether packaged launch smoke passed
 - whether Windows evidence still needs to move to Issue `55`
 
+If a real operator-driven Linux packaged pass is performed, also complete:
+
+- [Issue 54 Linux Packaged Acceptance 0.11.0](./issue-54-linux-packaged-acceptance-0.11.0.md)
+
 ## Failure Note
 
 If step 2 still fails, capture:

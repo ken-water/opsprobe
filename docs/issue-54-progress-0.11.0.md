@@ -51,6 +51,7 @@ What still remains:
 
 - packaged evidence is still repository-driven and headless for Linux
 - a real operator-driven packaged acceptance pass should still be captured before treating this as final stable evidence
+- the repo now includes a dedicated acceptance note so that pass can be captured in one version-specific record instead of scattered comments
 
 Meaning:
 
@@ -76,6 +77,7 @@ Meaning:
 
 - refreshed [stable-candidate-operator-notes-0.11.0.md](./stable-candidate-operator-notes-0.11.0.md)
 - refreshed [stable-review-record.md](./stable-review-record.md)
+- added [issue-54-linux-packaged-acceptance-0.11.0.md](./issue-54-linux-packaged-acceptance-0.11.0.md) so the remaining human Linux acceptance pass can be recorded in a structured `0.11.0` note
 - added [prepare-desktop-build-env.sh](../scripts/prepare-desktop-build-env.sh) to hydrate and vendor desktop Rust dependencies from the current lockfile
 - updated [run-desktop-tauri-build.sh](../scripts/run-desktop-tauri-build.sh) so `desktop:build` prefers vendored sources and still honors `OPSPROBE_CARGO_REGISTRY_OVERRIDE`
 - updated root [package.json](../package.json) so `npm run desktop:build` uses the mirror-aware wrapper
@@ -84,6 +86,7 @@ Meaning:
 ## Recommended Next Steps
 
 1. Capture one real operator-driven packaged Linux acceptance pass against the current `0.11.0` AppImage or `.deb`.
+   - record it in [issue-54-linux-packaged-acceptance-0.11.0.md](./issue-54-linux-packaged-acceptance-0.11.0.md)
 2. Re-run Windows packaged validation after the current-version NSIS installer exists:
    - `npm run desktop:validate-windows-record`
    - `npm run desktop:validate-windows-wine-record`
