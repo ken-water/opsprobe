@@ -5,11 +5,17 @@ Use this workflow to prove whether the current version has a Windows desktop bin
 ## Commands
 
 - `npm run desktop:validate-windows-record`
+- `npm run desktop:validate-windows-wine-record`
 - `npm --workspace @opsprobe/desktop run tauri build -- --target x86_64-pc-windows-gnu`
 
 ## Evidence Output
 
 - `.opsprobe-validation/desktop-windows-validation-record.json`
 - `.opsprobe-validation/desktop-windows-validation-record.md`
+- `.opsprobe-validation/desktop-windows-wine-validation-record.json`
+- `.opsprobe-validation/desktop-windows-wine-validation-record.md`
 
-This record is intentionally narrow: it answers whether the current version has a matching Windows binary and installer artifact, and whether more Windows-side install validation is still missing.
+These records are intentionally split:
+
+- the Windows validation record answers whether the current version has a matching Windows binary and NSIS installer artifact
+- the Wine validation record answers whether the current machine can actually attempt a Windows installer launch
