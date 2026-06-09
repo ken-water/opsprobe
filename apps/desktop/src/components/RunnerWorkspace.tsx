@@ -48,6 +48,7 @@ export function RunnerWorkspace({
     asset.credential.secretRef.trim().length > 0;
   const connectionVerified = sshResult?.ok === true;
   const hasPreviewResult = inspectionRun !== null;
+  const firstInspectionComplete = connectionVerified && hasPreviewResult;
   const sshFailureMessage = sshResult?.ok === false ? sshResult.message.toLowerCase() : "";
   const showRepairGuide = sshResult?.ok === false && sshTroubleshooting.length > 0;
   const canSwitchToPrivateKey = sshFailureMessage.includes("sshpass") || sshFailureMessage.includes("password");
@@ -69,6 +70,13 @@ export function RunnerWorkspace({
               ? "Local dependency missing"
               : "SSH path needs repair";
   const connectionSummary = `${asset.credential.username || "user"} @ ${asset.host || "host"}:${asset.port}`;
+  const nextActionLabel = !connectionReady
+    ? "Fill the target fields first"
+    : !connectionVerified
+      ? "Test SSH now"
+      : !hasPreviewResult
+        ? "Run the first preview now"
+        : "First inspection complete";
 
   return (
     <section className="run-panel">
@@ -82,6 +90,36 @@ export function RunnerWorkspace({
           </div>
         }
       />
+
+      <section className={`runner-mission-panel ${firstInspectionComplete ? "runner-mission-panel-done" : ""}`}>
+        <div>
+          <p className="eyebrow">Current Task</p>
+          <h3>{nextActionLabel}</h3>
+          <p className="helper-text">
+            {!connectionReady
+              ? "Only host, username, and secret are required to begin."
+              : !connectionVerified
+                ? "Do not run a preview yet. Prove the SSH path from this machine first."
+                : !hasPreviewResult
+                  ? "SSH is verified. Run one preview and confirm the result is readable."
+                  : "The first inspection path is working. You can now save this target or move on to automation."}
+          </p>
+        </div>
+        <div className="runner-checklist" aria-label="First inspection checklist">
+          <div className={`runner-checklist-item ${connectionReady ? "runner-checklist-item-done" : ""}`}>
+            <strong>1. Target entered</strong>
+            <span>{connectionReady ? connectionSummary : "Host, username, and secret still need input."}</span>
+          </div>
+          <div className={`runner-checklist-item ${connectionVerified ? "runner-checklist-item-done" : ""}`}>
+            <strong>2. SSH verified</strong>
+            <span>{connectionVerified ? "This machine can reach the target over SSH." : "Run Test SSH Connection before preview."}</span>
+          </div>
+          <div className={`runner-checklist-item ${hasPreviewResult ? "runner-checklist-item-done" : ""}`}>
+            <strong>3. Preview result ready</strong>
+            <span>{hasPreviewResult ? "The first preview result is available below." : "Run one preview and verify the findings are readable."}</span>
+          </div>
+        </div>
+      </section>
 
       <section className="runner-path-strip" aria-label="Inspection path">
         <article className={`runner-path-card ${connectionReady ? "runner-path-card-active" : ""}`}>
@@ -215,7 +253,7 @@ export function RunnerWorkspace({
           </section>
 
           {sshResult ? (
-            <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`}>
+            <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`} role="status">
               {sshResult.message}
             </p>
           ) : (
@@ -318,17 +356,26 @@ export function RunnerWorkspace({
             </div>
           </section>
 
-          <div className="service-actions service-actions-primary">
-            <button className="primary-button primary-button-large" onClick={onTestSsh} type="button">
+          <div className="service-actions service-actions-primary runner-action-bar">
+            <button className="primary-button primary-button-large" onClick={onTestSsh} type="button" disabled={!connectionReady || isTestingSsh}>
               {isTestingSsh ? "Testing..." : "Test SSH Connection"}
             </button>
-            <button className="secondary-button" onClick={onRefreshInspectionPreview} type="button">
+            <button
+              className="secondary-button"
+              onClick={onRefreshInspectionPreview}
+              type="button"
+              disabled={!connectionVerified || isRefreshingPreview}
+            >
               {isRefreshingPreview ? "Running Preview..." : "Run Preview Inspection"}
             </button>
           </div>
 
           <p className="helper-text">
-            Run the SSH test first. Password mode requires `sshpass` on the local machine.
+            {!connectionReady
+              ? "Complete the required target fields before you test SSH."
+              : !connectionVerified
+                ? "Run the SSH test first. Password mode requires `sshpass` on the local machine."
+                : "SSH is verified. You can run the preview inspection now."}
           </p>
         </section>
 
@@ -347,6 +394,10 @@ export function RunnerWorkspace({
 
           {inspectionRun ? (
             <>
+              <div className="runner-step-complete" role="status">
+                <strong>Preview ready</strong>
+                <span>You now have a readable first result. Review it below before saving or automating anything.</span>
+              </div>
               <div className="summary-strip">
                 <span>Total {inspectionRun.summary.total}</span>
                 <span>Pass {inspectionRun.summary.passed}</span>

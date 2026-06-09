@@ -153,8 +153,11 @@ describe("desktop app shell", () => {
     });
 
     expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
+    expect(screen.getByText("Current Task")).toBeTruthy();
+    expect(screen.getByText("Test SSH now")).toBeTruthy();
     expect(screen.getByText("Set target")).toBeTruthy();
     expect(screen.getByText("Read the preview result")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Run Preview Inspection" }).hasAttribute("disabled")).toBe(true);
     expect(screen.queryByText("Save For Reuse")).toBeNull();
     expect(screen.queryByText("Automate Later")).toBeNull();
 
@@ -209,6 +212,8 @@ describe("desktop app shell", () => {
     });
     expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
     expect(screen.getByRole("button", { name: /First inspection/i })).toBeTruthy();
+    expect(screen.getByText("Current Task")).toBeTruthy();
+    expect(screen.getByText("Test SSH now")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: /Automation/i }));
 
