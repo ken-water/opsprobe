@@ -269,12 +269,14 @@ Scope:
 - tighten operator notes for bootstrap, first inspection, report export, shutdown, restart, backup, and recovery
 - update the stable review record so Issue 47 can be resumed from explicit evidence instead of ad hoc memory
 - identify which remaining limits are credible for acceptance and which still need another pre-stable fix
+- record any current-machine packaging blockers honestly instead of hiding them behind stale prior-version evidence
 
 Non-goals:
 
 - no new product surface area
 - no multilingual work
 - no major UI redesign unless it directly blocks stable-candidate validation
+- no requirement that current-version Linux or Windows packaged acceptance must be completed on the same machine if the blocker is environmental rather than product-side
 
 Definition of done:
 
@@ -282,6 +284,7 @@ Definition of done:
 - operator notes describe stop, restart, backup, and recovery behavior honestly enough for external review
 - the stable review record lists explicit blockers, acceptable limits, and follow-up actions
 - release docs and roadmap wording no longer imply that `1.0.0` is automatic after `0.10.x`
+- any remaining packaged-evidence gaps are explicitly deferred to the next issue instead of remaining ambiguous inside `0.11.0`
 
 Required evidence:
 
@@ -303,7 +306,9 @@ Problem:
 
 Scope:
 
+- refresh current-version Linux packaged evidence on a machine or network that can complete `tauri build`
 - validate the current NSIS installer on a real Windows machine or a trustworthy Windows-capable validation environment
+- refresh current-version Linux packaged preflight and launch-smoke records once the bundle artifacts exist
 - record install, first launch, runtime readiness, demo-data load, first inspection trigger, and uninstall behavior
 - document any platform-specific blockers or acceptance limits
 
@@ -311,15 +316,18 @@ Non-goals:
 
 - no promise of full Windows parity beyond what is actually validated
 - no new Windows-only features
+- no reopening of the broader `0.11.0` clean-profile and stable-review consolidation work
 
 Definition of done:
 
+- current-version Linux packaged evidence no longer depends on older `0.10.x` bundle records
 - the repo contains a structured validation record showing installer acceptance steps and outcome
 - the release docs separate Windows artifact generation from Windows install-and-launch evidence
 - any remaining Windows blockers are explicit and linked to follow-up issues if needed
 
 Required evidence:
 
+- refreshed Linux bundle, preflight, launch-smoke, and packaged-record artifacts for the active version if `0.11.0` deferred them for environmental reasons
 - Windows validation record with environment details and exact installer version
 - launch evidence after install
 - uninstall or upgrade-path note if it materially affects trust

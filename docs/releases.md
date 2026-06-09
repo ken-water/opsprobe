@@ -444,8 +444,8 @@ Related issues:
 
 Recommended issue split inside `0.11.x`:
 
-- `0.11.0`: clean-machine install, bootstrap, restart, backup, and stable-decision evidence consolidation
-- `0.11.1`: Windows installer acceptance evidence on real Windows or Wine-capable validation environments if `0.11.0` still lacks install credibility
+- `0.11.0`: clean-machine install, bootstrap, restart, backup, and stable-decision evidence consolidation, including honest recording of any current-machine packaging blockers
+- `0.11.1`: current-version Linux packaged evidence refresh on a viable build environment plus Windows installer acceptance evidence on a real Windows or Wine-capable validation environment if `0.11.0` still lacks install credibility
 - `0.11.2`: final blocker acceptance or follow-up defer decision before reopening `1.0.0`
 
 ## Post-Stable Direction
