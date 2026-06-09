@@ -1628,6 +1628,8 @@ function App() {
                     onSelectTemplate={setSelectedTemplateId}
                     onTestSsh={() => void handleSshTest()}
                     onRefreshInspectionPreview={() => void refreshInspectionPreview()}
+                    onOpenAssets={() => handleInspectSectionChange("assets")}
+                    onOpenResults={() => handleWorkspaceChange("inspection-results")}
                   />
                 </section>
               ) : null}

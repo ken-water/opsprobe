@@ -1700,6 +1700,55 @@ body {
   line-height: 1.55;
 }
 
+.runner-conclusion-panel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(12, 24, 39, 0.82), rgba(10, 18, 30, 0.74));
+}
+
+.runner-conclusion-copy {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.runner-conclusion-copy h3 {
+  margin: 2px 0 0;
+  font-size: 1.28rem;
+  color: var(--ops-text-strong);
+  line-height: 1.2;
+}
+
+.runner-conclusion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.runner-evidence-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.runner-evidence-header strong {
+  color: var(--ops-text-strong);
+  font-size: 1rem;
+}
+
+.runner-evidence-header span {
+  color: var(--ops-text-muted);
+  font-size: 0.92rem;
+}
+
 .results-overview-stack {
   display: grid;
   gap: 16px;

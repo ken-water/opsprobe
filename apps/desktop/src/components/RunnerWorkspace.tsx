@@ -23,6 +23,8 @@ interface RunnerWorkspaceProps {
   onSelectTemplate: (templateId: string) => void;
   onTestSsh: () => void;
   onRefreshInspectionPreview: () => void;
+  onOpenAssets: () => void;
+  onOpenResults: () => void;
 }
 
 export function RunnerWorkspace({
@@ -41,6 +43,8 @@ export function RunnerWorkspace({
   onSelectTemplate,
   onTestSsh,
   onRefreshInspectionPreview,
+  onOpenAssets,
+  onOpenResults,
 }: RunnerWorkspaceProps) {
   const connectionReady =
     asset.host.trim().length > 0 &&
@@ -398,6 +402,33 @@ export function RunnerWorkspace({
                 <strong>Preview ready</strong>
                 <span>You now have a readable first result. Review it below before saving or automating anything.</span>
               </div>
+              <section className="runner-conclusion-panel">
+                <div className="runner-conclusion-copy">
+                  <p className="eyebrow">Conclusion First</p>
+                  <h3>
+                    {inspectionRun.summary.critical > 0
+                      ? `${inspectionRun.summary.critical} critical finding${inspectionRun.summary.critical === 1 ? "" : "s"} need attention`
+                      : inspectionRun.summary.warning > 0
+                        ? `${inspectionRun.summary.warning} warning${inspectionRun.summary.warning === 1 ? "" : "s"} should be reviewed`
+                        : "The first preview completed without warnings"}
+                  </h3>
+                  <p className="helper-text">
+                    {inspectionRun.summary.critical > 0
+                      ? "Start with the critical items below, then decide whether this target is ready to save for reuse."
+                      : inspectionRun.summary.warning > 0
+                        ? "The inspection path works. Review the warnings, then either save this target or open the full report view."
+                        : "The first inspection path is healthy. Save this target for reuse or open reports if you want to share the result."}
+                  </p>
+                </div>
+                <div className="runner-conclusion-actions">
+                  <button className="primary-button" onClick={onOpenAssets} type="button">
+                    Save This Target
+                  </button>
+                  <button className="secondary-button" onClick={onOpenResults} type="button">
+                    Open Reports
+                  </button>
+                </div>
+              </section>
               <div className="summary-strip">
                 <span>Total {inspectionRun.summary.total}</span>
                 <span>Pass {inspectionRun.summary.passed}</span>
@@ -410,6 +441,11 @@ export function RunnerWorkspace({
                 <span>{asset.host}:{asset.port}</span>
                 <span>{activeTemplate.name}</span>
                 <span>{asset.tags.join(", ") || "No tags"}</span>
+              </div>
+
+              <div className="runner-evidence-header">
+                <strong>Evidence And Remediation</strong>
+                <span>Open these details after you understand the conclusion above.</span>
               </div>
 
               <div className="results-list">
