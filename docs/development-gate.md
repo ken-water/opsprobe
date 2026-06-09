@@ -84,6 +84,13 @@ The environment diagnostic command writes:
 
 Review these before new-machine development, packaged validation, or local PostgreSQL troubleshooting.
 
+Scenario-specific gates:
+
+- `npm run env:gate:local-service`
+- `npm run env:gate:desktop-packaging`
+
+Use the scenario gate that matches the current workflow when you need stricter blocking than the general report alone.
+
 ## Expected Output
 
 Pass example:

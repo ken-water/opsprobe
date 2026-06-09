@@ -112,7 +112,9 @@ xvfb_path="$(command -v xvfb-run || true)"
 dpkg_path="$(command -v dpkg || true)"
 rpm_path="$(command -v rpm || true)"
 gtk_launch_path="$(command -v gtk-launch || true)"
+xdg_open_path="$(command -v xdg-open || true)"
 postgres_bin_dir="$(discover_postgres_bin_dir)"
+vendor_dir="${repo_root}/.opsprobe-vendor"
 
 if [[ -n "${node_path}" ]]; then
   pass "node is available at ${node_path}"
@@ -160,7 +162,7 @@ else
   warn "clean-profile local-service status probe failed with exit code ${status_exit_code}"
 fi
 
-node --input-type=module - <<'EOF' "${json_report}" "${status_stdout_file}" "${status_stderr_file}" "${status_exit_code}" "${postgres_bin_dir}" "${node_path}" "${npm_path}" "${python3_path}" "${cargo_path}" "${rustc_path}" "${psql_path}" "${xvfb_path}" "${dpkg_path}" "${rpm_path}" "${gtk_launch_path}"
+node --input-type=module - <<'EOF' "${json_report}" "${status_stdout_file}" "${status_stderr_file}" "${status_exit_code}" "${postgres_bin_dir}" "${node_path}" "${npm_path}" "${python3_path}" "${cargo_path}" "${rustc_path}" "${psql_path}" "${xvfb_path}" "${dpkg_path}" "${rpm_path}" "${gtk_launch_path}" "${xdg_open_path}" "${vendor_dir}"
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
@@ -180,6 +182,8 @@ const [
   dpkgPath,
   rpmPath,
   gtkLaunchPath,
+  xdgOpenPath,
+  vendorDir,
 ] = process.argv.slice(2);
 
 function readIfPresent(path) {
@@ -217,11 +221,16 @@ const report = {
     dpkgPath: dpkgPath || null,
     rpmPath: rpmPath || null,
     gtkLaunchPath: gtkLaunchPath || null,
+    xdgOpenPath: xdgOpenPath || null,
   },
   postgres: {
     discoveredBinDir: postgresBinDir || null,
     pgCtlPresent: postgresBinDir ? fs.existsSync(`${postgresBinDir}/pg_ctl`) : false,
     initdbPresent: postgresBinDir ? fs.existsSync(`${postgresBinDir}/initdb`) : false,
+  },
+  desktopPackaging: {
+    vendorDir,
+    vendorPrepared: fs.existsSync(vendorDir),
   },
   localServiceStatusProbe: {
     exitCode: Number(statusExitCode),
@@ -264,6 +273,12 @@ const lines = [
   `- dpkg: ${report.optionalTools.dpkgPath ?? "missing"}`,
   `- rpm: ${report.optionalTools.rpmPath ?? "missing"}`,
   `- gtk-launch: ${report.optionalTools.gtkLaunchPath ?? "missing"}`,
+  `- xdg-open: ${report.optionalTools.xdgOpenPath ?? "missing"}`,
+  "",
+  "## Desktop Packaging Prep",
+  "",
+  `- vendor dir: ${report.desktopPackaging.vendorDir}`,
+  `- vendor prepared: ${report.desktopPackaging.vendorPrepared ? "yes" : "no"}`,
   "",
   "## Clean-Profile Local Service Status Probe",
   "",

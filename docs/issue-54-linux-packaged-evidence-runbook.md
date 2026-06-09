@@ -22,6 +22,12 @@ npm run env:check:strict
 
 Review `.opsprobe-validation/development-env-report.md` so the machine-level prerequisites and clean-profile local-service status are recorded alongside the packaged evidence run.
 
+Then confirm the packaging-specific gate:
+
+```bash
+npm run env:gate:desktop-packaging
+```
+
 ## 0. Preload Cargo Cache If Needed
 
 If Cargo mirror access is unstable, first hydrate the local Cargo cache from the lockfile:

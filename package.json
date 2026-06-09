@@ -25,6 +25,8 @@
     "local-service:stop": "npm --workspace @opsprobe/local-service run stop",
     "env:check": "./scripts/check-development-env.sh",
     "env:check:strict": "./scripts/check-development-env.sh --strict",
+    "env:gate:local-service": "./scripts/check-local-service-env-gate.sh",
+    "env:gate:desktop-packaging": "./scripts/check-desktop-packaging-env-gate.sh",
     "env:prepare": "./scripts/prepare-development-env.sh",
     "env:prepare:fast": "./scripts/prepare-development-env.sh --skip-npm-install",
     "test": "npm run test:unit && npm run test:integration",

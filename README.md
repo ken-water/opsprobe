@@ -100,6 +100,9 @@ The current clean-user-profile validation guide lives in [docs/clean-user-profil
 Recommended environment bootstrap:
 
 - `npm run env:check`
+- `npm run env:check:strict`
+- `npm run env:gate:local-service`
+- `npm run env:gate:desktop-packaging`
 - `npm run env:prepare`
 - if workspace dependencies are already installed and you only need the desktop vendor cache, use `npm run env:prepare:fast`
 - environment diagnostics are written to `.opsprobe-validation/development-env-report.json` and `.opsprobe-validation/development-env-report.md`

@@ -38,6 +38,12 @@ Before the clean-profile flow begins, review `.opsprobe-validation/development-e
 - the local-service status probe is understandable from an empty profile
 - any missing optional tools are known before packaged or desktop-specific validation starts
 
+If the current machine is expected to prove the managed local runtime path end to end, also run:
+
+```bash
+npm run env:gate:local-service
+```
+
 ## Validation Steps
 
 ### 1. Start from an empty local profile

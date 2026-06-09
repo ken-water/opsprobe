@@ -5,6 +5,8 @@ OpsProbe Desktop is the local-first Tauri application for running infrastructure
 ## Common Commands
 
 - `npm run env:check`
+- `npm run env:check:strict`
+- `npm run env:gate:desktop-packaging`
 - `npm run env:prepare`
 - `npm --workspace @opsprobe/desktop run dev`
 - `npm --workspace @opsprobe/desktop run build`
