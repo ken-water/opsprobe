@@ -1498,9 +1498,9 @@ function App() {
         </nav>
 
         <div className="sidebar-status">
-          <div className="status-tile" title="0.10.8 Current Release">
+          <div className="status-tile" title="0.11.0 Current Development Version">
             <span className="status-label">Release</span>
-            <strong>v0.10.8</strong>
+            <strong>v0.11.0</strong>
           </div>
           <div className="status-tile">
             <span className="status-label">Mode</span>

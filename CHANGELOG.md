@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.0] - Unreleased
+
+### Planned
+
+- consolidate clean-machine and stable-candidate evidence before resuming the `1.0.0` decision
+- turn the current stable-review record into a version-aligned, reviewable checkpoint for Issue `54`
+
 ## [0.10.8] - 2026-06-09
 
 ### Added
