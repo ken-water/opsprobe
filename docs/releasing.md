@@ -31,8 +31,9 @@ OpsProbe releases should be created with all three artifacts aligned:
 7. Create an annotated tag
 8. Push branch and tags
 9. Publish a GitHub release with structured notes
-10. Bump to the next development version and push that checkpoint before starting broader follow-up work
-11. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
+10. If a historical release was backfilled, explicitly restore the GitHub `Latest` marker to the newest shipped version instead of leaving it on the newly created older release
+11. Bump to the next development version and push that checkpoint before starting broader follow-up work
+12. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
 
 Patch-release note:
 
@@ -40,6 +41,16 @@ Patch-release note:
 - If a patch release does use a milestone, it may still pass the gate without requiring new open issues for future development
 
 If step 1 is skipped, development should not continue into another issue.
+
+## Development Version Vs Published Release
+
+OpsProbe keeps the repository on the next development version immediately after a release is published.
+
+That means:
+
+- `package.json`, desktop version files, and `CHANGELOG.md` may already show the next unreleased version
+- GitHub Releases should only show versions that already have a pushed tag and published release notes
+- an `Unreleased` changelog entry such as `0.10.8` is a development line, not proof that `v0.10.8` should already exist on GitHub
 
 ## Release Readiness Gate
 

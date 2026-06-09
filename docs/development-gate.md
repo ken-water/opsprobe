@@ -21,6 +21,7 @@ Before starting development for a target version:
 6. Patch releases may skip target milestone creation when they only ship bounded fixes, docs, UX polish, or release metadata
 7. Any new scope discovered during planning must be added as a new issue before implementation starts
 8. Published version history must remain contiguous; if a planned or shipped version is missing its tag or GitHub release, repair that gap before starting the next version
+9. The repository development version may be ahead of GitHub Releases, but only when the changelog entry is explicitly marked `Unreleased` and no release tag has been claimed yet
 
 If the gate fails, development should pause until the issue and milestone state is corrected.
 
