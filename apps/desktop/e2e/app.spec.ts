@@ -300,14 +300,14 @@ test("keeps sidebar concise and switches workspaces with visible feedback", asyn
   await page.goto("/");
 
   const nav = page.getByRole("navigation", { name: "Primary" });
-  await expect(nav.getByRole("button", { name: "Home" })).toBeVisible();
+  await expect(nav.getByRole("button", { name: "Start" })).toBeVisible();
   await expect(nav.getByRole("button", { name: "Inspect" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start Inspection" })).toBeVisible();
 
-  await nav.getByRole("button", { name: "Results", exact: true }).click();
-  await expect(page.locator(".app-topbar").getByRole("heading", { name: "Results", level: 2 })).toBeVisible();
+  await nav.getByRole("button", { name: "Reports", exact: true }).click();
+  await expect(page.locator(".app-topbar").getByRole("heading", { name: "Results And Reports", level: 2 })).toBeVisible();
   await expect(page.getByText("Workspace Update")).toBeVisible();
-  await expect(page.getByText("Opening Results...")).toBeVisible();
+  await expect(page.getByText("Opening Results And Reports...")).toBeVisible();
 });
 
 test("makes setup mode and demo entry explicit", async ({ page }) => {
@@ -315,7 +315,7 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   const nav = page.getByRole("navigation", { name: "Primary" });
   await nav.getByRole("button", { name: "System" }).click();
 
-  await expect(page.getByRole("heading", { name: "System", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "System Setup", level: 2 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Readiness Summary", level: 2 })).toBeVisible();
   await expect(page.locator(".readiness-hero-card").getByText("Ready for first real inspection", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Actionable Repair Packs", level: 2 })).toBeVisible();
@@ -323,43 +323,44 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   await expect(page.locator(".repair-pack-card").getByText("Report exports", { exact: true })).toBeVisible();
   await expect(page.locator(".repair-pack-card").getByText("Local SSH tools", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "First-Run Wizard", level: 2 })).toBeVisible();
-  await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: /Start Service|Open Assets & Strategy/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Demo Data Loaded" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Switch to Real Setup" }).last()).toBeVisible();
+  await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: "Open Inspect Setup" })).toBeVisible();
+  await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: "Refresh Environment" })).toBeVisible();
+  await expect(page.getByText("Demo mode is active")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Switch to Real Setup" }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Minimum Local Setup", level: 2 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Troubleshooting Guidance", level: 2 })).toBeVisible();
 
-  await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
-  await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).first().click();
+  await expect(page.getByText("Real setup mode is active")).toBeVisible();
   await expect(page.getByText("Real setup mode is active")).toBeVisible();
 
-  await page.getByRole("button", { name: "Explore Demo Data" }).last().click();
-  await expect(page.getByRole("button", { name: "Demo Data Loaded" })).toBeVisible();
+  await page.getByRole("button", { name: "Explore Demo Data" }).first().click();
+  await expect(page.getByText("Demo mode is active")).toBeVisible();
 });
 
 test("switches report audience and exports the selected history run with visible feedback", async ({ page }) => {
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Results", exact: true }).click();
+  await nav.getByRole("button", { name: "Reports", exact: true }).click();
   const reportsPanel = page.locator(".reports-config-panel");
-  await expect(reportsPanel.getByText("Export Audience")).toBeVisible();
+  await expect(reportsPanel.getByText("Report Audience")).toBeVisible();
   await page.getByRole("button", { name: "Use Manager Mode" }).click();
   await expect(reportsPanel.getByText("manager", { exact: true })).toBeVisible();
 
   await nav.getByRole("button", { name: "System" }).click();
-  await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
-  await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).first().click();
+  await expect(page.getByText("Real setup mode is active")).toBeVisible();
 
-  await nav.getByRole("button", { name: "Results", exact: true }).click();
-  await expect(page.locator(".app-topbar").getByRole("heading", { name: "Results", level: 2 })).toBeVisible();
+  await nav.getByRole("button", { name: "Reports", exact: true }).click();
+  await expect(page.locator(".app-topbar").getByRole("heading", { name: "Results And Reports", level: 2 })).toBeVisible();
   await page.getByRole("button", { name: /history-2/ }).click();
   const historyDetail = page.locator(".history-detail-card");
-  await expect(historyDetail.getByRole("heading", { name: "Selected Run", level: 3 })).toBeVisible();
-  await expect(historyDetail.getByText(/history-2/)).toBeVisible();
-  await expect(historyDetail.getByText("Disk Usage")).toBeVisible();
+  await expect(historyDetail.getByRole("heading", { name: "Selected Run Summary", level: 3 })).toBeVisible();
+  await expect(historyDetail.getByText("history-2 · asset-linux-001")).toBeVisible();
+  await expect(page.getByText("Current Conclusion")).toBeVisible();
 
-  await historyDetail.getByRole("button", { name: "Export manager HTML" }).click();
+  await page.getByRole("button", { name: "Export manager HTML" }).first().click();
   await expect(page.getByText("Workspace Update")).toBeVisible();
   await expect(page.getByText("Exported HTML report.")).toBeVisible();
 });
@@ -369,7 +370,7 @@ test("shows immediate runner feedback for ssh test and preview refresh", async (
   const nav = page.getByRole("navigation", { name: "Primary" });
 
   await nav.getByRole("button", { name: "Inspect" }).click();
-  await expect(page.locator(".journey-strip")).toBeVisible();
+  await expect(page.getByText("One step at a time")).toBeVisible();
 
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
   await expect(page.getByText("Workspace Update")).toBeVisible();
@@ -386,10 +387,11 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
   const nav = page.getByRole("navigation", { name: "Primary" });
 
   await nav.getByRole("button", { name: "System" }).click();
-  await page.getByRole("button", { name: "Switch to Real Setup" }).last().click();
-  await expect(page.getByRole("button", { name: "Real Setup Active" })).toBeVisible();
+  await page.getByRole("button", { name: "Switch to Real Setup" }).first().click();
+  await expect(page.getByText("Real setup mode is active")).toBeVisible();
 
   await nav.getByRole("button", { name: "Inspect" }).click();
+  await page.getByRole("tab", { name: /Save target/i }).click();
   await page.getByRole("button", { name: "Save Current Asset" }).click();
   await expect(page.getByRole("status").getByText("Asset saved.")).toBeVisible();
   await expect(page.locator(".assets-list-panel").getByText("1 total")).toBeVisible();
@@ -402,6 +404,7 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
     page.getByRole("status").getByText(/Imported 1 assets, 2 templates, and 1 schedules from opsprobe-devbox/),
   ).toBeVisible();
 
+  await page.getByRole("tab", { name: /Enable automation/i }).click();
   const servicePanel = page.locator(".service-runtime-panel");
   await page.getByRole("button", { name: "Start Service", exact: true }).click();
   await expect(page.getByRole("status").getByText("Local service started.")).toBeVisible();
@@ -441,7 +444,7 @@ test("shows loading feedback when history refresh is slow", async ({ page }) => 
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Results", exact: true }).click();
+  await nav.getByRole("button", { name: "Reports", exact: true }).click();
   await page.getByRole("button", { name: "Refresh History" }).click();
   await expect(page.getByText("Loading run history")).toBeVisible();
   await expect(page.getByRole("status").getByText(/Loaded \d+ inspection runs?/)).toBeVisible();
@@ -451,11 +454,31 @@ test("supports opening exported files and revealing them in the local folder", a
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary" });
 
-  await nav.getByRole("button", { name: "Results", exact: true }).click();
+  await nav.getByRole("button", { name: "Reports", exact: true }).click();
 
   await page.getByRole("button", { name: "Open HTML File" }).click();
   await expect(page.getByRole("status").getByText(/Opened exported file .*opsprobe-report.*\.html/)).toBeVisible();
 
   await page.getByRole("button", { name: "Show PDF In Folder" }).click();
   await expect(page.getByRole("status").getByText(/Revealed exported file .*opsprobe-report.*\.pdf/)).toBeVisible();
+});
+
+test("keeps the main operator path visible from start to inspect to reports to system", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByRole("button", { name: "Start Inspection" })).toBeVisible();
+  await page.getByRole("button", { name: "Start Inspection" }).click();
+  await expect(page.getByText("One step at a time")).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Run first inspection/i })).toHaveAttribute("aria-selected", "true");
+
+  await page.getByRole("tab", { name: /Save target/i }).click();
+  await expect(page.getByText("Save For Reuse")).toBeVisible();
+
+  await page.getByRole("navigation", { name: "Primary" }).getByRole("button", { name: "Reports" }).click();
+  await expect(page.getByRole("heading", { name: "Current Result", level: 2 })).toBeVisible();
+  await expect(page.getByText("Current Conclusion")).toBeVisible();
+
+  await page.getByRole("navigation", { name: "Primary" }).getByRole("button", { name: "System" }).click();
+  await expect(page.getByRole("heading", { name: "Readiness Summary", level: 2 })).toBeVisible();
+  await expect(page.getByText("First-Run Wizard")).toBeVisible();
 });
