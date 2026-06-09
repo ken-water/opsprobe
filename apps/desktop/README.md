@@ -13,5 +13,7 @@ OpsProbe Desktop is the local-first Tauri application for running infrastructure
 ## Packaged Validation
 
 - `npm --workspace @opsprobe/desktop run validate:packaged-launch`
+- `npm run desktop:validate-packaged-record`
 
 This packaged launch smoke check expects a Linux AppImage to already exist at the release bundle path and requires `xvfb-run` on the local machine.
+The packaged validation record summarizes whether the current version actually has matching bundle artifacts and matching evidence files.

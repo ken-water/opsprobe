@@ -11,6 +11,7 @@
     "desktop:build": "npm --workspace @opsprobe/desktop run tauri build",
     "desktop:lint": "npm --workspace @opsprobe/desktop run lint",
     "desktop:typecheck": "npm --workspace @opsprobe/desktop run typecheck",
+    "desktop:validate-packaged-record": "./scripts/record-desktop-packaged-validation.sh",
     "local-service:postgres-bootstrap": "npm --workspace @opsprobe/local-service run postgres-bootstrap",
     "local-service:postgres-start": "npm --workspace @opsprobe/local-service run postgres-start",
     "local-service:postgres-stop": "npm --workspace @opsprobe/local-service run postgres-stop",
