@@ -195,20 +195,30 @@ fn local_service_entry(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         }
     }
 
-    let bundled_entry = app
+    let resource_dir = app
         .path()
         .resource_dir()
-        .map_err(|error| format!("Failed to resolve application resource directory: {error}"))?
-        .join("local-service")
-        .join("main.mjs");
+        .map_err(|error| format!("Failed to resolve application resource directory: {error}"))?;
+
+    let bundled_entry = resource_dir.join("local-service").join("main.mjs");
 
     if bundled_entry.exists() {
         return Ok(bundled_entry);
     }
 
+    let tauri_bundled_entry = resource_dir
+        .join("resources")
+        .join("local-service")
+        .join("main.mjs");
+
+    if tauri_bundled_entry.exists() {
+        return Ok(tauri_bundled_entry);
+    }
+
     Err(format!(
-        "Bundled local service runtime not found at {}.",
-        bundled_entry.display()
+        "Bundled local service runtime not found at {} or {}.",
+        bundled_entry.display(),
+        tauri_bundled_entry.display()
     ))
 }
 

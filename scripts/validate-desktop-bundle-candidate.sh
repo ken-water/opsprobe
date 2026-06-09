@@ -25,11 +25,15 @@ test -f "${appdir_path}/AppRun"
 test -f "${appdir_path}/usr/share/applications/OpsProbe.desktop"
 test -f "${deb_extract_dir}/data/usr/bin/opsprobe-desktop"
 test -f "${deb_extract_dir}/data/usr/share/applications/OpsProbe.desktop"
+test -f "${deb_extract_dir}/data/usr/lib/OpsProbe/resources/local-service/main.mjs"
 test -f "${rpm_extract_dir}/usr/share/applications/OpsProbe.desktop"
 test -f "${appdir_path}/usr/bin/opsprobe-desktop"
+test -f "${appdir_path}/usr/lib/OpsProbe/resources/local-service/main.mjs"
+rpm -qlp "${rpm_path}" | rg -F "/usr/lib/OpsProbe/resources/local-service/main.mjs" >/dev/null
 
 node --input-type=module - <<'EOF' > "${validation_dir}/desktop-bundle-candidate.json"
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 
 const rootPkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const tauriConf = JSON.parse(fs.readFileSync("apps/desktop/src-tauri/tauri.conf.json", "utf8"));
@@ -50,6 +54,22 @@ function bytes(path) {
   return exists(path) ? fs.statSync(path).size : null;
 }
 
+function rpmList(path) {
+  try {
+    return execFileSync("rpm", ["-qlp", path], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+const rpmEntries = rpmList(rpmPath);
+
 const output = {
   validatedAt: new Date().toISOString(),
   script: "scripts/validate-desktop-bundle-candidate.sh",
@@ -66,6 +86,7 @@ const output = {
       binaryPresent: exists(`${debExtractDir}/data/usr/bin/opsprobe-desktop`),
       desktopEntryPresent: exists(`${debExtractDir}/data/usr/share/applications/OpsProbe.desktop`),
       icon128Present: exists(`${debExtractDir}/data/usr/share/icons/hicolor/128x128/apps/opsprobe-desktop.png`),
+      localServiceRuntimePresent: exists(`${debExtractDir}/data/usr/lib/OpsProbe/resources/local-service/main.mjs`),
     },
     rpm: {
       path: rpmPath,
@@ -73,6 +94,7 @@ const output = {
       bytes: bytes(rpmPath),
       extractedPath: rpmExtractDir,
       desktopEntryPresent: exists(`${rpmExtractDir}/usr/share/applications/OpsProbe.desktop`),
+      localServiceRuntimePresent: rpmEntries.includes("/usr/lib/OpsProbe/resources/local-service/main.mjs"),
     },
     appImage: {
       path: appImagePath,
@@ -89,6 +111,7 @@ const output = {
       desktopEntryPresent: exists(`${appDirPath}/usr/share/applications/OpsProbe.desktop`),
       icon128Present: exists(`${appDirPath}/usr/share/icons/hicolor/128x128/apps/opsprobe-desktop.png`),
       schemaBundlePresent: exists(`${appDirPath}/usr/share/glib-2.0/schemas/gschemas.compiled`),
+      localServiceRuntimePresent: exists(`${appDirPath}/usr/lib/OpsProbe/resources/local-service/main.mjs`),
     },
   },
 };
