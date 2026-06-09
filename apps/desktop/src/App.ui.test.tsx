@@ -109,7 +109,7 @@ describe("desktop app shell", () => {
     await user.click(getNavButton(nav, "Inspect"));
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Run An Inspection")).toBe(true);
+      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Run one inspection from start to finish")).toBe(true);
     });
 
     expect(screen.getByText("Workspace Update")).toBeTruthy();
@@ -149,7 +149,9 @@ describe("desktop app shell", () => {
       expect(screen.getByRole("tab", { name: /Run first inspection/i }).getAttribute("aria-selected")).toBe("true");
     });
 
-    expect(screen.getByText("Run An Inspection")).toBeTruthy();
+    expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
+    expect(screen.getByText("Set target")).toBeTruthy();
+    expect(screen.getByText("Read the preview result")).toBeTruthy();
     expect(screen.queryByText("Save For Reuse")).toBeNull();
     expect(screen.queryByText("Automate Later")).toBeNull();
 
@@ -200,6 +202,7 @@ describe("desktop app shell", () => {
     await waitFor(() => {
       expect(screen.getByText("One step at a time")).toBeTruthy();
     });
+    expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
 
     await user.click(screen.getByRole("tab", { name: /Enable automation/i }));
 

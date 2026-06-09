@@ -1484,6 +1484,51 @@ body {
   margin-top: 18px;
 }
 
+.runner-path-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.runner-path-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(11, 21, 34, 0.9), rgba(10, 18, 30, 0.74));
+}
+
+.runner-path-card strong {
+  color: var(--ops-text-strong);
+  font-size: 0.96rem;
+}
+
+.runner-path-card span:last-child {
+  color: var(--ops-text-muted);
+  line-height: 1.55;
+}
+
+.runner-path-card-active {
+  border-color: rgba(125, 211, 252, 0.24);
+  background: linear-gradient(180deg, rgba(12, 24, 39, 0.96), rgba(10, 18, 30, 0.84));
+  box-shadow: var(--ops-shadow-soft);
+}
+
+.runner-path-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.14);
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
 .workflow-step-card {
   padding: 18px;
   border: 1px solid var(--ops-border-soft);
@@ -2046,6 +2091,7 @@ button.data-table-row {
   .hub-hero,
   .dashboard-hero,
   .hub-grid,
+  .runner-path-strip,
   .hub-readiness-grid,
   .journey-strip,
   .results-overview-hero,
@@ -2068,6 +2114,7 @@ button.data-table-row {
 @media (max-width: 860px) {
   .hub-guided-strip,
   .hub-grid,
+  .runner-path-strip,
   .hub-readiness-grid,
   .dashboard-metrics,
   .ops-snapshot-grid {

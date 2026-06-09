@@ -11,6 +11,7 @@
     "test:browser-ui": "playwright test --config ../../playwright.desktop.config.ts",
     "test:ui": "vitest run --config ../../vitest.desktop.config.ts",
     "typecheck": "tsc --noEmit",
+    "validate:packaged-launch": "../../scripts/validate-desktop-packaged-launch-smoke.sh",
     "tauri": "tauri"
   },
   "dependencies": {

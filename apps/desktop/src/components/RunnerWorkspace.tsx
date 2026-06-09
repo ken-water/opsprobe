@@ -46,6 +46,8 @@ export function RunnerWorkspace({
     asset.host.trim().length > 0 &&
     asset.credential.username.trim().length > 0 &&
     asset.credential.secretRef.trim().length > 0;
+  const connectionVerified = sshResult?.ok === true;
+  const hasPreviewResult = inspectionRun !== null;
   const sshFailureMessage = sshResult?.ok === false ? sshResult.message.toLowerCase() : "";
   const showRepairGuide = sshResult?.ok === false && sshTroubleshooting.length > 0;
   const canSwitchToPrivateKey = sshFailureMessage.includes("sshpass") || sshFailureMessage.includes("password");
@@ -72,8 +74,8 @@ export function RunnerWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Inspect"
-        title="Run An Inspection"
-        subtitle="Set the target, confirm access, and preview the result."
+        title="Run one inspection from start to finish"
+        subtitle="Set the target, verify SSH, choose the scope, then read the first result."
         meta={
           <div className="summary-strip">
             <span>{activeChecksCount} checks in current template</span>
@@ -81,12 +83,35 @@ export function RunnerWorkspace({
         }
       />
 
+      <section className="runner-path-strip" aria-label="Inspection path">
+        <article className={`runner-path-card ${connectionReady ? "runner-path-card-active" : ""}`}>
+          <span className="runner-path-index">1</span>
+          <strong>Set target</strong>
+          <span>{connectionSummary}</span>
+        </article>
+        <article className={`runner-path-card ${connectionVerified ? "runner-path-card-active" : ""}`}>
+          <span className="runner-path-index">2</span>
+          <strong>Test SSH</strong>
+          <span>{connectionVerified ? "SSH path verified" : "Confirm the host is reachable from this machine"}</span>
+        </article>
+        <article className="runner-path-card runner-path-card-active">
+          <span className="runner-path-index">3</span>
+          <strong>Choose checks</strong>
+          <span>{activeTemplate.name}</span>
+        </article>
+        <article className={`runner-path-card ${hasPreviewResult ? "runner-path-card-active" : ""}`}>
+          <span className="runner-path-index">4</span>
+          <strong>Read result</strong>
+          <span>{hasPreviewResult ? "Preview is available below" : "Run preview to inspect findings and remediation"}</span>
+        </article>
+      </section>
+
       <div className="workflow-stack">
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Target</span>
-              <strong>Host And SSH Access</strong>
+              <span className="workflow-step-index">1</span>
+              <strong>Set the target</strong>
             </div>
             <span className={`badge badge-${connectionReady ? "pass" : "warning"}`}>
               {connectionReady ? "ready" : "incomplete"}
@@ -95,7 +120,7 @@ export function RunnerWorkspace({
 
           <section className="form-section">
             <div className="form-section-header">
-              <strong>First-Run Connection</strong>
+              <strong>Connection basics</strong>
               <span>{connectionSummary}</span>
             </div>
             <div className="target-primary-grid">
@@ -149,7 +174,7 @@ export function RunnerWorkspace({
             <div className="target-secondary-note">
               <div className="target-secondary-copy">
                 <strong>Optional details</strong>
-                <span>Name, port, and tags help reuse later, but they are secondary for the first inspection.</span>
+                <span>Name, port, and tags help reuse later, but they are not required to prove the first inspection flow.</span>
               </div>
             </div>
 
@@ -194,14 +219,14 @@ export function RunnerWorkspace({
               {sshResult.message}
             </p>
           ) : (
-            <p className="helper-text">Fill the host and credential fields, then test SSH.</p>
+            <p className="helper-text">Fill the host and credential fields, then move to step 2 and test SSH.</p>
           )}
 
           {showRepairGuide ? (
             <article className="ssh-repair-guide">
               <div className="workflow-step-header">
                 <div>
-                  <span className="workflow-step-index">Repair</span>
+                  <span className="workflow-step-index">Fix</span>
                   <strong>{failureLabel}</strong>
                 </div>
                 <span className="badge badge-warning">action needed</span>
@@ -261,15 +286,15 @@ export function RunnerWorkspace({
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Preview</span>
-              <strong>What To Check</strong>
+              <span className="workflow-step-index">2</span>
+              <strong>Verify SSH and choose checks</strong>
             </div>
             <span className="badge badge-unknown">{activeChecksCount} checks</span>
           </div>
 
           <section className="form-section">
             <div className="form-section-header">
-              <strong>Check Scope</strong>
+              <strong>Check scope</strong>
               <span>{activeChecksCount} checks</span>
             </div>
             <div className="target-primary-grid">
@@ -298,25 +323,25 @@ export function RunnerWorkspace({
               {isTestingSsh ? "Testing..." : "Test SSH Connection"}
             </button>
             <button className="secondary-button" onClick={onRefreshInspectionPreview} type="button">
-              {isRefreshingPreview ? "Refreshing..." : "Preview Inspection Results"}
+              {isRefreshingPreview ? "Running Preview..." : "Run Preview Inspection"}
             </button>
           </div>
 
           <p className="helper-text">
-            Password mode requires `sshpass` on the local machine.
+            Run the SSH test first. Password mode requires `sshpass` on the local machine.
           </p>
         </section>
 
         <section className="workflow-step-card runner-results-panel">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Result</span>
-              <strong>Preview Result</strong>
+              <span className="workflow-step-index">3</span>
+              <strong>Read the preview result</strong>
             </div>
             <span className="badge badge-unknown">{inspectionRun ? "available" : "waiting"}</span>
           </div>
           <div className="assets-panel-header">
-            <strong>Inspection Preview</strong>
+            <strong>Preview result</strong>
             <span>{inspectionRun ? inspectionRun.summary.total : 0} checks</span>
           </div>
 
@@ -365,7 +390,7 @@ export function RunnerWorkspace({
           ) : (
             <DesktopEmptyState
               title="No Preview Yet"
-              detail="Run a preview before you save schedules or export reports."
+              detail="Run the preview inspection before you save targets, enable automation, or export reports."
             />
           )}
         </section>
