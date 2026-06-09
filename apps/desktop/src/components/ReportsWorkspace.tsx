@@ -13,22 +13,29 @@ export function ReportsWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Inspection Results"
-        title="Report View And Feedback"
-        subtitle="Pick the audience once, then use the right feedback entry when the report or workflow still misses the real need."
+        eyebrow="Report Strategy"
+        title="Choose how this result should be read"
+        subtitle="The result already appears above. Use this area to decide who the export is for, how remediation should read, and what feedback to send when the report still misses the real need."
         meta={
           <div className="summary-strip">
-            <span>Current audience {reportAudience}</span>
+            <span>Audience {reportAudience}</span>
           </div>
         }
       />
 
       <div className="reports-workspace">
         <div className="reports-config-panel">
-          <div className="assets-panel-header">
-            <strong>Report Audience</strong>
-            <span>{reportAudience}</span>
-          </div>
+          <article className="history-side-card">
+            <h3>Active report mode</h3>
+            <div className="inline-note">
+              <strong>{reportAudience === "operator" ? "Operator mode" : "Manager mode"}</strong>
+              <span>
+                {reportAudience === "operator"
+                  ? "Keep detailed evidence and explicit remediation for the person repairing the issue."
+                  : "Keep the summary short, decision-oriented, and focused on risk and next action."}
+              </span>
+            </div>
+          </article>
 
           <div className="service-checks">
             <article className="service-card">
@@ -38,7 +45,7 @@ export function ReportsWorkspace({
                   {reportAudience === "operator" ? "selected" : "available"}
                 </span>
               </div>
-              <p>Detailed evidence, grouped results, and remediation text for the person actually doing the repair work.</p>
+              <p>Use this when the reader needs commands, evidence, service context, and direct remediation detail.</p>
               <button
                 className="secondary-button"
                 onClick={() => setReportAudience("operator")}
@@ -55,7 +62,7 @@ export function ReportsWorkspace({
                   {reportAudience === "manager" ? "selected" : "available"}
                 </span>
               </div>
-              <p>Risk summary, host overview, and priority actions for readers who need a short decision view.</p>
+              <p>Use this when the reader needs impact, priority, and ownership rather than low-level evidence.</p>
               <button
                 className="secondary-button"
                 onClick={() => setReportAudience("manager")}
@@ -67,13 +74,33 @@ export function ReportsWorkspace({
           </div>
 
           <p className="helper-text">
-            This choice affects both HTML and PDF export everywhere in the desktop flow.
+            This choice affects both HTML and PDF export in the current desktop workflow.
           </p>
+
+          <article className="history-side-card">
+            <h3>How remediation should read</h3>
+            <div className="history-side-list">
+              <article className="service-card">
+                <div className="service-card-header">
+                  <strong>State the risk first</strong>
+                  <span className="badge badge-pass">default</span>
+                </div>
+                <p>Start with what is broken or risky, then explain the repair path. Avoid burying the main action under raw evidence.</p>
+              </article>
+              <article className="service-card">
+                <div className="service-card-header">
+                  <strong>Keep evidence attached</strong>
+                  <span className="badge badge-pass">required</span>
+                </div>
+                <p>Every recommendation should still be traceable back to the exact check result, host context, and collected evidence.</p>
+              </article>
+            </div>
+          </article>
         </div>
 
         <div className="reports-side-panel">
           <div className="history-side-card">
-            <h3>Request The Missing Thing</h3>
+            <h3>Request what is still missing</h3>
             <div className="history-side-list">
               <article className="service-card">
                 <div className="service-card-header">
@@ -126,21 +153,21 @@ export function ReportsWorkspace({
           </div>
 
           <div className="history-side-card">
-            <h3>Current Product Boundary</h3>
+            <h3>What this page is for</h3>
             <div className="history-side-list">
               <article className="service-card">
                 <div className="service-card-header">
-                  <strong>Current Scope</strong>
-                  <span className="badge badge-pass">0.10.x</span>
+                  <strong>Use the result above to act</strong>
+                  <span className="badge badge-pass">now</span>
                 </div>
-                <p>Desktop operator flow, report readability, and runtime hardening are the current line.</p>
+                <p>Read the current conclusion, inspect priority actions, and export the selected audience format from the result section above.</p>
               </article>
               <article className="service-card">
                 <div className="service-card-header">
-                  <strong>Deferred</strong>
-                  <span className="badge badge-warning">later</span>
+                  <strong>Use this panel to shape the report</strong>
+                  <span className="badge badge-warning">feedback</span>
                 </div>
-                <p>Web publishing, customer login, notifications, and collaboration stay out of scope for now.</p>
+                <p>Switch audience mode here, then submit inspection, report, or workflow feedback when the current export still does not fit real operations.</p>
               </article>
             </div>
           </div>
