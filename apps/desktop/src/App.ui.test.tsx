@@ -161,4 +161,24 @@ describe("desktop app shell", () => {
 
     expect(screen.queryByText("Run An Inspection")).toBeNull();
   });
+
+  it("shows results as a current conclusion first and history second", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
+
+    await waitFor(() => {
+      expect(getNavButton(nav, "Reports")).toBeTruthy();
+    });
+
+    await user.click(getNavButton(nav, "Reports"));
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Current Result")).toBe(true);
+    });
+
+    expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "History And Comparison")).toBe(true);
+    expect(screen.getByText("Current Conclusion")).toBeTruthy();
+    expect(screen.getByText("Result Snapshot")).toBeTruthy();
+  });
 });

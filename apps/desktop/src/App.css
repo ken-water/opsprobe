@@ -1483,6 +1483,10 @@ body {
   gap: 18px;
 }
 
+.results-overview-hero-single {
+  grid-template-columns: 1fr;
+}
+
 .results-insight-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1490,6 +1494,29 @@ body {
 .results-overview-main,
 .results-overview-side {
   min-width: 0;
+}
+
+.results-conclusion-card {
+  gap: 18px;
+  padding: 24px;
+  background:
+    linear-gradient(160deg, rgba(10, 20, 33, 0.96), rgba(11, 24, 40, 0.84)),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 35%);
+}
+
+.results-operator-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 18px;
+}
+
+.results-priority-card,
+.results-export-card {
+  margin-top: 0;
+}
+
+.results-kpi-list {
+  margin-top: 0;
 }
 
 .history-workspace {
@@ -1937,6 +1964,7 @@ button.data-table-row {
   .journey-strip,
   .results-overview-hero,
   .results-insight-grid,
+  .results-operator-grid,
   .dashboard-layout,
   .history-workspace,
   .runner-workspace,
