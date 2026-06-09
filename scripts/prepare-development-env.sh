@@ -7,10 +7,11 @@ repo_root="$(cd "${script_dir}/.." && pwd)"
 
 run_npm_install="true"
 run_desktop_vendor="true"
+run_env_doctor="true"
 
 usage() {
   cat <<'EOF'
-usage: ./scripts/prepare-development-env.sh [--skip-npm-install] [--skip-desktop-vendor]
+usage: ./scripts/prepare-development-env.sh [--skip-npm-install] [--skip-desktop-vendor] [--skip-doctor]
 
 Bootstraps the local OpsProbe development environment by:
 
@@ -18,6 +19,7 @@ Bootstraps the local OpsProbe development environment by:
 - installing workspace node dependencies
 - discovering local PostgreSQL binary directories
 - preparing desktop Cargo vendor sources for more reliable Tauri packaging
+- recording a structured development environment report
 EOF
 }
 
@@ -29,6 +31,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-desktop-vendor)
       run_desktop_vendor="false"
+      shift
+      ;;
+    --skip-doctor)
+      run_env_doctor="false"
       shift
       ;;
     -h|--help)
@@ -142,6 +148,14 @@ if [[ "${run_desktop_vendor}" == "true" ]]; then
   pass "desktop Cargo vendor sources are ready"
 else
   info "skipping desktop Cargo vendor preparation by request"
+fi
+
+if [[ "${run_env_doctor}" == "true" ]]; then
+  info "capturing structured development environment report"
+  "${script_dir}/check-development-env.sh"
+  pass "development environment report is ready"
+else
+  info "skipping development environment report by request"
 fi
 
 pass "OpsProbe development environment preparation completed"
