@@ -66,7 +66,10 @@ vi.mock("./pdf", () => ({
 function getNavButton(nav: HTMLElement, label: string) {
   const button = within(nav)
     .getAllByRole("button")
-    .find((element) => element.textContent?.trim() === label);
+    .find((element) => {
+      const navLabel = element.querySelector(".sidebar-link-label")?.textContent?.trim();
+      return navLabel === label;
+    });
 
   if (!button) {
     throw new Error(`Navigation button "${label}" was not found.`);
@@ -190,20 +193,22 @@ describe("desktop app shell", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Finish Local Checks" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Open Inspect Setup" })).toBeTruthy();
     });
 
-    expect(screen.getByText("Know if this machine is ready before the first real inspection.")).toBeTruthy();
-    expect(screen.getByText("Readiness at a glance")).toBeTruthy();
-    expect(screen.getByText("Fix this machine first")).toBeTruthy();
-    expect(screen.getByText("Main actions")).toBeTruthy();
+    expect(screen.getByText("Start Here")).toBeTruthy();
+    expect(screen.getByText("Finish the first real setup path")).toBeTruthy();
+    expect(screen.getByText("Check if this machine is usable")).toBeTruthy();
+    expect(screen.getAllByText("Open Inspect Setup").length).toBeGreaterThan(0);
+    expect(screen.getByText("What success looks like")).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: "Inspect Anyway" }));
+    await user.click(screen.getByRole("button", { name: "Open Inspect Setup" }));
 
     await waitFor(() => {
       expect(screen.getByText("One step at a time")).toBeTruthy();
     });
-    expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
+    expect(screen.getByText("Save For Reuse")).toBeTruthy();
+    expect(screen.getByRole("tab", { name: /Save target/i }).getAttribute("aria-selected")).toBe("true");
 
     await user.click(screen.getByRole("tab", { name: /Enable automation/i }));
 

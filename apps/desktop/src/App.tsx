@@ -1406,26 +1406,30 @@ function App() {
     }
   }
 
-  const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string }> = [
+  const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string; step: string }> = [
     {
       id: "inspection-hub",
       label: "Start",
       title: "Start",
+      step: "01",
     },
     {
       id: "assets-strategy",
       label: "Inspect",
       title: "Inspect",
+      step: "02",
     },
     {
       id: "inspection-results",
       label: "Reports",
       title: "Reports",
+      step: "03",
     },
     {
       id: "system-settings",
       label: "System",
       title: "System",
+      step: "04",
     },
   ];
   const activeWorkspaceMeta =
@@ -1473,11 +1477,12 @@ function App() {
           </div>
           <p className="sidebar-kicker">OpsProbe</p>
           <h1>Ops Console</h1>
+          <p className="sidebar-copy">Start at the top. Make one real inspection work before touching schedules, exports, or migration.</p>
         </div>
 
         <nav className="sidebar-nav" aria-label="Primary">
           <div className="sidebar-group">
-            <p className="sidebar-group-title">Workspace</p>
+            <p className="sidebar-group-title">Main Flow</p>
             <div className="sidebar-group-links">
               {workspaceSections.map((section) => (
                 <button
@@ -1488,6 +1493,7 @@ function App() {
                   aria-busy={pendingWorkspace === section.id}
                 >
                   <span className="sidebar-link-main">
+                    <span className="sidebar-link-step">{section.step}</span>
                     <span className="sidebar-link-label">{section.label}</span>
                   </span>
                   {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
@@ -1497,23 +1503,17 @@ function App() {
           </div>
         </nav>
 
-        <div className="sidebar-status">
-          <div className="status-tile" title="0.11.0 Current Development Version">
-            <span className="status-label">Release</span>
-            <strong>v0.11.0</strong>
-          </div>
-          <div className="status-tile">
-            <span className="status-label">Mode</span>
-            <strong>{showingDemoExperience ? "Demo" : "Real"}</strong>
-          </div>
-          <div className="status-tile">
-            <span className="status-label">Runtime</span>
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-row">
+            <span>Runtime</span>
             <strong>{runtimeStatus}</strong>
           </div>
-          <div className="status-tile status-tile-muted">
-            <span className="status-label">Workspace</span>
-            <p>{sidebarStatusLabel}</p>
+          <div className="sidebar-footer-row">
+            <span>Mode</span>
+            <strong>{showingDemoExperience ? "Demo" : "Real"}</strong>
           </div>
+          <div className="sidebar-footer-note">{sidebarStatusLabel}</div>
+          <div className="sidebar-footer-meta">v0.11.0</div>
         </div>
       </aside>
 
@@ -1527,7 +1527,9 @@ function App() {
             <span className={`topbar-chip ${isBootstrappingWorkspace ? "topbar-chip-loading" : ""}`}>
               {isBootstrappingWorkspace ? "Loading workspace..." : runtimeSummary}
             </span>
-            <span className="topbar-chip">{blockingChecks.length > 0 ? `${blockingChecks.length} blocking` : "No blocking issues"}</span>
+            <span className={`topbar-chip ${blockingChecks.length > 0 ? "topbar-chip-warning" : "topbar-chip-ok"}`}>
+              {blockingChecks.length > 0 ? `${blockingChecks.length} blocking issues` : "Ready to continue"}
+            </span>
           </div>
         </header>
 

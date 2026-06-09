@@ -39,59 +39,72 @@ export function InspectionHubWorkspace({
   onOpenSettings,
 }: InspectionHubWorkspaceProps) {
   const readyForInspection = completedSetupSteps === totalSetupSteps && blockingCount === 0;
-  const primaryActionLabel = readyForInspection ? "Start Inspection" : "Finish Local Checks";
-  const nextStepLabel =
-    blockingCount > 0
-      ? "Repair local system first"
-      : assetCount === 0
-        ? "Save the first real target"
-        : latestRun
-          ? "Review the latest result"
-          : "Run the first real inspection";
-  const nextStepDetail =
-    blockingCount > 0
-      ? "OpsProbe found blocking local checks. Fix the runtime and report path before trusting automation."
-      : assetCount === 0
-        ? "The desktop is ready enough to start capturing real targets and building a reusable workspace."
-        : latestRun
-          ? "A recent run already exists, so the fastest next action is to read the conclusion and remediation."
-          : "The machine is ready enough for a first real run. Start inspection before adding more structure.";
+  const needsSystemRepair = blockingCount > 0;
+  const primaryActionLabel = readyForInspection
+    ? "Open Inspect"
+    : needsSystemRepair
+      ? "Open System"
+      : "Open Inspect Setup";
+  const primaryAction = readyForInspection ? onStartInspection : needsSystemRepair ? onOpenSettings : onOpenAssets;
+  const secondaryAction = readyForInspection
+    ? { label: "Open Latest Result", onClick: onOpenResults }
+    : needsSystemRepair
+      ? { label: "Open Inspect Setup", onClick: onOpenAssets }
+      : null;
+  const focusTitle = readyForInspection
+    ? "Do the first real inspection now"
+    : needsSystemRepair
+      ? "Fix the local machine first"
+      : "Finish the first real setup path";
+  const focusDetail = readyForInspection
+    ? "Do not start with schedules or exports. Open Inspect, test SSH, and make one preview succeed."
+    : needsSystemRepair
+      ? "OpsProbe found blocking local problems. Open System, repair the runtime, then come back here."
+      : "The runtime looks healthy, but you still need to save a real target or finish the first setup step before this workspace is truly ready.";
 
   return (
     <>
       <section className="hub-hero">
         <div className="hub-hero-main">
-          <p className="eyebrow">Desktop Status</p>
-          <h1>Know if this machine is ready before the first real inspection.</h1>
+          <p className="eyebrow">Start Here</p>
+          <h1>{focusTitle}</h1>
           <p className="summary">
-            Check this machine, confirm the next step, then either start a real inspection or fix the local runtime first.
+            {focusDetail}
           </p>
           <div className={`hub-launch-banner ${readyForInspection ? "hub-launch-banner-ready" : "hub-launch-banner-attention"}`}>
-            <strong>{readyForInspection ? "Ready for a first real inspection" : "This machine still needs setup attention"}</strong>
+            <strong>
+              {readyForInspection
+                ? "Ready for a first real inspection"
+                : needsSystemRepair
+                  ? "This machine still needs setup attention"
+                  : "The runtime is healthy, but the first real setup is not finished"}
+            </strong>
             <span>{runtimeSummary}</span>
           </div>
           <div className="hub-actions">
             <button
               className="primary-button primary-button-large"
-              onClick={readyForInspection ? onStartInspection : onOpenSettings}
+              onClick={primaryAction}
               type="button"
             >
               {primaryActionLabel}
             </button>
-            <button className="secondary-button" onClick={readyForInspection ? onOpenResults : onStartInspection} type="button">
-              {readyForInspection ? "Open Latest Result" : "Inspect Anyway"}
-            </button>
+            {secondaryAction ? (
+              <button className="secondary-button" onClick={secondaryAction.onClick} type="button">
+                {secondaryAction.label}
+              </button>
+            ) : null}
           </div>
         </div>
 
         <div className="hub-hero-side">
           <article className="hub-side-card">
-            <span className="status-label">Next Step</span>
-            <strong>{nextStepLabel}</strong>
-            <p>{nextStepDetail}</p>
+            <span className="status-label">What To Ignore For Now</span>
+            <strong>Do not start with reports or schedules</strong>
+            <p>Those only matter after one host is reachable, one preview is correct, and one run result is readable.</p>
           </article>
           <article className="hub-side-card">
-            <span className="status-label">Current Mode</span>
+            <span className="status-label">Current Context</span>
             <strong>{showingDemoExperience ? "Demo workspace" : "Real workspace"}</strong>
             <p>{showingDemoExperience ? "Demo data is active for safe exploration before connecting real hosts." : `Current inspection scope: ${selectedTemplateName}.`}</p>
           </article>
@@ -99,29 +112,35 @@ export function InspectionHubWorkspace({
       </section>
 
       <section className="hub-guided-strip" aria-label="Operator path">
-        <button className="guided-step-card guided-step-card-active" onClick={readyForInspection ? onStartInspection : onOpenSettings} type="button">
+        <button className="guided-step-card guided-step-card-active" onClick={primaryAction} type="button">
           <span className="guided-step-index">1</span>
-          <strong>{readyForInspection ? "Start with inspection" : "Fix this machine first"}</strong>
-          <span>{readyForInspection ? "The runtime is usable. Open the inspection workflow directly." : runtimeSummary}</span>
+          <strong>{readyForInspection ? "Open Inspect" : needsSystemRepair ? "Open System" : "Open Inspect Setup"}</strong>
+          <span>
+            {readyForInspection
+              ? "Go to the target, SSH, and preview workflow."
+              : needsSystemRepair
+                ? runtimeSummary
+                : "Enter one real target before spending more time elsewhere."}
+          </span>
         </button>
         <button className="guided-step-card" onClick={onOpenAssets} type="button">
           <span className="guided-step-index">2</span>
           <strong>Save the target</strong>
-          <span>Store SSH targets and credentials only after the first preview looks correct.</span>
+          <span>Only save or reuse targets after the first preview looks right.</span>
         </button>
         <button className="guided-step-card" onClick={onOpenResults} type="button">
           <span className="guided-step-index">3</span>
           <strong>Read the result</strong>
-          <span>Open the latest conclusion, export files, and remediation trail.</span>
+          <span>Read the latest finding, then export only if the result is worth sharing.</span>
         </button>
       </section>
 
       <section className="hub-grid">
         <article className="hub-card hub-card-emphasis">
           <DesktopSectionHeader
-            eyebrow="Local Readiness"
-            title="Readiness at a glance"
-            subtitle="Only the checks that matter before you trust recurring inspection on this machine."
+            eyebrow="Step 1"
+            title="Check if this machine is usable"
+            subtitle="Only the local facts that matter before you try one real inspection."
           />
           <div className="hub-readiness-grid">
             <div className="snapshot-tile">
@@ -145,9 +164,9 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Installed State"
-            title="What already exists"
-            subtitle="Quick proof of whether this desktop is still empty or already in use."
+            eyebrow="Step 2"
+            title="Know whether this workspace is still empty"
+            subtitle="If these numbers are zero, stop exploring and create the first working path."
           />
           <div className="hub-kpi-list">
             <div><span>Saved assets</span><strong>{assetCount}</strong></div>
@@ -158,12 +177,12 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Most Recent Result"
+            eyebrow="Step 3"
             title={latestRun ? latestRun.id : "No inspection run yet"}
             subtitle={
               latestRun
                 ? `Latest run created at ${formatDateTime(latestRun.createdAt)}.`
-                : "Run the first inspection to create a report and remediation trail."
+                : "No result exists yet. Do not spend time in Reports before one real run succeeds."
             }
           />
           {latestRun ? (
@@ -187,27 +206,23 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Open Directly"
-            title="Main actions"
-            subtitle="Each action opens one focused area instead of another overview page."
+            eyebrow="Before You Leave This Page"
+            title="What success looks like"
+            subtitle="Use this checklist to know whether the first inspection path is actually working."
           />
           <div className="hub-step-list">
-            <button className="hub-step-button" onClick={onStartInspection} type="button">
-              <strong>Run Inspection</strong>
-              <span>Open the target, SSH, and preview workflow directly.</span>
-            </button>
-            <button className="hub-step-button" onClick={onOpenAssets} type="button">
-              <strong>Save Or Reuse Target</strong>
-              <span>Open saved assets and machine transfer after the first preview is right.</span>
-            </button>
-            <button className="hub-step-button" onClick={onOpenResults} type="button">
-              <strong>Read Reports</strong>
-              <span>Open the latest result, export paths, and history comparison.</span>
-            </button>
-            <button className="hub-step-button" onClick={onOpenSettings} type="button">
-              <strong>Repair Local System</strong>
-              <span>Fix runtime, PostgreSQL, or first-run environment issues.</span>
-            </button>
+            <div className="hub-step-button">
+              <strong>One target can connect over SSH</strong>
+              <span>The preview must succeed before you spend time saving assets, tuning schedules, or exporting anything.</span>
+            </div>
+            <div className="hub-step-button">
+              <strong>One result is easy to read</strong>
+              <span>You should be able to tell pass, warning, and critical findings without opening extra screens to decode them.</span>
+            </div>
+            <div className="hub-step-button">
+              <strong>Only then save and automate</strong>
+              <span>After the first path works once, save the target for reuse and come back later for recurring runs and reporting.</span>
+            </div>
           </div>
         </article>
       </section>
