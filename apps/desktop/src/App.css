@@ -300,6 +300,39 @@ body {
   margin-bottom: 18px;
 }
 
+.inspect-primary-stage {
+  margin-bottom: 22px;
+}
+
+.inspect-secondary-stage {
+  margin-top: 6px;
+  padding-top: 10px;
+}
+
+.inspect-secondary-header {
+  margin-bottom: 16px;
+}
+
+.inspect-secondary-header h3 {
+  margin: 6px 0 0;
+  font-size: 1.15rem;
+  color: var(--ops-text-strong);
+}
+
+.inspect-secondary-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.inspect-secondary-stage .run-panel {
+  border-color: rgba(148, 163, 184, 0.08);
+  background: linear-gradient(180deg, rgba(9, 17, 28, 0.86), rgba(9, 16, 27, 0.72));
+}
+
+.inspect-secondary-stage .workflow-step-card {
+  background: linear-gradient(180deg, rgba(10, 18, 30, 0.82), rgba(9, 16, 27, 0.72));
+}
+
 .journey-card {
   display: grid;
   gap: 6px;

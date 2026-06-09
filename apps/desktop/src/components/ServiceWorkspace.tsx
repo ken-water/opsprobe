@@ -55,8 +55,8 @@ export function ServiceWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Automation"
-        title="Automate Inspection"
-        subtitle="Create schedules only after the target and preview are stable."
+        title="Automate Later"
+        subtitle="Turn on schedules only after the first manual result looks trustworthy."
       />
 
       <div className="workflow-stack">

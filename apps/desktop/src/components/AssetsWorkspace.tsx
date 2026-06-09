@@ -39,8 +39,8 @@ export function AssetsWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Target"
-        title="Save Or Move Targets"
-        subtitle="Keep reusable targets simple and portable."
+        title="Save For Reuse"
+        subtitle="Use this after the first preview is already correct."
         actions={
           <div className="service-actions">
             <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">

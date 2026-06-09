@@ -1572,65 +1572,78 @@ function App() {
                 <article className="journey-card">
                   <span className="journey-label">3</span>
                   <strong>Automation</strong>
-                  <p>Save the target and add schedules.</p>
+                  <p>Save it only after the first preview looks right.</p>
                 </article>
               </section>
-              <RunnerWorkspace
-                asset={asset}
-                builtInTemplates={builtInTemplates}
-                selectedTemplateId={selectedTemplateId}
-                activeTemplate={activeTemplate}
-                activeChecksCount={activeChecks.length}
-                inspectionRun={inspectionRun}
-                isTestingSsh={isTestingSsh}
-                isRefreshingPreview={isRefreshingPreview}
-                sshResult={sshResult}
-                sshTroubleshooting={sshTroubleshooting}
-                onPatchAsset={patchAsset}
-                onPatchCredential={patchCredential}
-                onSelectTemplate={setSelectedTemplateId}
-                onTestSsh={() => void handleSshTest()}
-                onRefreshInspectionPreview={() => void refreshInspectionPreview()}
-              />
-              <AssetsWorkspace
-                asset={asset}
-                savedAssets={savedAssets}
-                migrationPath={migrationPath}
-                isRefreshingAssets={isRefreshingAssets}
-                isExportingConfig={isExportingConfig}
-                isImportingConfig={isImportingConfig}
-                onMigrationPathChange={setMigrationPath}
-                onRefreshSavedAssets={() => void refreshSavedAssets()}
-                onSaveCurrentAsset={() => void handleSaveAsset()}
-                onExportConfig={() => void handleExportConfig()}
-                onImportConfig={() => void handleImportConfig()}
-                onLoadAsset={(savedAsset) => void handleLoadAsset(savedAsset)}
-                onPatchAsset={patchAsset}
-                onPatchCredential={patchCredential}
-              />
-              <ServiceWorkspace
-                assetId={asset.id}
-                activeTemplateName={activeTemplate.name}
-                scheduleIntervalMinutes={scheduleIntervalMinutes}
-                schedules={schedules}
-                serviceResponse={serviceResponse}
-                serviceMessage={serviceMessage}
-                isRefreshingSchedules={isRefreshingSchedules}
-                isSavingSchedule={isSavingSchedule}
-                isRefreshingService={isRefreshingService}
-                onScheduleIntervalChange={setScheduleIntervalMinutes}
-                onRefreshSchedules={() => void refreshLocalSchedules()}
-                onSaveSchedule={() => void handleSaveSchedule()}
-                onToggleSchedule={(schedule) => void handleToggleSchedule(schedule)}
-                onDeleteSchedule={(id) => void handleDeleteSchedule(id)}
-                onRefreshServiceHealth={() => void refreshLocalServiceHealth()}
-                onStartLocalService={() => void handleStartLocalService()}
-                onStopLocalService={() => void handleStopLocalService()}
-                onRestartLocalService={() => void handleRestartLocalService()}
-                onBootstrapLocalPostgres={() => void handleBootstrapLocalPostgres()}
-                onStartLocalPostgres={() => void handleStartLocalPostgres()}
-                onStopLocalPostgres={() => void handleStopLocalPostgres()}
-              />
+              <section className="inspect-primary-stage">
+                <RunnerWorkspace
+                  asset={asset}
+                  builtInTemplates={builtInTemplates}
+                  selectedTemplateId={selectedTemplateId}
+                  activeTemplate={activeTemplate}
+                  activeChecksCount={activeChecks.length}
+                  inspectionRun={inspectionRun}
+                  isTestingSsh={isTestingSsh}
+                  isRefreshingPreview={isRefreshingPreview}
+                  sshResult={sshResult}
+                  sshTroubleshooting={sshTroubleshooting}
+                  onPatchAsset={patchAsset}
+                  onPatchCredential={patchCredential}
+                  onSelectTemplate={setSelectedTemplateId}
+                  onTestSsh={() => void handleSshTest()}
+                  onRefreshInspectionPreview={() => void refreshInspectionPreview()}
+                />
+              </section>
+              <section className="inspect-secondary-stage" aria-label="After first preview">
+                <div className="inspect-secondary-header">
+                  <p className="eyebrow">After First Preview</p>
+                  <h3>Reuse And Automate Only After The First Run Feels Right</h3>
+                  <p className="section-subtitle">
+                    These controls are useful once the target, SSH path, and inspection output already make sense.
+                  </p>
+                </div>
+                <div className="inspect-secondary-grid">
+                  <AssetsWorkspace
+                    asset={asset}
+                    savedAssets={savedAssets}
+                    migrationPath={migrationPath}
+                    isRefreshingAssets={isRefreshingAssets}
+                    isExportingConfig={isExportingConfig}
+                    isImportingConfig={isImportingConfig}
+                    onMigrationPathChange={setMigrationPath}
+                    onRefreshSavedAssets={() => void refreshSavedAssets()}
+                    onSaveCurrentAsset={() => void handleSaveAsset()}
+                    onExportConfig={() => void handleExportConfig()}
+                    onImportConfig={() => void handleImportConfig()}
+                    onLoadAsset={(savedAsset) => void handleLoadAsset(savedAsset)}
+                    onPatchAsset={patchAsset}
+                    onPatchCredential={patchCredential}
+                  />
+                  <ServiceWorkspace
+                    assetId={asset.id}
+                    activeTemplateName={activeTemplate.name}
+                    scheduleIntervalMinutes={scheduleIntervalMinutes}
+                    schedules={schedules}
+                    serviceResponse={serviceResponse}
+                    serviceMessage={serviceMessage}
+                    isRefreshingSchedules={isRefreshingSchedules}
+                    isSavingSchedule={isSavingSchedule}
+                    isRefreshingService={isRefreshingService}
+                    onScheduleIntervalChange={setScheduleIntervalMinutes}
+                    onRefreshSchedules={() => void refreshLocalSchedules()}
+                    onSaveSchedule={() => void handleSaveSchedule()}
+                    onToggleSchedule={(schedule) => void handleToggleSchedule(schedule)}
+                    onDeleteSchedule={(id) => void handleDeleteSchedule(id)}
+                    onRefreshServiceHealth={() => void refreshLocalServiceHealth()}
+                    onStartLocalService={() => void handleStartLocalService()}
+                    onStopLocalService={() => void handleStopLocalService()}
+                    onRestartLocalService={() => void handleRestartLocalService()}
+                    onBootstrapLocalPostgres={() => void handleBootstrapLocalPostgres()}
+                    onStartLocalPostgres={() => void handleStartLocalPostgres()}
+                    onStopLocalPostgres={() => void handleStopLocalPostgres()}
+                  />
+                </div>
+              </section>
             </>
           ) : null}
 
