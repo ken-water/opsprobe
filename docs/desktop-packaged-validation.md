@@ -5,6 +5,7 @@ Use this workflow when you need a current-version record proving whether the des
 ## Commands
 
 - `npm run desktop:validate-packaged-record`
+- `npm run desktop:validate-windows-record`
 - `npm --workspace @opsprobe/desktop run validate:packaged-launch`
 
 ## Evidence Output
