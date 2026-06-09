@@ -9,6 +9,7 @@ OpsProbe releases should be created with all three artifacts aligned:
 ## Release Checklist
 
 0. Before development for a new minor or major version begins, run the development gates:
+   - `npm run env:check`
    - `./scripts/check-worktree-gate.sh`
    - `./scripts/check-version-gate.sh <target-version>`
    - if the previous minor has no tag or GitHub release yet, publish it before starting the next one
@@ -69,6 +70,8 @@ For `1.0.0`, release readiness is necessary but not sufficient. The stable-relea
 
 For the pre-stable `0.11.x` evidence line, also capture:
 
+- `npm run env:check`
+- `npm run env:prepare:fast` when desktop packaging depends on vendored Cargo sources
 - `./scripts/validate-clean-user-profile.sh`
 - `./scripts/validate-desktop-stable-candidate.sh`
 - `./scripts/validate-desktop-operator-walkthrough.sh`
@@ -81,6 +84,8 @@ For the pre-stable `0.11.x` evidence line, also capture:
 - the filled validation record based on [stable-candidate-operator-notes.md](./stable-candidate-operator-notes.md)
 - the current issue-specific draft such as [stable-candidate-operator-notes-0.11.0.md](./stable-candidate-operator-notes-0.11.0.md)
 - the decision summary based on [stable-review-record.md](./stable-review-record.md)
+
+The environment report should be preserved alongside the other `.opsprobe-validation` artifacts whenever a new machine or changed toolchain is involved in packaged evidence collection.
 
 ## Tag Format
 

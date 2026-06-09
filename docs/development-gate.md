@@ -52,12 +52,13 @@ For every new issue:
 For every new version:
 
 1. Run the checkpoint gate
-2. Run the version gate check script
-3. Close completed issues from earlier milestones
-4. Publish the previous version if its release artifacts are still missing
-5. Move unfinished work to the correct milestone if needed
-6. Create new issues for any newly identified work
-7. Start implementation only after both gates pass
+2. Run the environment diagnostic command and review the current machine report
+3. Run the version gate check script
+4. Close completed issues from earlier milestones
+5. Publish the previous version if its release artifacts are still missing
+6. Move unfinished work to the correct milestone if needed
+7. Create new issues for any newly identified work
+8. Start implementation only after both gates pass and the environment report is understandable
 
 ## Current Practice For OpsProbe
 
@@ -70,10 +71,18 @@ For every new version:
 ## Commands
 
 ```bash
+npm run env:check
 ./scripts/check-worktree-gate.sh
 ./scripts/check-version-gate.sh 0.2.0
 ./scripts/check-release-readiness.sh 0.2.0
 ```
+
+The environment diagnostic command writes:
+
+- `.opsprobe-validation/development-env-report.json`
+- `.opsprobe-validation/development-env-report.md`
+
+Review these before new-machine development, packaged validation, or local PostgreSQL troubleshooting.
 
 ## Expected Output
 

@@ -14,6 +14,14 @@ Goal:
 - the machine can either reach the configured Cargo mirror or already have enough local Cargo cache to vendor from the current lockfile
 - current working tree is clean
 
+Before packaged evidence refresh begins, run:
+
+```bash
+npm run env:check
+```
+
+Review `.opsprobe-validation/development-env-report.md` so the machine-level prerequisites and clean-profile local-service status are recorded alongside the packaged evidence run.
+
 ## 0. Preload Cargo Cache If Needed
 
 If Cargo mirror access is unstable, first hydrate the local Cargo cache from the lockfile:
@@ -25,7 +33,7 @@ If Cargo mirror access is unstable, first hydrate the local Cargo cache from the
 Then prepare vendored sources for the desktop build:
 
 ```bash
-./scripts/prepare-desktop-build-env.sh
+npm run env:prepare:fast -- --skip-doctor
 ```
 
 Optional offline sanity check after hydration:

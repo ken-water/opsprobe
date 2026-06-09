@@ -26,10 +26,17 @@ Confirm that a new local user profile can:
 Recommended build checks:
 
 ```bash
+npm run env:check
 npm run desktop:typecheck
 npm --workspace @opsprobe/desktop run build
 cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml --config 'source.crates-io.registry="sparse+https://index.crates.io/"'
 ```
+
+Before the clean-profile flow begins, review `.opsprobe-validation/development-env-report.md` to confirm:
+
+- the current machine can discover PostgreSQL binaries when managed runtime validation is expected
+- the local-service status probe is understandable from an empty profile
+- any missing optional tools are known before packaged or desktop-specific validation starts
 
 ## Validation Steps
 
