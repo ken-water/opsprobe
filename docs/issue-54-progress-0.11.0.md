@@ -40,6 +40,7 @@ That means:
 - vendor-first `npm run desktop:build`
 - Linux packaged artifact validation for `.deb`, `.rpm`, `.AppImage`, and `AppDir`
 - packaged AppImage smoke launch under `xvfb-run`
+- packaged acceptance preflight confirms current `0.11.0` artifacts are launch-ready on this machine, but the current session is still `tty` rather than a real operator desktop
 
 ## Current Blockers
 
@@ -59,6 +60,7 @@ What still remains:
 - packaged evidence is still repository-driven and headless for Linux
 - a real operator-driven packaged acceptance pass should still be captured before treating this as final stable evidence
 - the repo now includes a dedicated acceptance note so that pass can be captured in one version-specific record instead of scattered comments
+- the dedicated note is now partially prefilled with current machine artifact, preflight, and launch-smoke evidence so the remaining human pass is narrower and explicit
 
 Meaning:
 

@@ -61,6 +61,7 @@ This file is the bridge between raw validation evidence and the actual stable-re
 - Integration coverage summary: current smoke run passed 9 integration tests
 - Smoke coverage summary: `0.11.0` smoke-release script passed for the active development line before evidence review resumed
 - Manual validation summary: clean-profile validation passed; desktop stable-candidate evidence refreshed; Linux packaged bundle, preflight, launch-smoke, and operator-walkthrough evidence now refresh successfully for `0.11.0`; Windows validation records refreshed; Windows installer acceptance still remains open but should be treated as a deferred next-minor item rather than an implicit requirement to keep `0.11.0` open
+- Current machine packaged note status: preconditions and headless launch evidence are captured for `0.11.0`, but the machine is still `tty` without an active `DISPLAY`, so one real operator-facing Linux desktop pass is still outstanding
 - Thin areas still remaining: real operator-driven packaged Linux acceptance depth, current-version Windows installer generation and acceptance, and broader stable-release human walkthrough evidence
 - The dedicated `0.11.0` Linux packaged acceptance note now exists, so the remaining gap is no longer "how to record it" but only performing and attaching that real operator pass
 
