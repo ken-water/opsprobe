@@ -54,6 +54,8 @@ Recommended next issue additions:
 
 - `1.1.1`: desktop/report i18n string extraction and translation boundary
 - `1.2.1`: multilingual download site and release-artifact listing
+- `1.0.1`: first stable hotfix line, reserved only for post-`1.0.0` bounded regressions
+- `1.0.2`: first stable trust-hardening patch line if real customer usage exposes install, migration, or report regressions
 
 Recommended priority order:
 
@@ -62,6 +64,14 @@ Recommended priority order:
 3. `0.11.2`: explicit `1.0.0` blocker review and written decision support
 4. `1.1.0` / `1.1.1`: multilingual desktop and report foundation
 5. `1.2.0` / `1.2.1`: multilingual website and download distribution
+
+Recommended execution order after the current environment-gate work:
+
+1. Close the remaining `0.11.0` evidence gaps with one real packaged Linux operator acceptance pass
+2. Start `0.11.1` only after the current `0.11.0` evidence note and blocker table are pushed
+3. Treat `0.11.1` as the Windows acceptance and packaged-install credibility line, not as another UI polish cycle
+4. Use `0.11.2` only for the `1.0.0` decision table, release-or-defer rationale, and any last explicit blocker carryover
+5. Do not begin `1.1.0` multilingual work until `0.11.2` states clearly whether `1.0.0` proceeds or is deferred
 
 ## Foundation
 

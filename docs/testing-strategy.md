@@ -99,6 +99,15 @@ Future release gates should gradually require:
 - smoke validation for every minor release candidate
 - functional regression coverage for the highest-value desktop workflows
 
+Practical gate targets for the next release line:
+
+- `0.11.0`: every evidence or runtime script change must pass the matching environment gate before validation runs
+- `0.11.1`: every packaging or installer change must refresh Linux packaged validation artifacts and the Windows validation record
+- `0.11.2`: stable-decision docs must be backed by a fresh smoke run plus the current blocker table
+- `1.0.0`: require unit, integration, smoke, and at least one desktop functional regression pass before the release candidate is approved
+- `1.1.0`: require bilingual regression coverage for the main desktop workflow and static report-copy rendering
+- `1.2.0`: require website language-switch coverage and release-artifact link verification
+
 ## 0.8.x Planning Fit
 
 The `0.8.x` stage should include test-foundation work because deeper inspection workflows will raise behavior complexity and regression risk.
@@ -143,3 +152,4 @@ Additional stable-candidate evidence added during `0.11.0`:
 - a stable-candidate evidence capture script now records version, environment, checkpoint gate output, version gate output, and clean-profile validation in one place before Issue 47 is resumed
 - a stable review record now exists so Issue 47 can be updated from structured evidence instead of ad hoc summaries
 - a `0.11.0` operator-notes draft now translates the raw evidence into explicit provisional blockers and acceptable-limit candidates for the stable decision
+- validation scripts for clean-profile and packaged-desktop acceptance now auto-run scenario-specific environment gates before they attempt evidence capture

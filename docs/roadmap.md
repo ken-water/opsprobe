@@ -142,6 +142,8 @@ Target release line:
 Current planned checkpoints:
 
 - `0.11.0`: clean-machine install, bootstrap, and stable-decision evidence
+- `0.11.1`: packaged acceptance evidence on a real Windows-capable path plus any deferred current-version Linux packaged proof
+- `0.11.2`: explicit `1.0.0` blocker classification and release-or-defer decision support
 
 Immediate priority after the current `0.10.8` line:
 
@@ -168,6 +170,7 @@ Potential future capabilities outside the open source scope:
 - After `0.10.3`, continue through `0.11.x` before revisiting the stable decision
 - Use `Issue 47` to decide whether current blockers must be fixed first or can be explicitly accepted
 - Require a defensible stable-release rationale, not just another finished release
+- Reserve `1.0.1+` only for bounded post-stable regressions; do not hide unfinished pre-stable work inside future stable patch numbers
 
 ### `1.1.0` Multilingual Foundation
 
@@ -187,6 +190,11 @@ Related issue:
 - Keep website terminology aligned with desktop and report language choices
 - Make multilingual distribution credible for customer testing instead of only internal validation
 - keep website work release-aware so download links and version metadata stay in sync with desktop artifacts
+
+Customer-testable target:
+
+- earliest credible customer-testable desktop build: after `1.1.0` reaches Chinese and English coverage for the main workflow and report copy
+- earliest credible multilingual website and download experience: during `1.2.0`
 
 Related issue:
 
