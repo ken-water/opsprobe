@@ -48,6 +48,21 @@ Release mapping:
   Current issue line:
   `1.2.0`: Issue 49
 
+Recommended next issue additions:
+
+- `0.11.1`: Windows installer acceptance evidence
+- `0.11.2`: stable-decision blocker review and final defer-or-release recommendation
+- `1.1.1`: desktop/report i18n string extraction and translation boundary
+- `1.2.1`: multilingual download site and release-artifact listing
+
+Recommended priority order:
+
+1. `0.11.0`: clean-machine and stable-candidate evidence consolidation
+2. `0.11.1`: Windows installer acceptance evidence on a Windows-capable environment
+3. `0.11.2`: explicit `1.0.0` blocker review and written decision support
+4. `1.1.0` / `1.1.1`: multilingual desktop and report foundation
+5. `1.2.0` / `1.2.1`: multilingual website and download distribution
+
 ## Foundation
 
 ### 1. Initialize repository structure

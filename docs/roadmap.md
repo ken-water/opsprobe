@@ -133,6 +133,7 @@ Current planned checkpoints:
 - verify clean-machine install and bootstrap credibility
 - document stop, restart, backup, and recovery behavior as an operator workflow instead of only engineering assumptions
 - capture explicit stable-decision evidence before allowing a `1.0.0` tag
+- separate "artifact exists" from "installer was actually launched and accepted" for both Linux and Windows
 
 Target release line:
 
@@ -141,6 +142,12 @@ Target release line:
 Current planned checkpoints:
 
 - `0.11.0`: clean-machine install, bootstrap, and stable-decision evidence
+
+Immediate priority after the current `0.10.8` line:
+
+- finish Windows installer acceptance evidence instead of only Windows cross-build artifact proof
+- consolidate stable-candidate notes so the remaining `1.0.0` blockers are explicit and reviewable
+- avoid starting multilingual desktop or website work before the stable-decision evidence line is defensible
 
 ## Future Commercial Direction
 
@@ -168,6 +175,7 @@ Potential future capabilities outside the open source scope:
 - Support at least Chinese and English in the main workflow
 - Add multilingual static copy for HTML and PDF reports
 - Move user-visible local-service messages toward a translation boundary
+- keep this line focused on translation infrastructure, not new product-surface expansion
 
 Related issue:
 
@@ -178,6 +186,7 @@ Related issue:
 - Provide a multilingual website for product orientation and downloads
 - Keep website terminology aligned with desktop and report language choices
 - Make multilingual distribution credible for customer testing instead of only internal validation
+- keep website work release-aware so download links and version metadata stay in sync with desktop artifacts
 
 Related issue:
 

@@ -374,6 +374,20 @@ Current release split after `0.10.4`:
   - continue UI consistency work across spacing, table density, visual hierarchy, and operator feedback timing
   - decide whether packaged desktop validation for the simplified flow needs another bounded patch release before resuming the `1.0.0` decision
 
+Post-`0.10.7` / `0.10.8` priority clarification:
+
+- do not keep expanding desktop surface area only because more polish is possible
+- prioritize evidence that reduces `1.0.0` uncertainty faster than additional UI iteration
+- treat Windows installer existence and Windows installer acceptance as separate checkpoints
+- keep multilingual work out of the current pre-stable line unless it directly blocks user testing or release credibility
+
+Recommended next issue order after the current `0.10.8` checkpoints:
+
+- Windows installer acceptance evidence on a Windows-capable environment
+- stable-candidate operator notes and clean-machine validation consolidation
+- explicit stable-decision blocker review for `1.0.0`
+- multilingual desktop foundation only after the stable-decision evidence line is no longer thin
+
 ## Stable Milestone
 
 ### `1.0.0`
@@ -428,6 +442,12 @@ Related issues:
 
 - Issue 54
 
+Recommended issue split inside `0.11.x`:
+
+- `0.11.0`: clean-machine install, bootstrap, restart, backup, and stable-decision evidence consolidation
+- `0.11.1`: Windows installer acceptance evidence on real Windows or Wine-capable validation environments if `0.11.0` still lacks install credibility
+- `0.11.2`: final blocker acceptance or follow-up defer decision before reopening `1.0.0`
+
 ## Post-Stable Direction
 
 ### `1.1.0`
@@ -452,6 +472,12 @@ Exit criteria:
 - HTML and PDF reports render their static copy in the selected language
 - New user-facing strings have a defined i18n path instead of being hardcoded ad hoc
 
+Suggested issue themes:
+
+- i18n string extraction boundary for desktop React views
+- report-copy translation boundary for HTML and PDF exports
+- local-service user-facing message translation contract
+
 ### `1.2.0`
 
 Goal:
@@ -473,3 +499,9 @@ Exit criteria:
 - Users can reach a multilingual website and choose the correct download path
 - Chinese and English terminology is consistent across the website and desktop product
 - The release is strong enough for customer-facing multilingual testing instead of internal-only evaluation
+
+Suggested issue themes:
+
+- multilingual website shell and download page
+- release artifact listing and version-aware download metadata
+- terminology consistency review across website, desktop, and report exports
