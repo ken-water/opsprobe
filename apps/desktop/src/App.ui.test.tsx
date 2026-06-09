@@ -130,7 +130,7 @@ describe("desktop app shell", () => {
     await user.click(getNavButton(nav, "System"));
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Readiness Summary")).toBe(true);
+      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Fix what blocks the first inspection")).toBe(true);
     });
 
     expect(screen.getByText("Demo mode is active")).toBeTruthy();

@@ -1386,6 +1386,32 @@ body {
   background: linear-gradient(180deg, rgba(9, 27, 43, 0.96), rgba(10, 19, 30, 0.84));
 }
 
+.stage-anchor-repair {
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-anchor-repair::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(248, 113, 113, 0.16), transparent 34%);
+  pointer-events: none;
+}
+
+.stage-anchor-success {
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-anchor-success::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(74, 222, 128, 0.16), transparent 34%);
+  pointer-events: none;
+}
+
 .readiness-metrics-card {
   background: linear-gradient(180deg, rgba(14, 24, 38, 0.96), rgba(10, 19, 30, 0.84));
 }

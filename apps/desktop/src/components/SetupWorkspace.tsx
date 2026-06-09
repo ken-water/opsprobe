@@ -65,42 +65,27 @@ export function SetupWorkspace({
 }: SetupWorkspaceProps) {
   const currentSetupItem = firstRunChecklist.find((item) => !item.done) ?? null;
   const readyForRealInspection = completedSetupSteps === firstRunChecklist.length && blockingChecks.length === 0;
-  const repairPacksNeedingAttention = repairPacks.filter((pack) => pack.status !== "pass");
-  const wizardSteps = [
-    {
-      id: "mode",
-      label: "Choose workspace mode",
-      done: true,
-      detail: showingDemoExperience
-        ? "Demo mode is available for safe exploration before using real hosts."
-        : "Real mode is active so you can start configuring actual assets.",
-    },
-    ...firstRunChecklist.map((item) => ({
-      id: item.id,
-      label: item.label,
-      done: item.done,
-      detail: item.detail,
-    })),
-  ];
+  const blockingRepairPacks = repairPacks.filter((pack) => pack.status === "critical");
+  const warningRepairPacks = repairPacks.filter((pack) => pack.status === "warning");
+  const primaryRepairPacks = blockingRepairPacks.length > 0 ? blockingRepairPacks : warningRepairPacks;
 
   return (
     <>
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="System Settings"
-          title="Readiness Summary"
-          subtitle="Start from one clear readiness view before touching schedules, exports, or real host inspections."
+          title="Fix what blocks the first inspection"
+          subtitle="This page should only answer one question: what must be repaired before the first real inspection can succeed?"
           meta={
             <div className="summary-strip">
-              <span>{readyForRealInspection ? "ready for first real inspection" : "action required before relying on automation"}</span>
-              <span>{repairPacksNeedingAttention.length} repair packs needing attention</span>
+              <span>{readyForRealInspection ? "ready for first real inspection" : "repair work still required"}</span>
               <span>{blockingChecks.length} blocking checks</span>
             </div>
           }
         />
 
         <div className="hub-readiness-grid">
-          <article className="service-card readiness-hero-card">
+          <article className={`service-card readiness-hero-card ${readyForRealInspection ? "stage-anchor-success" : "stage-anchor-repair"}`}>
             <div className="service-card-header">
               <strong>{readyForRealInspection ? "Ready for first real inspection" : "Local desktop still needs repair"}</strong>
               <span className={`badge badge-${readyForRealInspection ? "pass" : blockingChecks.length > 0 ? "critical" : "warning"}`}>
@@ -109,40 +94,40 @@ export function SetupWorkspace({
             </div>
             <p>
               {readyForRealInspection
-                ? "The minimum runtime, report path, and asset prerequisites are in place. Move to Assets & Strategy and save the first production target."
-                : "Use the repair packs below to resolve local runtime, export, or SSH prerequisites before operators depend on repeated inspections."}
+                ? "The minimum runtime, report path, and asset prerequisites are in place. Leave System and go back to the first inspection flow."
+                : "Repair the blocking runtime, export, or SSH prerequisites below. Ignore schedules, exports, and other advanced setup until this is green."}
             </p>
             <div className="service-actions">
-              <button className="primary-button" onClick={readyForRealInspection ? onOpenAssetsStrategy : onRefreshEnvironment} type="button">
-                {readyForRealInspection ? "Open Assets & Strategy" : "Refresh Environment"}
+              <button className="primary-button" onClick={readyForRealInspection ? onOpenInspectionHub : onRefreshEnvironment} type="button">
+                {readyForRealInspection ? "Back To Start" : "Refresh Environment"}
               </button>
-              <button className="secondary-button" onClick={onOpenInspectionHub} type="button">
-                Open Inspection Hub
+              <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
+                Open Inspect Setup
               </button>
             </div>
           </article>
 
           <article className="service-card readiness-metrics-card">
             <div className="service-card-header">
-              <strong>Operator checkpoints</strong>
-              <span className="badge badge-unknown">overview</span>
+              <strong>Only the numbers that matter</strong>
+              <span className="badge badge-unknown">repair</span>
             </div>
             <div className="readiness-metrics-grid">
               <div className="readiness-metric">
-                <span>Setup steps</span>
-                <strong>{completedSetupSteps}/{firstRunChecklist.length}</strong>
+                <span>Blocking</span>
+                <strong>{blockingChecks.length}</strong>
               </div>
               <div className="readiness-metric">
                 <span>Repair packs</span>
-                <strong>{repairPacksNeedingAttention.length}/{repairPacks.length}</strong>
+                <strong>{primaryRepairPacks.length}</strong>
+              </div>
+              <div className="readiness-metric">
+                <span>Setup</span>
+                <strong>{completedSetupSteps}/{firstRunChecklist.length}</strong>
               </div>
               <div className="readiness-metric">
                 <span>Warnings</span>
                 <strong>{warningChecks.length}</strong>
-              </div>
-              <div className="readiness-metric">
-                <span>Blocking</span>
-                <strong>{blockingChecks.length}</strong>
               </div>
             </div>
           </article>
@@ -152,18 +137,20 @@ export function SetupWorkspace({
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="System Settings"
-          title="Actionable Repair Packs"
-          subtitle="Grouped by repair theme so users can understand impact and take the next correct step instead of parsing raw checks."
+          title={blockingRepairPacks.length > 0 ? "Repair these first" : "Nothing is blocking, but these warnings remain"}
+          subtitle={blockingRepairPacks.length > 0
+            ? "Do these repairs before you return to the first inspection flow."
+            : "These are not blocking the first inspection, but you should still review them before enabling automation."}
           meta={
             <div className="summary-strip">
-              <span>{repairPacks.length} repair themes</span>
-              <span>{repairPacksNeedingAttention.length} active issues</span>
+              <span>{primaryRepairPacks.length} active repair packs</span>
+              <span>{blockingRepairPacks.length > 0 ? "blocking first inspection" : "safe to defer until later"}</span>
             </div>
           }
         />
 
         <div className="service-checks">
-          {repairPacks.map((pack) => (
+          {primaryRepairPacks.map((pack) => (
             <article className={`service-card repair-pack-card repair-pack-${pack.status}`} key={pack.id}>
               <div className="service-card-header">
                 <strong>{pack.title}</strong>
@@ -201,16 +188,21 @@ export function SetupWorkspace({
             </article>
           ))}
         </div>
+        {primaryRepairPacks.length === 0 ? (
+          <p className="helper-text">No active repair packs need attention right now.</p>
+        ) : null}
       </section>
 
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="System Settings"
-          title="First-Run Wizard"
-          subtitle="Use one guided setup block instead of jumping between repeated environment, demo, and onboarding sections."
+          eyebrow="Return Path"
+          title={currentSetupItem ? "What to do after this page" : "System is no longer the bottleneck"}
+          subtitle={currentSetupItem
+            ? "Once the repair state is acceptable, go back to the first inspection flow instead of continuing to explore System."
+            : "Leave System and complete the first inspection path while the environment is ready."}
           meta={
             <div className="summary-strip">
-              <span>{completedSetupSteps}/{firstRunChecklist.length} local checks complete</span>
+              <span>{currentSetupItem ? "one next step" : "return to inspect"}</span>
               <span>{showingDemoExperience ? "demo mode ready" : "real mode active"}</span>
             </div>
           }
@@ -221,7 +213,7 @@ export function SetupWorkspace({
             <div className="workflow-step-header">
               <div>
                 <span className="workflow-step-index">Recommended Next Step</span>
-                <strong>{currentSetupItem?.label ?? "Local setup looks ready"}</strong>
+                <strong>{currentSetupItem?.label ?? "Return to the first inspection flow"}</strong>
               </div>
               <span className={`badge badge-${currentSetupItem ? "warning" : "pass"}`}>
                 {currentSetupItem ? "next action" : "ready"}
@@ -230,19 +222,16 @@ export function SetupWorkspace({
 
             <p className="helper-text">
               {currentSetupItem?.detail ??
-                "The local runtime, report directory, and asset prerequisites are in place. You can move to Assets & Strategy and start real inspection setup."}
+                "The local runtime, report directory, and asset prerequisites are in place. Go back and run the first real inspection instead of staying in System."}
             </p>
 
             <div className="service-actions">
-              {currentSetupItem?.action ? (
-                <button className="primary-button" onClick={currentSetupItem.action} type="button">
-                  {currentSetupItem.actionLabel}
-                </button>
-              ) : (
-                <button className="primary-button" onClick={onOpenAssetsStrategy} type="button">
-                  Open Inspect Setup
-                </button>
-              )}
+              <button className="primary-button" onClick={currentSetupItem?.action ?? onOpenInspectionHub} type="button">
+                {currentSetupItem?.actionLabel ?? "Back To Start"}
+              </button>
+              <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
+                Open Inspect Setup
+              </button>
               <button
                 className={showingDemoExperience ? "secondary-button" : "primary-button"}
                 onClick={showingDemoExperience ? onSwitchToRealSetup : onEnterDemoMode}
@@ -264,42 +253,17 @@ export function SetupWorkspace({
               </span>
             </div>
           </section>
-
-          <section className="workflow-step-card">
-            <div className="workflow-step-header">
-              <div>
-                <span className="workflow-step-index">Wizard Progress</span>
-                <strong>Step-by-step onboarding path</strong>
-              </div>
-              <span className="badge badge-unknown">{wizardSteps.length} steps</span>
-            </div>
-
-            <div className="wizard-progress-grid">
-              {wizardSteps.map((step, index) => (
-                <article className={`wizard-step-card ${step.done ? "wizard-step-card-done" : ""}`} key={step.id}>
-                  <div className="service-card-header">
-                    <strong>{index + 1}. {step.label}</strong>
-                    <span className={`badge badge-${step.done ? "pass" : "warning"}`}>
-                      {step.done ? "done" : "todo"}
-                    </span>
-                  </div>
-                  <p>{step.detail}</p>
-                </article>
-              ))}
-            </div>
-          </section>
         </div>
       </section>
 
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="System Settings"
-          title="Minimum Local Setup"
-          subtitle="Only the concrete minimum checks still missing before relying on saved assets, schedules, history, and export automation."
+          eyebrow="Reference"
+          title="Everything else"
+          subtitle="These details are still available, but they are no longer the primary focus while you are trying to get the first inspection working."
           meta={
             <div className="summary-strip">
               <span>{completedSetupSteps}/{firstRunChecklist.length} steps complete</span>
-              <span>{blockingChecks.length} blocking checks</span>
               <span>{warningChecks.length} warnings</span>
             </div>
           }
@@ -361,9 +325,9 @@ export function SetupWorkspace({
 
       <section className="run-panel">
         <DesktopSectionHeader
-          eyebrow="System Settings"
+          eyebrow="Reference"
           title="Troubleshooting Guidance"
-          subtitle="Surface the next repair steps when the local runtime or SSH path is not ready for repeatable inspections."
+          subtitle="Detailed repair steps stay here when you need them, but they should not be the first thing a new user has to read."
           meta={
             <div className="summary-strip">
               <span>{troubleshootingCards.length} environment issues</span>
