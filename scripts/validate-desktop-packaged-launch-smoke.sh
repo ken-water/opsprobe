@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+npm run env:gate:desktop-packaging >/dev/null
+
 validation_dir=".opsprobe-validation"
 mkdir -p "${validation_dir}"
 

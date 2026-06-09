@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+npm run env:gate:local-service >/dev/null
+
 tmp_home="$(mktemp -d)"
 tmp_postgres_port="$((20000 + (RANDOM % 10000)))"
 cleanup() {
