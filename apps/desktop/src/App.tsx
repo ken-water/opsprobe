@@ -401,9 +401,11 @@ function App() {
     | "assets-strategy"
     | "inspection-results"
     | "system-settings";
+  type InspectSectionId = "run" | "assets" | "automation";
 
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId>("inspection-hub");
   const [pendingWorkspace, setPendingWorkspace] = useState<WorkspaceId | null>(null);
+  const [activeInspectSection, setActiveInspectSection] = useState<InspectSectionId>("run");
   const [asset, setAsset] = useState<Asset>(initialAsset);
   const [inspectionRun, setInspectionRun] = useState<InspectionRun | null>(null);
   const [serviceInspectionRun, setServiceInspectionRun] = useState<InspectionRun | null>(null);
@@ -541,6 +543,10 @@ function App() {
     startTransition(() => {
       setActiveWorkspace(workspaceId);
     });
+  }
+
+  function handleInspectSectionChange(sectionId: InspectSectionId) {
+    setActiveInspectSection(sectionId);
   }
 
   function patchAsset(patch: Partial<Asset>) {
@@ -1403,8 +1409,8 @@ function App() {
   const workspaceSections: Array<{ id: WorkspaceId; label: string; title: string }> = [
     {
       id: "inspection-hub",
-      label: "Home",
-      title: "Home",
+      label: "Start",
+      title: "Start Inspection",
     },
     {
       id: "assets-strategy",
@@ -1413,13 +1419,13 @@ function App() {
     },
     {
       id: "inspection-results",
-      label: "Results",
-      title: "Results",
+      label: "Reports",
+      title: "Results And Reports",
     },
     {
       id: "system-settings",
       label: "System",
-      title: "System",
+      title: "System Setup",
     },
   ];
   const activeWorkspaceMeta =
@@ -1519,10 +1525,9 @@ function App() {
           </div>
           <div className="topbar-metrics">
             <span className={`topbar-chip ${isBootstrappingWorkspace ? "topbar-chip-loading" : ""}`}>
-              {isBootstrappingWorkspace ? "Loading workspace..." : `${completedSetupSteps}/${firstRunChecklist.length} setup steps`}
+              {isBootstrappingWorkspace ? "Loading workspace..." : runtimeSummary}
             </span>
-            <span className="topbar-chip">{warningChecks.length} warnings</span>
-            <span className="topbar-chip">{blockingChecks.length} blocking</span>
+            <span className="topbar-chip">{blockingChecks.length > 0 ? `${blockingChecks.length} blocking` : "No blocking issues"}</span>
           </div>
         </header>
 
@@ -1553,56 +1558,88 @@ function App() {
               onOpenAssetsStrategy={() => handleWorkspaceChange("assets-strategy")}
               onOpenResults={() => handleWorkspaceChange("inspection-results")}
               onOpenSettings={() => handleWorkspaceChange("system-settings")}
+              onOpenAssets={() => {
+                setActiveInspectSection("assets");
+                handleWorkspaceChange("assets-strategy");
+              }}
             />
           ) : null}
 
           {activeWorkspace === "assets-strategy" ? (
             <>
-              <section className="journey-strip" aria-label="Inspection journey">
-                <article className="journey-card journey-card-active">
-                  <span className="journey-label">1</span>
-                  <strong>Target</strong>
-                  <p>Pick a host and verify SSH.</p>
-                </article>
-                <article className="journey-card journey-card-active">
-                  <span className="journey-label">2</span>
-                  <strong>Preview</strong>
-                  <p>Choose checks and inspect the result.</p>
-                </article>
-                <article className="journey-card">
-                  <span className="journey-label">3</span>
-                  <strong>Automation</strong>
-                  <p>Save it only after the first preview looks right.</p>
-                </article>
-              </section>
-              <section className="inspect-primary-stage">
-                <RunnerWorkspace
-                  asset={asset}
-                  builtInTemplates={builtInTemplates}
-                  selectedTemplateId={selectedTemplateId}
-                  activeTemplate={activeTemplate}
-                  activeChecksCount={activeChecks.length}
-                  inspectionRun={inspectionRun}
-                  isTestingSsh={isTestingSsh}
-                  isRefreshingPreview={isRefreshingPreview}
-                  sshResult={sshResult}
-                  sshTroubleshooting={sshTroubleshooting}
-                  onPatchAsset={patchAsset}
-                  onPatchCredential={patchCredential}
-                  onSelectTemplate={setSelectedTemplateId}
-                  onTestSsh={() => void handleSshTest()}
-                  onRefreshInspectionPreview={() => void refreshInspectionPreview()}
-                />
-              </section>
-              <section className="inspect-secondary-stage" aria-label="After first preview">
-                <div className="inspect-secondary-header">
-                  <p className="eyebrow">After First Preview</p>
-                  <h3>Reuse And Automate Only After The First Run Feels Right</h3>
+              <section className="inspect-shell">
+                <div className="inspect-stage-intro">
+                  <p className="eyebrow">Inspect Flow</p>
+                  <h3>One step at a time</h3>
                   <p className="section-subtitle">
-                    These controls are useful once the target, SSH path, and inspection output already make sense.
+                    First make one inspection work. Only then save the target or enable recurring automation.
                   </p>
                 </div>
-                <div className="inspect-secondary-grid">
+                <div className="inspect-mode-switch" role="tablist" aria-label="Inspect sections">
+                  <button
+                    className={`inspect-mode-button ${activeInspectSection === "run" ? "inspect-mode-button-active" : ""}`}
+                    onClick={() => handleInspectSectionChange("run")}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeInspectSection === "run"}
+                  >
+                    <span className="inspect-mode-step">1</span>
+                    <span>
+                      <strong>Run first inspection</strong>
+                      <small>Target, SSH, preview</small>
+                    </span>
+                  </button>
+                  <button
+                    className={`inspect-mode-button ${activeInspectSection === "assets" ? "inspect-mode-button-active" : ""}`}
+                    onClick={() => handleInspectSectionChange("assets")}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeInspectSection === "assets"}
+                  >
+                    <span className="inspect-mode-step">2</span>
+                    <span>
+                      <strong>Save target</strong>
+                      <small>Reuse and move to another machine</small>
+                    </span>
+                  </button>
+                  <button
+                    className={`inspect-mode-button ${activeInspectSection === "automation" ? "inspect-mode-button-active" : ""}`}
+                    onClick={() => handleInspectSectionChange("automation")}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeInspectSection === "automation"}
+                  >
+                    <span className="inspect-mode-step">3</span>
+                    <span>
+                      <strong>Enable automation</strong>
+                      <small>Schedules and local runtime</small>
+                    </span>
+                  </button>
+                </div>
+              </section>
+              {activeInspectSection === "run" ? (
+                <section className="inspect-primary-stage">
+                  <RunnerWorkspace
+                    asset={asset}
+                    builtInTemplates={builtInTemplates}
+                    selectedTemplateId={selectedTemplateId}
+                    activeTemplate={activeTemplate}
+                    activeChecksCount={activeChecks.length}
+                    inspectionRun={inspectionRun}
+                    isTestingSsh={isTestingSsh}
+                    isRefreshingPreview={isRefreshingPreview}
+                    sshResult={sshResult}
+                    sshTroubleshooting={sshTroubleshooting}
+                    onPatchAsset={patchAsset}
+                    onPatchCredential={patchCredential}
+                    onSelectTemplate={setSelectedTemplateId}
+                    onTestSsh={() => void handleSshTest()}
+                    onRefreshInspectionPreview={() => void refreshInspectionPreview()}
+                  />
+                </section>
+              ) : null}
+              {activeInspectSection === "assets" ? (
+                <section className="inspect-secondary-stage" aria-label="Save target">
                   <AssetsWorkspace
                     asset={asset}
                     savedAssets={savedAssets}
@@ -1619,6 +1656,10 @@ function App() {
                     onPatchAsset={patchAsset}
                     onPatchCredential={patchCredential}
                   />
+                </section>
+              ) : null}
+              {activeInspectSection === "automation" ? (
+                <section className="inspect-secondary-stage" aria-label="Enable automation">
                   <ServiceWorkspace
                     assetId={asset.id}
                     activeTemplateName={activeTemplate.name}
@@ -1642,8 +1683,8 @@ function App() {
                     onStartLocalPostgres={() => void handleStartLocalPostgres()}
                     onStopLocalPostgres={() => void handleStopLocalPostgres()}
                   />
-                </div>
-              </section>
+                </section>
+              ) : null}
             </>
           ) : null}
 

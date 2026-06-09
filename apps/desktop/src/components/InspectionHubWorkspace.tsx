@@ -17,6 +17,7 @@ interface InspectionHubWorkspaceProps {
   showingDemoExperience: boolean;
   onStartInspection: () => void;
   onOpenAssetsStrategy: () => void;
+  onOpenAssets: () => void;
   onOpenResults: () => void;
   onOpenSettings: () => void;
 }
@@ -37,6 +38,7 @@ export function InspectionHubWorkspace({
   showingDemoExperience,
   onStartInspection,
   onOpenAssetsStrategy,
+  onOpenAssets,
   onOpenResults,
   onOpenSettings,
 }: InspectionHubWorkspaceProps) {
@@ -103,8 +105,8 @@ export function InspectionHubWorkspace({
         <article className="hub-card">
           <DesktopSectionHeader
             eyebrow="Workspace"
-            title="Configured items"
-            subtitle="What already exists in this workspace."
+            title="What already exists"
+            subtitle="Only the essentials that matter before the next inspection."
           />
           <div className="hub-kpi-list">
             <div><span>Saved assets</span><strong>{assetCount}</strong></div>
@@ -145,17 +147,17 @@ export function InspectionHubWorkspace({
         <article className="hub-card">
           <DesktopSectionHeader
             eyebrow="Next Step"
-            title="If start is blocked"
-            subtitle="Use one of these two focused entry points."
+            title="Need something specific?"
+            subtitle="Go straight to the focused area instead of hunting through the UI."
           />
           <div className="hub-step-list">
-            <button className="hub-step-button" onClick={onOpenAssetsStrategy} type="button">
-              <strong>Inspect</strong>
-              <span>Target, SSH, preview, and automation.</span>
+            <button className="hub-step-button" onClick={onOpenAssets} type="button">
+              <strong>Save Or Reuse Target</strong>
+              <span>Open saved assets and machine transfer after the first preview is right.</span>
             </button>
             <button className="hub-step-button" onClick={onOpenSettings} type="button">
-              <strong>System</strong>
-              <span>Runtime, PostgreSQL, and repair.</span>
+              <strong>Repair Local System</strong>
+              <span>Fix runtime, PostgreSQL, or first-run environment issues.</span>
             </button>
           </div>
         </article>

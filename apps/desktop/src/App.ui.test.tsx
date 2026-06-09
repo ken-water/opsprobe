@@ -90,7 +90,7 @@ describe("desktop app shell", () => {
     const nav = await screen.findByRole("navigation", { name: "Primary" });
 
     await waitFor(() => {
-      expect(getNavButton(nav, "Overview")).toBeTruthy();
+      expect(getNavButton(nav, "Start")).toBeTruthy();
     });
 
     expect(within(nav).queryByText("Current posture and first-run progress.")).toBeNull();
@@ -103,13 +103,13 @@ describe("desktop app shell", () => {
     const nav = await screen.findByRole("navigation", { name: "Primary" });
 
     await waitFor(() => {
-      expect(getNavButton(nav, "Runner")).toBeTruthy();
+      expect(getNavButton(nav, "Inspect")).toBeTruthy();
     });
 
-    await user.click(getNavButton(nav, "Runner"));
+    await user.click(getNavButton(nav, "Inspect"));
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Inspection Runner")).toBe(true);
+      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Run An Inspection")).toBe(true);
     });
 
     expect(screen.getByText("Workspace Update")).toBeTruthy();
@@ -121,16 +121,44 @@ describe("desktop app shell", () => {
     const nav = await screen.findByRole("navigation", { name: "Primary" });
 
     await waitFor(() => {
-      expect(getNavButton(nav, "Setup")).toBeTruthy();
+      expect(getNavButton(nav, "System")).toBeTruthy();
     });
 
-    await user.click(getNavButton(nav, "Setup"));
+    await user.click(getNavButton(nav, "System"));
 
     await waitFor(() => {
-      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "First-Run Setup")).toBe(true);
+      expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Readiness Summary")).toBe(true);
     });
 
     expect(screen.getByRole("button", { name: "Demo Data Loaded" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Switch to Real Setup" })).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Switch to Real Setup" }).length).toBeGreaterThan(0);
+  });
+
+  it("keeps inspect workflow focused by showing one section at a time", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
+
+    await waitFor(() => {
+      expect(getNavButton(nav, "Inspect")).toBeTruthy();
+    });
+
+    await user.click(getNavButton(nav, "Inspect"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /Run first inspection/i }).getAttribute("aria-selected")).toBe("true");
+    });
+
+    expect(screen.getByText("Run An Inspection")).toBeTruthy();
+    expect(screen.queryByText("Save For Reuse")).toBeNull();
+    expect(screen.queryByText("Automate Later")).toBeNull();
+
+    await user.click(screen.getByRole("tab", { name: /Save target/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Save For Reuse")).toBeTruthy();
+    });
+
+    expect(screen.queryByText("Run An Inspection")).toBeNull();
   });
 });

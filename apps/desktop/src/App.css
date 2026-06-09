@@ -293,6 +293,79 @@ body {
   overflow: auto;
 }
 
+.inspect-shell {
+  margin-bottom: 18px;
+}
+
+.inspect-stage-intro {
+  margin-bottom: 14px;
+}
+
+.inspect-stage-intro h3 {
+  margin: 6px 0 0;
+  font-size: 1.18rem;
+  color: var(--ops-text-strong);
+}
+
+.inspect-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.inspect-mode-button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 18px;
+  background: rgba(10, 18, 30, 0.72);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.inspect-mode-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(125, 211, 252, 0.22);
+  background: rgba(12, 22, 36, 0.92);
+}
+
+.inspect-mode-button strong {
+  display: block;
+  font-size: 0.98rem;
+  color: var(--ops-text-strong);
+}
+
+.inspect-mode-button small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ops-text-muted);
+  font-size: 0.82rem;
+}
+
+.inspect-mode-button-active {
+  border-color: rgba(125, 211, 252, 0.28);
+  background: linear-gradient(180deg, rgba(12, 24, 39, 0.96), rgba(10, 18, 30, 0.86));
+  box-shadow: var(--ops-shadow-soft);
+}
+
+.inspect-mode-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.14);
+  color: #7dd3fc;
+  font-size: 0.82rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
 .journey-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -305,23 +378,7 @@ body {
 }
 
 .inspect-secondary-stage {
-  margin-top: 6px;
-  padding-top: 10px;
-}
-
-.inspect-secondary-header {
-  margin-bottom: 16px;
-}
-
-.inspect-secondary-header h3 {
-  margin: 6px 0 0;
-  font-size: 1.15rem;
-  color: var(--ops-text-strong);
-}
-
-.inspect-secondary-grid {
-  display: grid;
-  gap: 18px;
+  margin-top: 0;
 }
 
 .inspect-secondary-stage .run-panel {
@@ -698,6 +755,10 @@ body {
   line-height: 1.6;
 }
 
+.hub-step-button {
+  border: 0;
+}
+
 .ops-snapshot-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -733,6 +794,12 @@ body {
   font-size: 1.05rem;
   line-height: 1.7;
   color: #9bb0c3;
+}
+
+@media (max-width: 1100px) {
+  .inspect-mode-switch {
+    grid-template-columns: 1fr;
+  }
 }
 
 .grid {
