@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "desktop:dev": "npm --workspace @opsprobe/desktop run tauri dev",
-    "desktop:build": "npm --workspace @opsprobe/desktop run tauri build",
+    "desktop:build": "./scripts/run-desktop-tauri-build.sh",
     "desktop:lint": "npm --workspace @opsprobe/desktop run lint",
     "desktop:typecheck": "npm --workspace @opsprobe/desktop run typecheck",
     "desktop:validate-packaged-record": "./scripts/record-desktop-packaged-validation.sh",
