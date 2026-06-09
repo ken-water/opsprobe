@@ -52,7 +52,7 @@ For every new issue:
 For every new version:
 
 1. Run the checkpoint gate
-2. Run the environment diagnostic command and review the current machine report
+2. Run the strict environment diagnostic command and review the current machine report
 3. Run the version gate check script
 4. Close completed issues from earlier milestones
 5. Publish the previous version if its release artifacts are still missing
@@ -71,7 +71,7 @@ For every new version:
 ## Commands
 
 ```bash
-npm run env:check
+npm run env:check:strict
 ./scripts/check-worktree-gate.sh
 ./scripts/check-version-gate.sh 0.2.0
 ./scripts/check-release-readiness.sh 0.2.0

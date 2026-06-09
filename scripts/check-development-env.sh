@@ -7,8 +7,39 @@ repo_root="$(cd "${script_dir}/.." && pwd)"
 validation_dir="${repo_root}/.opsprobe-validation"
 json_report="${validation_dir}/development-env-report.json"
 markdown_report="${validation_dir}/development-env-report.md"
+strict_mode="false"
+
+usage() {
+  cat <<'EOF'
+usage: ./scripts/check-development-env.sh [--strict]
+
+Checks the local OpsProbe development environment and writes structured reports.
+
+Use `--strict` when missing prerequisites should fail the current workflow.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --strict)
+      strict_mode="true"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
 
 mkdir -p "${validation_dir}"
+
+failures=0
 
 pass() {
   echo "[pass] $1"
@@ -16,6 +47,9 @@ pass() {
 
 warn() {
   echo "[warn] $1"
+  if [[ "${strict_mode}" == "true" ]]; then
+    failures=$((failures + 1))
+  fi
 }
 
 info() {
@@ -251,3 +285,8 @@ rm -f "${status_stdout_file}" "${status_stderr_file}"
 
 info "wrote ${json_report}"
 info "wrote ${markdown_report}"
+
+if [[ "${strict_mode}" == "true" && "${failures}" -gt 0 ]]; then
+  echo "[fail] development environment check failed in strict mode" >&2
+  exit 1
+fi

@@ -9,7 +9,7 @@ OpsProbe releases should be created with all three artifacts aligned:
 ## Release Checklist
 
 0. Before development for a new minor or major version begins, run the development gates:
-   - `npm run env:check`
+   - `npm run env:check:strict`
    - `./scripts/check-worktree-gate.sh`
    - `./scripts/check-version-gate.sh <target-version>`
    - if the previous minor has no tag or GitHub release yet, publish it before starting the next one
@@ -70,7 +70,7 @@ For `1.0.0`, release readiness is necessary but not sufficient. The stable-relea
 
 For the pre-stable `0.11.x` evidence line, also capture:
 
-- `npm run env:check`
+- `npm run env:check:strict`
 - `npm run env:prepare:fast` when desktop packaging depends on vendored Cargo sources
 - `./scripts/validate-clean-user-profile.sh`
 - `./scripts/validate-desktop-stable-candidate.sh`

@@ -17,7 +17,7 @@ Goal:
 Before packaged evidence refresh begins, run:
 
 ```bash
-npm run env:check
+npm run env:check:strict
 ```
 
 Review `.opsprobe-validation/development-env-report.md` so the machine-level prerequisites and clean-profile local-service status are recorded alongside the packaged evidence run.

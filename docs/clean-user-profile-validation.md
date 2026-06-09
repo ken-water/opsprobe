@@ -26,7 +26,7 @@ Confirm that a new local user profile can:
 Recommended build checks:
 
 ```bash
-npm run env:check
+npm run env:check:strict
 npm run desktop:typecheck
 npm --workspace @opsprobe/desktop run build
 cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml --config 'source.crates-io.registry="sparse+https://index.crates.io/"'
