@@ -118,7 +118,7 @@ opsprobe/
 
 OpsProbe is in the early build stage. The current focus is defining the product boundary, core architecture, and the first usable desktop workflow.
 
-The `0.7.x` external-validation cycle is complete, and the `0.9.x` service-depth line is also complete through `0.9.4`. The latest published release candidate is `0.10.7`, focused on install-first desktop guidance, a straighter first inspection flow, and current-version packaged desktop validation evidence.
+The `0.7.x` external-validation cycle is complete, and the `0.9.x` service-depth line is also complete through `0.9.4`. The latest published release is `0.10.7`. Current development is on `0.10.8`, continuing post-release desktop hardening and follow-up validation.
 
 ## Roadmap Principles
 

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.10.8] - Unreleased
+
+### Planned
+
+- continue post-`0.10.7` desktop hardening after the packaged Linux release evidence line
+- tighten release discipline around post-release version bumps and follow-up verification
+
 ## [0.10.7] - 2026-06-09
 
 ### Changed
