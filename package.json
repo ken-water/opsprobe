@@ -23,6 +23,8 @@
     "local-service:serve": "npm --workspace @opsprobe/local-service run serve",
     "local-service:status": "npm --workspace @opsprobe/local-service run status",
     "local-service:stop": "npm --workspace @opsprobe/local-service run stop",
+    "env:prepare": "./scripts/prepare-development-env.sh",
+    "env:prepare:fast": "./scripts/prepare-development-env.sh --skip-npm-install",
     "test": "npm run test:unit && npm run test:integration",
     "test:desktop-browser-ui": "npm --workspace @opsprobe/desktop run test:browser-ui",
     "test:unit": "vitest run --config vitest.unit.config.ts",

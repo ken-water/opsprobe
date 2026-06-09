@@ -97,6 +97,11 @@ Planned local development prerequisites:
 
 The current clean-user-profile validation guide lives in [docs/clean-user-profile-validation.md](./docs/clean-user-profile-validation.md).
 
+Recommended environment bootstrap:
+
+- `npm run env:prepare`
+- if workspace dependencies are already installed and you only need the desktop vendor cache, use `npm run env:prepare:fast`
+
 ## Repository Structure
 
 ```text

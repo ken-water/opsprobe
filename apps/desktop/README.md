@@ -4,6 +4,7 @@ OpsProbe Desktop is the local-first Tauri application for running infrastructure
 
 ## Common Commands
 
+- `npm run env:prepare`
 - `npm --workspace @opsprobe/desktop run dev`
 - `npm --workspace @opsprobe/desktop run build`
 - `npm --workspace @opsprobe/desktop run typecheck`
@@ -17,3 +18,5 @@ OpsProbe Desktop is the local-first Tauri application for running infrastructure
 
 This packaged launch smoke check expects a Linux AppImage to already exist at the release bundle path and requires `xvfb-run` on the local machine.
 The packaged validation record summarizes whether the current version actually has matching bundle artifacts and matching evidence files.
+
+If desktop packaging is flaky on the current machine, run `npm run env:prepare:fast` first so the Cargo cache and local `.opsprobe-vendor/` directory are refreshed before `npm run desktop:build`.
