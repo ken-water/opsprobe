@@ -246,3 +246,151 @@ Goal:
 Definition of done:
 
 - A new contributor can bootstrap the project from the README and docs
+
+## Post-`0.10.8` Issue Drafts
+
+These drafts are intended to be copied into GitHub issues before the next release line starts.
+
+### `0.11.0` Stable-Candidate Evidence Consolidation
+
+Suggested title:
+
+- `0.11.0: consolidate stable-candidate install, bootstrap, and recovery evidence`
+
+Problem:
+
+- packaged artifacts and Linux validation evidence now exist, but the `1.0.0` decision is still too dependent on fragmented notes
+- clean-machine or clean-profile operator evidence is not yet consolidated into one reviewable checkpoint
+- install, inspect, export, stop, restart, backup, and recovery expectations need one operator-facing evidence line before reopening the stable decision
+
+Scope:
+
+- consolidate the current clean-profile and packaged validation evidence into a single `0.11.0` checkpoint
+- tighten operator notes for bootstrap, first inspection, report export, shutdown, restart, backup, and recovery
+- update the stable review record so Issue 47 can be resumed from explicit evidence instead of ad hoc memory
+- identify which remaining limits are credible for acceptance and which still need another pre-stable fix
+
+Non-goals:
+
+- no new product surface area
+- no multilingual work
+- no major UI redesign unless it directly blocks stable-candidate validation
+
+Definition of done:
+
+- a single reviewable evidence line exists for clean install or clean-profile bootstrap through first useful report
+- operator notes describe stop, restart, backup, and recovery behavior honestly enough for external review
+- the stable review record lists explicit blockers, acceptable limits, and follow-up actions
+- release docs and roadmap wording no longer imply that `1.0.0` is automatic after `0.10.x`
+
+Required evidence:
+
+- updated stable-candidate validation record
+- updated operator notes for `0.11.0`
+- updated stable review record tied to Issue 47
+- release-gate and version-gate output for the active candidate
+
+### `0.11.1` Windows Installer Acceptance Evidence
+
+Suggested title:
+
+- `0.11.1: capture real Windows installer acceptance evidence`
+
+Problem:
+
+- Windows cross-build artifacts exist, but artifact existence is not the same as installer acceptance
+- stable-release credibility is weaker if Windows support is claimed without install and launch evidence from a Windows-capable environment
+
+Scope:
+
+- validate the current NSIS installer on a real Windows machine or a trustworthy Windows-capable validation environment
+- record install, first launch, runtime readiness, demo-data load, first inspection trigger, and uninstall behavior
+- document any platform-specific blockers or acceptance limits
+
+Non-goals:
+
+- no promise of full Windows parity beyond what is actually validated
+- no new Windows-only features
+
+Definition of done:
+
+- the repo contains a structured validation record showing installer acceptance steps and outcome
+- the release docs separate Windows artifact generation from Windows install-and-launch evidence
+- any remaining Windows blockers are explicit and linked to follow-up issues if needed
+
+Required evidence:
+
+- Windows validation record with environment details and exact installer version
+- launch evidence after install
+- uninstall or upgrade-path note if it materially affects trust
+
+### `0.11.2` Stable Decision Blocker Review
+
+Suggested title:
+
+- `0.11.2: review remaining 1.0.0 blockers and decide release or defer`
+
+Problem:
+
+- after `0.11.0` and `0.11.1`, the repo still needs one explicit decision point instead of drifting into `1.0.0`
+- remaining credibility gaps must be either accepted deliberately or turned into another bounded `0.x` line
+
+Scope:
+
+- review all known `1.0.0` blockers against the accumulated evidence
+- classify each blocker as fixed, accepted with documentation, or requiring defer
+- prepare the written recommendation for either opening a `1.0.0` release candidate or creating another hardening issue
+
+Non-goals:
+
+- no hidden feature work inside the decision issue
+- no broad roadmap expansion beyond the stable decision itself
+
+Definition of done:
+
+- Issue 47 can be updated from a written blocker table rather than scattered notes
+- the repo states clearly whether `1.0.0` should proceed or be deferred
+- if deferred, the next pre-stable issues are defined before more coding begins
+
+Required evidence:
+
+- updated stable-readiness checklist
+- blocker classification table
+- release-or-defer recommendation with rationale
+
+### `1.0.0` Stable Release Decision
+
+Suggested title:
+
+- `1.0.0: stable release decision and release-candidate sign-off`
+
+Problem:
+
+- `1.0.0` must be a defensible stable milestone, not just the next available version number
+- OpsProbe needs an explicit sign-off point that ties product claims, validation evidence, release notes, and known limits together
+
+Scope:
+
+- review the stable-readiness checklist with real evidence
+- verify that release notes, docs, packaging status, and known limits match the actual shipped behavior
+- decide whether to publish `1.0.0` or defer to another `0.x` hardening line
+- if approved, prepare the release-candidate tag, release notes, and milestone closure path
+
+Non-goals:
+
+- no new feature development inside the sign-off issue
+- no roadmap promises for `1.1.0` or later treated as already shipped
+
+Definition of done:
+
+- the stable-readiness checklist is completed with links to real evidence
+- the final blocker decision is explicit: fixed, accepted, or deferred
+- release notes for `v1.0.0` match the actual stable scope
+- either a `1.0.0` release candidate is approved, or the next defer issue line is created before work continues
+
+Required evidence:
+
+- completed `docs/stable-readiness.md` review
+- updated stable review record
+- release readiness and version gate output for `1.0.0`
+- final release notes draft for `v1.0.0`
