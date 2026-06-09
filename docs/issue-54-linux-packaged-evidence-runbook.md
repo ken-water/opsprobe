@@ -1,6 +1,6 @@
 # Issue 54 Runbook: Refresh `0.11.0` Linux Packaged Evidence
 
-Use this runbook on a Linux machine or network that can successfully reach the configured Cargo mirror.
+Use this runbook on a Linux machine that needs to refresh current-version packaged evidence with the vendor-first build flow.
 
 Goal:
 
@@ -11,7 +11,7 @@ Goal:
 
 - repository is on the `0.11.0` development line
 - `node`, `npm`, Rust, Tauri system dependencies, `xvfb-run`, `dpkg`, and `rpm` are installed
-- the machine can reach the configured Cargo mirror
+- the machine can either reach the configured Cargo mirror or already have enough local Cargo cache to vendor from the current lockfile
 - current working tree is clean
 
 ## 0. Preload Cargo Cache If Needed
@@ -20,6 +20,12 @@ If Cargo mirror access is unstable, first hydrate the local Cargo cache from the
 
 ```bash
 ./scripts/hydrate-cargo-cache.sh
+```
+
+Then prepare vendored sources for the desktop build:
+
+```bash
+./scripts/prepare-desktop-build-env.sh
 ```
 
 Optional offline sanity check after hydration:
@@ -47,6 +53,7 @@ rm -rf "${tmp}"
 Expect:
 
 - the hydration script completes without failed downloads
+- `.opsprobe-vendor/` is created locally
 - the offline metadata command succeeds, proving local dependency resolution is ready before `tauri build`
 
 ## 1. Confirm Version And Working Tree
@@ -68,13 +75,14 @@ Expect:
 Run:
 
 ```bash
-OPSPROBE_CARGO_REGISTRY_OVERRIDE='sparse+https://rsproxy.cn/index/' npm run desktop:build
+npm run desktop:build
 ```
 
 Expect:
 
 - `tauri build` completes successfully
 - current-version bundle artifacts exist under `apps/desktop/src-tauri/target/release/bundle/`
+- if `.opsprobe-vendor/` exists, the build prefers vendored sources instead of live registry access
 
 Quick verification:
 
@@ -174,7 +182,7 @@ Real Windows installer acceptance still belongs on a Windows-capable environment
 
 After the refreshed evidence exists, update Issue `54` with:
 
-- whether `desktop:build` succeeded
+- whether vendor-first `desktop:build` succeeded
 - whether current-version Linux packaged evidence is now aligned to `0.11.0`
 - whether packaged launch smoke passed
 - whether Windows evidence still needs to move to Issue `55`

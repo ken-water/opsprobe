@@ -27,7 +27,7 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 
 - Node / npm: present
 - Rust / cargo: present
-- Tauri dependencies: desktop typecheck, frontend build, and Tauri `cargo check` were re-run for `0.11.0`; full Linux bundle generation is still blocked by current network access to the default Cargo registry during `tauri build`
+- Tauri dependencies: desktop typecheck, frontend build, Tauri `cargo check`, and full Linux bundle generation were re-run for `0.11.0`
 - PostgreSQL binaries: not present in the default shell `PATH`, but successfully auto-discovered from `/usr/lib/postgresql/16/bin`
 
 ### First-run status result
@@ -85,25 +85,25 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 
 - Command path: `./scripts/validate-desktop-bundle-candidate.sh`
 - The current candidate now proves that real Linux packaging artifacts were produced, not only a frontend build or Tauri compile
-- The current recorded evidence confirms `.deb` and `.rpm` bundle candidates plus an AppImage `AppDir` staging tree
+- The current recorded evidence confirms `.deb`, `.rpm`, `.AppImage`, and AppImage `AppDir` outputs for `0.11.0`
 - The evidence also confirms that the packaged Linux outputs still contain the desktop binary, desktop entry, icon assets, and AppImage runtime wrapper structure
 - The validation now leaves a structured artifact at `.opsprobe-validation/desktop-bundle-candidate.json`
-- The currently checked Linux bundle-candidate evidence still points to `0.10.7`; a fresh `0.11.0` bundle build was attempted, but current `tauri build` is blocked by repeated SSL and timeout failures against the default Cargo registry in this environment
+- The repository now reaches this state through a vendor-first desktop build flow backed by local Cargo cache hydration and vendored sources
 - This is the strongest packaging evidence in the current `0.11.0` line so far, but it still does not replace a real installer-driven operator acceptance pass
 
 ### Desktop packaged-acceptance preflight
 
 - Command path: `./scripts/validate-desktop-packaged-acceptance-preflight.sh`
 - The current candidate now distinguishes between "bundle artifacts exist" and "this environment can actually attempt a GUI packaged launch"
-- On the current repository machine, packaged GUI launch could be attempted with `xvfb-run`, but the current-version `0.11.0` Linux package artifacts have not yet been rebuilt successfully, so the packaged acceptance path is still blocked before the GUI step
+- On the current repository machine, packaged GUI launch can be attempted with `xvfb-run`, and the current-version `0.11.0` Linux package artifacts are present
 - The preflight now leaves a structured artifact at `.opsprobe-validation/desktop-packaged-acceptance-preflight.json`
-- This reduces ambiguity for Issue `54`, because the remaining gap is now explicit environment readiness for GUI launch, not uncertainty about whether packaging artifacts were produced
+- This reduces ambiguity for Issue `54`, because the remaining gap is now human acceptance depth, not uncertainty about whether packaging artifacts were produced
 
 ### Desktop packaged-launch smoke
 
 - Command path: `./scripts/validate-desktop-packaged-launch-smoke.sh`
 - The current candidate now proves that the packaged AppImage can be launched under `xvfb-run` and remain alive for at least 10 seconds instead of exiting immediately
-- The latest recorded packaged launch-smoke evidence still belongs to `0.10.7`; it remains useful as prior release proof, but it is not yet current-version `0.11.0` packaged evidence
+- The latest recorded packaged launch-smoke evidence now records `0.11.0`
 - The validation now leaves a structured artifact at `.opsprobe-validation/desktop-packaged-launch-smoke.json`
 - This still does not replace a human-operated packaged acceptance pass, but it closes the gap between "bundle exists" and "bundle can actually start"
 
@@ -163,9 +163,8 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 
 List anything that still blocks a credible stable release:
 
-- Blocker 1: current evidence is still mostly repository-driven; desktop build credibility is better now, but a packaged desktop-oriented stable candidate walk-through is still not captured strongly enough for `0.11.0`
-- Blocker 2: current-version Linux packaged evidence has not yet been rebuilt for `0.11.0` because `tauri build` remains blocked by repeated Cargo registry SSL and timeout failures in this environment
-- Blocker 3: current-version Windows packaged evidence records a missing `0.11.0` NSIS installer, and Wine launch validation is unavailable on this machine
+- Blocker 1: current evidence is still mostly repository-driven and headless; a real packaged desktop-oriented human acceptance pass is still not captured strongly enough for `0.11.0`
+- Blocker 2: current-version Windows packaged evidence records a missing `0.11.0` NSIS installer, and Wine launch validation is unavailable on this machine
 
 List any limit that might be acceptable for `1.0.0` if documented honestly:
 
@@ -187,12 +186,12 @@ Reasoning:
 - Desktop operator walk-through evidence is also stronger because the expected UI actions and Tauri command boundary are now checked by a repeatable repository gate
 - Windows validation is also more honest now because the current `0.11.0` records distinguish between a built desktop binary and a missing packaged installer
 - The operator review path is also better defined because the repository now includes a dedicated packaged-acceptance note template instead of relying on ad-hoc reviewer memory
-- Desktop packaging evidence is stronger again because the repository now proves real Linux bundle candidates exist, including `.deb` and `.rpm` outputs
+- Desktop packaging evidence is stronger again because the repository now proves real Linux bundle candidates exist, including `.deb`, `.rpm`, and `.AppImage` outputs
 - Packaging evidence is also more honest because it now checks bundle structure rather than only the presence of top-level package files
 - Packaged-acceptance readiness is also more honest now because the repository distinguishes bundle availability from actual GUI-launch capability in the current environment
 - Packaged-launch evidence is stronger again because the current AppImage has now been smoke-launched successfully under headless GUI conditions instead of only being inspected on disk
-- However, the remaining evidence gap is still current-version packaging and operator experience, not bootstrap mechanics alone
-- The next step should stay evidence-focused and capture packaged or near-packaged desktop operator notes before resuming Issue `47`
+- However, the remaining evidence gap is still human packaged acceptance and Windows acceptance, not Linux bundle generation
+- The next step should stay evidence-focused and capture packaged desktop operator notes plus Windows acceptance before resuming Issue `47`
 
 ## Related Evidence
 
