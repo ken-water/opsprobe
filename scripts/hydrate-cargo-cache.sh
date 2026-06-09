@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "${script_dir}/.." && pwd)"
+
+lockfile="${1:-${repo_root}/apps/desktop/src-tauri/Cargo.lock}"
+mirror_api_base="${CARGO_CRATE_DOWNLOAD_BASE:-https://rsproxy.cn/api/v1/crates}"
+cargo_home="${CARGO_HOME:-$HOME/.cargo}"
+cache_dir="${cargo_home}/registry/cache/rsproxy.cn-e3de039b2554c837"
+
+if [[ ! -f "${lockfile}" ]]; then
+  echo "lockfile not found: ${lockfile}" >&2
+  exit 1
+fi
+
+mkdir -p "${cache_dir}"
+
+python3 - "${lockfile}" "${mirror_api_base}" "${cache_dir}" <<'PY'
+import pathlib
+import sys
+import tomllib
+import urllib.error
+import urllib.parse
+import urllib.request
+
+lockfile = pathlib.Path(sys.argv[1])
+mirror_api_base = sys.argv[2].rstrip("/")
+cache_dir = pathlib.Path(sys.argv[3])
+
+packages = tomllib.loads(lockfile.read_text()).get("package", [])
+downloaded = 0
+skipped = 0
+failed = []
+
+for package in packages:
+    source = package.get("source", "")
+    if not source.startswith("registry+"):
+        continue
+
+    name = package["name"]
+    version = package["version"]
+    crate_name = f"{name}-{version}.crate"
+    crate_path = cache_dir / crate_name
+    if crate_path.exists():
+        skipped += 1
+        continue
+
+    url = f"{mirror_api_base}/{urllib.parse.quote(name)}/{urllib.parse.quote(version)}/download"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            crate_path.write_bytes(response.read())
+        downloaded += 1
+        print(f"[downloaded] {crate_name}")
+    except (urllib.error.URLError, TimeoutError, OSError) as error:
+        failed.append((crate_name, str(error)))
+        print(f"[failed] {crate_name}: {error}", file=sys.stderr)
+
+print(f"[summary] downloaded={downloaded} skipped={skipped} failed={len(failed)}")
+if failed:
+    sys.exit(1)
+PY

@@ -14,6 +14,41 @@ Goal:
 - the machine can reach the configured Cargo mirror
 - current working tree is clean
 
+## 0. Preload Cargo Cache If Needed
+
+If Cargo mirror access is unstable, first hydrate the local Cargo cache from the lockfile:
+
+```bash
+./scripts/hydrate-cargo-cache.sh
+```
+
+Optional offline sanity check after hydration:
+
+```bash
+tmp="$(mktemp -d)"
+cat >"${tmp}/config.toml" <<'EOF'
+[source.crates-io]
+replace-with = "opsprobe-mirror"
+
+[source.opsprobe-mirror]
+registry = "sparse+https://rsproxy.cn/index/"
+EOF
+
+CARGO_HOME="$HOME/.cargo" cargo metadata \
+  --format-version 1 \
+  --manifest-path apps/desktop/src-tauri/Cargo.toml \
+  --locked \
+  --offline \
+  --config "${tmp}/config.toml"
+
+rm -rf "${tmp}"
+```
+
+Expect:
+
+- the hydration script completes without failed downloads
+- the offline metadata command succeeds, proving local dependency resolution is ready before `tauri build`
+
 ## 1. Confirm Version And Working Tree
 
 Run:
