@@ -103,6 +103,7 @@ Practical gate targets for the next release line:
 
 - `0.11.0`: every evidence or runtime script change must pass the matching environment gate before validation runs
 - `0.11.1`: every packaging or installer change must refresh Linux packaged validation artifacts and the Windows validation record
+- `0.11.1`: real Windows installer acceptance must also produce one completed version-specific acceptance note on a Windows-capable environment before the issue is considered closed
 - `0.11.2`: stable-decision docs must be backed by a fresh smoke run plus the current blocker table
 - `1.0.0`: require unit, integration, smoke, and at least one desktop functional regression pass before the release candidate is approved
 - `1.1.0`: require bilingual regression coverage for the main desktop workflow and static report-copy rendering

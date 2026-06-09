@@ -2,6 +2,8 @@
 
 Use this workflow to prove whether the current version has a Windows desktop binary and NSIS installer for the selected target triple.
 
+It is narrower than real installer acceptance. It answers whether Windows artifacts exist and whether Wine-based launch can even be attempted from the current machine.
+
 ## Commands
 
 - `npm run desktop:validate-windows-record`
@@ -19,3 +21,8 @@ These records are intentionally split:
 
 - the Windows validation record answers whether the current version has a matching Windows binary and NSIS installer artifact
 - the Wine validation record answers whether the current machine can actually attempt a Windows installer launch
+
+For real `0.11.1` acceptance work, continue with:
+
+- [Issue 55 Runbook](./issue-55-windows-installer-runbook.md)
+- [Issue 55 Windows Installer Acceptance 0.11.1](./issue-55-windows-installer-acceptance-0.11.1.md)
