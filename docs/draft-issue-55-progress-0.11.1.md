@@ -1,6 +1,6 @@
-# Issue 55 Progress: `0.11.1` Windows Installer Acceptance Evidence
+# Draft: Issue 55 Progress For Future `0.11.1` Windows Installer Acceptance Evidence
 
-This document is intended to be copied into GitHub Issue `55` as a progress update or working comment.
+This draft document is intended to be copied into GitHub Issue `55` later, once `0.11.1` actually becomes the active development line.
 
 ## Current Intent
 
@@ -30,7 +30,7 @@ Its purpose is narrower:
 
 - refreshed `.opsprobe-validation/desktop-windows-validation-record.json`
 - refreshed `.opsprobe-validation/desktop-windows-wine-validation-record.json`
-- completed [issue-55-windows-installer-acceptance-0.11.1.md](./issue-55-windows-installer-acceptance-0.11.1.md)
+- completed [draft-issue-55-windows-installer-acceptance-0.11.1.md](./draft-issue-55-windows-installer-acceptance-0.11.1.md)
 - updated blocker summary for what still remains before `0.11.2`
 
 ## Recommended Execution Order

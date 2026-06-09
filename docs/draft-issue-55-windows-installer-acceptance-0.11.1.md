@@ -1,8 +1,8 @@
-# Issue 55 Windows Installer Acceptance: `0.11.1`
+# Draft: Issue 55 Windows Installer Acceptance For Future `0.11.1`
 
-Use this note when capturing the real Windows installer acceptance pass for `0.11.1`.
+Use this draft note later when capturing the real Windows installer acceptance pass for `0.11.1`.
 
-This file is intentionally version-specific so the Windows acceptance outcome cannot drift across versions.
+This file is intentionally version-specific, but it is still only a draft until the repository actually moves onto the `0.11.1` development line.
 
 Before filling this note, run:
 

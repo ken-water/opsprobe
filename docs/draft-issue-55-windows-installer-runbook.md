@@ -1,6 +1,6 @@
-# Issue 55 Runbook: Capture `0.11.1` Windows Installer Acceptance Evidence
+# Draft: Issue 55 Runbook For Future `0.11.1` Windows Installer Acceptance Evidence
 
-Use this runbook on a Windows-capable environment when `0.11.1` begins.
+Use this draft runbook later on a Windows-capable environment when `0.11.1` actually begins.
 
 Goal:
 
@@ -83,7 +83,7 @@ Expect:
 
 Complete:
 
-- [Issue 55 Windows Installer Acceptance 0.11.1](./issue-55-windows-installer-acceptance-0.11.1.md)
+- [Draft Issue 55 Windows Installer Acceptance 0.11.1](./draft-issue-55-windows-installer-acceptance-0.11.1.md)
 
 Minimum real acceptance scope:
 

@@ -22,6 +22,7 @@ Before starting development for a target version:
 7. Any new scope discovered during planning must be added as a new issue before implementation starts
 8. Published version history must remain contiguous; if a planned or shipped version is missing its tag or GitHub release, repair that gap before starting the next version
 9. The repository development version may be ahead of GitHub Releases, but only when the changelog entry is explicitly marked `Unreleased` and no release tag has been claimed yet
+10. While the repository is on one active development version, future minor-version materials must stay in draft or issue-list form; do not create non-draft `0.x.y` version documents for later minors before the current minor is released
 
 If the gate fails, development should pause until the issue and milestone state is corrected.
 

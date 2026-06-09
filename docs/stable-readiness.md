@@ -139,3 +139,8 @@ Issue 47 should capture:
 - the evidence reviewed
 - the accepted limits
 - the follow-up issues created if `1.0.0` is deferred
+
+When `0.11.2` actually becomes the active development line, use these drafts:
+
+- [Draft Issue 56 Stable Decision Runbook](./draft-issue-56-stable-decision-runbook.md)
+- [Draft Issue 56 Stable Decision Blockers 0.11.2](./draft-issue-56-stable-decision-blockers-0.11.2.md)
