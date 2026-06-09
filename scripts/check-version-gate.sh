@@ -28,6 +28,8 @@ MILESTONES_JSON="$(gh api "repos/${REPO}/milestones?state=all&per_page=100")"
 
 failures=0
 
+version_kind="patch"
+
 get_milestone() {
   local title="$1"
   jq -c --arg title "${title}" '.[] | select(.title == $title)' <<<"${MILESTONES_JSON}"
@@ -38,6 +40,11 @@ SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+$'
 if [[ ! "${TARGET_VERSION}" =~ ${SEMVER_REGEX} ]]; then
   echo "[fail] target version ${TARGET_VERSION} is not a valid semver milestone title" >&2
   exit 1
+fi
+
+IFS='.' read -r target_major target_minor target_patch <<<"${TARGET_VERSION}"
+if [[ "${target_patch}" == "0" ]]; then
+  version_kind="minor_or_major"
 fi
 
 mapfile -t VERSION_ORDER < <(
@@ -113,18 +120,26 @@ else
 fi
 
 TARGET_MILESTONE="$(get_milestone "${TARGET_VERSION}")"
-if [[ -z "${TARGET_MILESTONE}" ]]; then
-  echo "[fail] target milestone ${TARGET_VERSION} does not exist"
-  failures=$((failures + 1))
-else
-  echo "[pass] target milestone ${TARGET_VERSION} exists"
-
-  target_open="$(jq -r '.open_issues' <<<"${TARGET_MILESTONE}")"
-  if [[ "${target_open}" -gt 0 ]]; then
-    echo "[pass] target milestone ${TARGET_VERSION} has open issues ready for development"
+if [[ "${version_kind}" == "patch" ]]; then
+  if [[ -z "${TARGET_MILESTONE}" ]]; then
+    echo "[pass] patch release ${TARGET_VERSION} does not require a milestone"
   else
-    echo "[fail] target milestone ${TARGET_VERSION} has no open issues"
+    echo "[pass] patch release ${TARGET_VERSION} milestone exists"
+  fi
+else
+  if [[ -z "${TARGET_MILESTONE}" ]]; then
+    echo "[fail] target milestone ${TARGET_VERSION} does not exist"
     failures=$((failures + 1))
+  else
+    echo "[pass] target milestone ${TARGET_VERSION} exists"
+
+    target_open="$(jq -r '.open_issues' <<<"${TARGET_MILESTONE}")"
+    if [[ "${target_open}" -gt 0 ]]; then
+      echo "[pass] target milestone ${TARGET_VERSION} has open issues ready for development"
+    else
+      echo "[fail] target milestone ${TARGET_VERSION} has no open issues"
+      failures=$((failures + 1))
+    fi
   fi
 fi
 

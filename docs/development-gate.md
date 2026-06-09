@@ -16,9 +16,10 @@ Before starting development for a target version:
 1. The previous milestone must be closed
 2. The previous version must already have a pushed git tag and a published GitHub release
 3. Earlier milestones must not have open issues
-4. The target milestone must already exist
-5. The target milestone must already contain at least one open issue
-6. Any new scope discovered during planning must be added as a new issue before implementation starts
+4. Minor and major releases must have a target milestone already created
+5. Minor and major releases must have at least one open issue in the target milestone
+6. Patch releases may skip target milestone creation when they only ship bounded fixes, docs, UX polish, or release metadata
+7. Any new scope discovered during planning must be added as a new issue before implementation starts
 
 If the gate fails, development should pause until the issue and milestone state is corrected.
 
@@ -87,6 +88,22 @@ Checkpoint gate passed
 [pass] target milestone 0.2.0 exists
 [pass] target milestone 0.2.0 has open issues ready for development
 Gate passed for version 0.2.0
+```
+
+Patch example:
+
+```text
+[pass] working tree is clean
+[pass] branch main tracks origin/main
+[pass] no unpushed commits
+[pass] local branch is not behind upstream
+Checkpoint gate passed
+[pass] previous milestone 0.10.3 is closed
+[pass] previous version v0.10.3 has a GitHub release
+[pass] previous version v0.10.3 tag exists on origin
+[pass] no open issues found in milestones before 0.10.4
+[pass] patch release 0.10.4 does not require a milestone
+Gate passed for version 0.10.4
 ```
 
 Failure example:
