@@ -4,12 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
-## [0.10.8] - Unreleased
+## [0.10.8] - 2026-06-09
 
-### Planned
+### Added
 
-- continue post-`0.10.7` desktop hardening after the packaged Linux release evidence line
-- tighten release discipline around post-release version bumps and follow-up verification
+- a structured Windows installer validation record for the desktop release line
+- a structured Wine validation record that explicitly reports when Windows launch validation was not attempted on the current Linux machine
+- release guidance that now distinguishes unreleased development versions from published GitHub releases
+
+### Changed
+
+- repaired the published `0.10.x` release chain by restoring the missing `v0.10.6` tag and GitHub release
+- clarified release and development gates so version history must stay contiguous and backfilled releases must not leave the wrong GitHub `Latest` marker behind
+- tightened the next-step roadmap so `0.11.x` stays focused on stable-candidate evidence instead of continuing unbounded desktop-surface churn
+
+### Known Limits
+
+- Windows validation now exists as structured evidence, but real Windows installer acceptance is still deferred beyond `0.10.8`
+- `0.10.8` is a release-discipline and validation-record patch, not the stable-candidate decision line
 
 ## [0.10.7] - 2026-06-09
 
