@@ -1498,9 +1498,9 @@ function App() {
         </nav>
 
         <div className="sidebar-status">
-          <div className="status-tile" title="0.10.6 Current Development Version">
+          <div className="status-tile" title="0.10.7 Current Development Version">
             <span className="status-label">Release</span>
-            <strong>v0.10.6</strong>
+            <strong>v0.10.7</strong>
           </div>
           <div className="status-tile">
             <span className="status-label">Mode</span>
@@ -1541,7 +1541,6 @@ function App() {
 
           {activeWorkspace === "inspection-hub" ? (
             <InspectionHubWorkspace
-              asset={asset}
               runtimeStatus={runtimeStatus}
               runtimeSummary={runtimeSummary}
               completedSetupSteps={completedSetupSteps}
@@ -1555,7 +1554,6 @@ function App() {
               latestRun={latestVisibleRun}
               showingDemoExperience={showingDemoExperience}
               onStartInspection={() => handleWorkspaceChange("assets-strategy")}
-              onOpenAssetsStrategy={() => handleWorkspaceChange("assets-strategy")}
               onOpenResults={() => handleWorkspaceChange("inspection-results")}
               onOpenSettings={() => handleWorkspaceChange("system-settings")}
               onOpenAssets={() => {

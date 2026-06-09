@@ -4,13 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
-## [0.10.6] - Unreleased
+## [0.10.7] - Unreleased
 
 ### Planned
 
-- tighten the simplified desktop flow with denser action hierarchy and less secondary clutter
-- continue consistency work across spacing, table density, and operator feedback timing
-- add any extra packaged-release validation needed for the simplified desktop workflow
+- make the desktop start page more useful immediately after install or first launch
+- surface local runtime readiness and next-step guidance more explicitly before the first real inspection
+- strengthen packaged desktop validation and operator-facing launch credibility
+
+## [0.10.6] - 2026-06-09
+
+### Changed
+
+- simplified the desktop operator flow into clearer `Start`, `Inspect`, `Reports`, and `System` workspaces
+- reduced duplicate setup and reporting sections so users reach the real action surfaces faster
+- tightened card, button, table, and page density to make the desktop console feel less loose and more intentional
+- reordered the results workspace so the current conclusion and export actions appear before history and comparison
+
+### Added
+
+- browser-level Playwright coverage for the main desktop operator path, including start, inspect, reports, and system transitions
+- stronger desktop UI regression coverage for focused inspection sections and the reordered results workflow
+
+### Known Limits
+
+- packaged install and first-launch credibility still need another round of explicit start-page feedback and packaged validation evidence
+- Windows installer and first-launch behavior still need a tighter operator-facing validation pass before broader release claims
 
 ## [0.10.5] - 2026-06-09
 

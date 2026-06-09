@@ -187,10 +187,14 @@ describe("desktop app shell", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Start Inspection" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Open Inspect Anyway" })).toBeTruthy();
     });
 
-    await user.click(screen.getByRole("button", { name: "Start Inspection" }));
+    expect(screen.getByText("Know if this machine is ready before the first real inspection.")).toBeTruthy();
+    expect(screen.getByText("What OpsProbe checked on this machine")).toBeTruthy();
+    expect(screen.getByText("Open the exact area you need")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Open Inspect Anyway" }));
 
     await waitFor(() => {
       expect(screen.getByText("One step at a time")).toBeTruthy();

@@ -1,8 +1,7 @@
-import type { Asset, InspectionRun } from "@opsprobe/core";
+import type { InspectionRun } from "@opsprobe/core";
 import { DesktopSectionHeader, formatDateTime } from "./DesktopUI";
 
 interface InspectionHubWorkspaceProps {
-  asset: Asset;
   runtimeStatus: string;
   runtimeSummary: string;
   completedSetupSteps: number;
@@ -16,14 +15,12 @@ interface InspectionHubWorkspaceProps {
   latestRun: InspectionRun | null;
   showingDemoExperience: boolean;
   onStartInspection: () => void;
-  onOpenAssetsStrategy: () => void;
   onOpenAssets: () => void;
   onOpenResults: () => void;
   onOpenSettings: () => void;
 }
 
 export function InspectionHubWorkspace({
-  asset,
   runtimeStatus,
   runtimeSummary,
   completedSetupSteps,
@@ -37,40 +34,61 @@ export function InspectionHubWorkspace({
   latestRun,
   showingDemoExperience,
   onStartInspection,
-  onOpenAssetsStrategy,
   onOpenAssets,
   onOpenResults,
   onOpenSettings,
 }: InspectionHubWorkspaceProps) {
+  const readyForInspection = completedSetupSteps === totalSetupSteps && blockingCount === 0;
+  const nextStepLabel =
+    blockingCount > 0
+      ? "Repair local system first"
+      : assetCount === 0
+        ? "Save the first real target"
+        : latestRun
+          ? "Review the latest result"
+          : "Run the first real inspection";
+  const nextStepDetail =
+    blockingCount > 0
+      ? "OpsProbe found blocking local checks. Fix the runtime and report path before trusting automation."
+      : assetCount === 0
+        ? "The desktop is ready enough to start capturing real targets and building a reusable workspace."
+        : latestRun
+          ? "A recent run already exists, so the fastest next action is to read the conclusion and remediation."
+          : "The machine is ready enough for a first real run. Start inspection before adding more structure.";
+
   return (
     <>
       <section className="hub-hero">
         <div className="hub-hero-main">
-          <p className="eyebrow">Start Here</p>
-          <h1>Inspect first. Configure only when needed.</h1>
+          <p className="eyebrow">Desktop Status</p>
+          <h1>Know if this machine is ready before the first real inspection.</h1>
           <p className="summary">
-            The main workflow is simple: choose a target, run inspection, then read or export the result.
+            OpsProbe should feel obvious after install: check local readiness, take the next correct step, then run inspection without guessing where to begin.
           </p>
+          <div className={`hub-launch-banner ${readyForInspection ? "hub-launch-banner-ready" : "hub-launch-banner-attention"}`}>
+            <strong>{readyForInspection ? "Ready for a first real inspection" : "This machine still needs setup attention"}</strong>
+            <span>{runtimeSummary}</span>
+          </div>
           <div className="hub-actions">
             <button className="primary-button primary-button-large" onClick={onStartInspection} type="button">
-              Start Inspection
+              {readyForInspection ? "Start Inspection" : "Open Inspect Anyway"}
             </button>
-            <button className="secondary-button" onClick={onOpenAssetsStrategy} type="button">
-              Open Inspect
+            <button className="secondary-button" onClick={onOpenSettings} type="button">
+              Check Local System
             </button>
           </div>
         </div>
 
         <div className="hub-hero-side">
           <article className="hub-side-card">
-            <span className="status-label">Current Target</span>
-            <strong>{asset.name}</strong>
-            <p>{asset.host}:{asset.port} · {asset.credential.username}</p>
+            <span className="status-label">Next Step</span>
+            <strong>{nextStepLabel}</strong>
+            <p>{nextStepDetail}</p>
           </article>
           <article className="hub-side-card">
-            <span className="status-label">Inspection Scope</span>
-            <strong>{selectedTemplateName}</strong>
-            <p>{showingDemoExperience ? "Demo data is active for safe exploration." : runtimeSummary}</p>
+            <span className="status-label">Current Mode</span>
+            <strong>{showingDemoExperience ? "Demo workspace" : "Real workspace"}</strong>
+            <p>{showingDemoExperience ? "Demo data is active for safe exploration before connecting real hosts." : `Current inspection scope: ${selectedTemplateName}.`}</p>
           </article>
         </div>
       </section>
@@ -78,9 +96,9 @@ export function InspectionHubWorkspace({
       <section className="hub-grid">
         <article className="hub-card hub-card-emphasis">
           <DesktopSectionHeader
-            eyebrow="Run Readiness"
-            title="Ready to inspect?"
-            subtitle="If blocked, use configuration or settings below."
+            eyebrow="Local Readiness"
+            title="What OpsProbe checked on this machine"
+            subtitle="These are the checks that matter immediately after install and before recurring use."
           />
           <div className="hub-readiness-grid">
             <div className="snapshot-tile">
@@ -104,9 +122,9 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Workspace"
-            title="What already exists"
-            subtitle="Only the essentials that matter before the next inspection."
+            eyebrow="Installed State"
+            title="What already exists locally"
+            subtitle="This is the quickest way to see whether the desktop is still empty or already in active use."
           />
           <div className="hub-kpi-list">
             <div><span>Saved assets</span><strong>{assetCount}</strong></div>
@@ -117,12 +135,12 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Latest Result"
+            eyebrow="Most Recent Result"
             title={latestRun ? latestRun.id : "No inspection run yet"}
             subtitle={
               latestRun
                 ? `Latest run created at ${formatDateTime(latestRun.createdAt)}.`
-                : "Run the first inspection to generate a report."
+                : "Run the first inspection to create a report and remediation trail."
             }
           />
           {latestRun ? (
@@ -146,14 +164,22 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Next Step"
-            title="Need something specific?"
-            subtitle="Go straight to the focused area instead of hunting through the UI."
+            eyebrow="Fast Paths"
+            title="Open the exact area you need"
+            subtitle="Use these focused entry points instead of hunting across multiple sections."
           />
           <div className="hub-step-list">
+            <button className="hub-step-button" onClick={onStartInspection} type="button">
+              <strong>Run Inspection</strong>
+              <span>Open the target, SSH, and preview workflow directly.</span>
+            </button>
             <button className="hub-step-button" onClick={onOpenAssets} type="button">
               <strong>Save Or Reuse Target</strong>
               <span>Open saved assets and machine transfer after the first preview is right.</span>
+            </button>
+            <button className="hub-step-button" onClick={onOpenResults} type="button">
+              <strong>Read Reports</strong>
+              <span>Open the latest result, export paths, and history comparison.</span>
             </button>
             <button className="hub-step-button" onClick={onOpenSettings} type="button">
               <strong>Repair Local System</strong>
