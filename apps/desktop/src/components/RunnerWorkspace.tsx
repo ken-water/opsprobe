@@ -66,6 +66,7 @@ export function RunnerWorkspace({
             : sshFailureMessage.includes("sshpass")
               ? "Local dependency missing"
               : "SSH path needs repair";
+  const connectionSummary = `${asset.credential.username || "user"} @ ${asset.host || "host"}:${asset.port}`;
 
   return (
     <section className="run-panel">
@@ -94,33 +95,16 @@ export function RunnerWorkspace({
 
           <section className="form-section">
             <div className="form-section-header">
-              <strong>Connection Target</strong>
-              <span>{asset.host}:{asset.port}</span>
+              <strong>First-Run Connection</strong>
+              <span>{connectionSummary}</span>
             </div>
-            <div className="ssh-grid">
-              <label>
-                <span>Asset Name</span>
-                <input
-                  value={asset.name}
-                  onChange={(event) => onPatchAsset({ name: event.target.value })}
-                  placeholder="opsprobe-demo-host"
-                />
-              </label>
+            <div className="target-primary-grid">
               <label>
                 <span>Host</span>
                 <input
                   value={asset.host}
                   onChange={(event) => onPatchAsset({ host: event.target.value })}
                   placeholder="10.0.0.12"
-                />
-              </label>
-              <label>
-                <span>Port</span>
-                <input
-                  type="number"
-                  value={asset.port}
-                  onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
-                  placeholder="22"
                 />
               </label>
               <label>
@@ -144,6 +128,48 @@ export function RunnerWorkspace({
                   <option value="private-key">private-key</option>
                   <option value="password">password</option>
                 </select>
+              </label>
+              <label className="field-block field-block-inline">
+                <span>
+                  {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
+                </span>
+                <input
+                  type={asset.credential.method === "password" ? "password" : "text"}
+                  value={asset.credential.secretRef}
+                  onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
+                  placeholder={
+                    asset.credential.method === "private-key"
+                      ? "/home/user/.ssh/id_rsa"
+                      : "Enter the SSH password used for this host."
+                  }
+                />
+              </label>
+            </div>
+
+            <div className="target-secondary-note">
+              <div className="target-secondary-copy">
+                <strong>Optional details</strong>
+                <span>Name, port, and tags help reuse later, but they are secondary for the first inspection.</span>
+              </div>
+            </div>
+
+            <div className="ssh-grid ssh-grid-secondary">
+              <label>
+                <span>Asset Name</span>
+                <input
+                  value={asset.name}
+                  onChange={(event) => onPatchAsset({ name: event.target.value })}
+                  placeholder="opsprobe-demo-host"
+                />
+              </label>
+              <label>
+                <span>Port</span>
+                <input
+                  type="number"
+                  value={asset.port}
+                  onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
+                  placeholder="22"
+                />
               </label>
               <label>
                 <span>Tags</span>
@@ -246,7 +272,7 @@ export function RunnerWorkspace({
               <strong>Check Scope</strong>
               <span>{activeChecksCount} checks</span>
             </div>
-            <div className="ssh-grid">
+            <div className="target-primary-grid">
               <label>
                 <span>Inspection Template</span>
                 <select
@@ -260,21 +286,6 @@ export function RunnerWorkspace({
                   ))}
                 </select>
               </label>
-              <label className="field-block field-block-inline">
-                <span>
-                  {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
-                </span>
-                <input
-                  type={asset.credential.method === "password" ? "password" : "text"}
-                  value={asset.credential.secretRef}
-                  onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
-                  placeholder={
-                    asset.credential.method === "private-key"
-                      ? "/home/user/.ssh/id_rsa"
-                      : "Enter the SSH password used for this host."
-                  }
-                />
-              </label>
             </div>
             <div className="inline-note">
               <strong>{formatStatusLabel(asset.credential.method)} mode</strong>
@@ -282,8 +293,8 @@ export function RunnerWorkspace({
             </div>
           </section>
 
-          <div className="service-actions">
-            <button className="primary-button" onClick={onTestSsh} type="button">
+          <div className="service-actions service-actions-primary">
+            <button className="primary-button primary-button-large" onClick={onTestSsh} type="button">
               {isTestingSsh ? "Testing..." : "Test SSH Connection"}
             </button>
             <button className="secondary-button" onClick={onRefreshInspectionPreview} type="button">
