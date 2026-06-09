@@ -38,6 +38,8 @@ Release mapping:
 - `0.11.x`: pre-stable evidence line after the `0.10.x` hardening cycle
   Current issue line:
   `0.11.0`: Issue 54
+  `0.11.1`: Issue 55
+  `0.11.2`: Issue 56
 - `1.0.0`: stable-release decision line
   Current issue line:
   `1.0.0`: Issue 47
@@ -50,8 +52,6 @@ Release mapping:
 
 Recommended next issue additions:
 
-- `0.11.1`: Windows installer acceptance evidence
-- `0.11.2`: stable-decision blocker review and final defer-or-release recommendation
 - `1.1.1`: desktop/report i18n string extraction and translation boundary
 - `1.2.1`: multilingual download site and release-artifact listing
 
