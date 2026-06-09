@@ -4,13 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
-## [0.10.7] - Unreleased
+## [0.10.7] - 2026-06-09
 
-### Planned
+### Changed
 
-- make the desktop start page more useful immediately after install or first launch
-- surface local runtime readiness and next-step guidance more explicitly before the first real inspection
-- strengthen packaged desktop validation and operator-facing launch credibility
+- reworked the desktop start page into a clearer install-first launch surface with explicit next-step guidance, denser navigation, and fewer duplicated explanations
+- tightened the inspection path into a more linear target -> SSH -> preview -> result flow so first-run operators can reach a real inspection faster
+- refocused the report-strategy workspace so it shapes export audience and remediation framing instead of repeating the current-result view
+
+### Added
+
+- packaged desktop validation records that summarize whether the current version has matching `deb`, `rpm`, `AppImage`, preflight, launch-smoke, and walkthrough evidence
+- current-version packaged bundle evidence for `0.10.7`, including Linux `deb`, `rpm`, and `AppImage` outputs plus refreshed preflight and launch-smoke validation
+- updated packaged-walkthrough validation so desktop release evidence stays aligned with the current UI copy and operator path
+
+### Known Limits
+
+- Windows installer validation is still not captured for `0.10.7`, so packaged evidence is currently Linux-first
+- desktop packaged validation is now recorded, but GitHub Release publication and the post-release version bump still need to be completed
 
 ## [0.10.6] - 2026-06-09
 

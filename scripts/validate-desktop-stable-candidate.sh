@@ -5,9 +5,22 @@ set -euo pipefail
 validation_dir=".opsprobe-validation"
 mkdir -p "${validation_dir}"
 
+cargo_check_args=(
+  check
+  --manifest-path
+  apps/desktop/src-tauri/Cargo.toml
+)
+
+if [[ -n "${OPSPROBE_CARGO_REGISTRY_OVERRIDE:-}" ]]; then
+  cargo_check_args+=(
+    --config
+    "source.crates-io.registry=\"${OPSPROBE_CARGO_REGISTRY_OVERRIDE}\""
+  )
+fi
+
 npm run desktop:typecheck
 npm --workspace @opsprobe/desktop run build
-cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml --config 'source.crates-io.registry="sparse+https://index.crates.io/"'
+cargo "${cargo_check_args[@]}"
 
 test -f apps/desktop/dist/index.html
 test -f apps/desktop/src-tauri/tauri.conf.json
