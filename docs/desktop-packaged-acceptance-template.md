@@ -8,9 +8,12 @@ Before using this template, run:
 
 ```bash
 ./scripts/validate-desktop-packaged-acceptance-preflight.sh
+./scripts/validate-desktop-packaged-launch-smoke.sh
 ```
 
 If the preflight says GUI launch is not currently possible, record that limitation first instead of pretending the packaged acceptance pass already happened.
+
+If the launch smoke fails, record that before attempting a broader acceptance pass.
 
 ## Candidate Metadata
 

@@ -19,6 +19,7 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 - Desktop operator walk-through command: `./scripts/validate-desktop-operator-walkthrough.sh`
 - Desktop bundle-candidate validation command: `./scripts/validate-desktop-bundle-candidate.sh`
 - Desktop packaged-acceptance preflight command: `./scripts/validate-desktop-packaged-acceptance-preflight.sh`
+- Desktop packaged-launch smoke command: `./scripts/validate-desktop-packaged-launch-smoke.sh`
 
 ## 1. Install And Bootstrap
 
@@ -95,6 +96,14 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 - The preflight now leaves a structured artifact at `.opsprobe-validation/desktop-packaged-acceptance-preflight.json`
 - This reduces ambiguity for Issue `54`, because the remaining gap is now explicit environment readiness for GUI launch, not uncertainty about whether packaging artifacts were produced
 
+### Desktop packaged-launch smoke
+
+- Command path: `./scripts/validate-desktop-packaged-launch-smoke.sh`
+- The current candidate now proves that the packaged AppImage can be launched under `xvfb-run` and remain alive for at least 10 seconds instead of exiting immediately
+- On the current Linux validation machine, the AppImage stayed alive for the smoke window and only emitted EGL/DRI3 headless-render warnings rather than a startup crash
+- The validation now leaves a structured artifact at `.opsprobe-validation/desktop-packaged-launch-smoke.json`
+- This still does not replace a human-operated packaged acceptance pass, but it closes the gap between "bundle exists" and "bundle can actually start"
+
 ## 3. Report export
 
 - Command or UI path: `config-export` for migration package export is validated; report export remains stronger in smoke coverage than in this specific draft
@@ -165,6 +174,7 @@ Reasoning:
 - Desktop packaging evidence is stronger again because the repository now proves real Linux bundle candidates exist, including `.deb` and `.rpm` outputs
 - Packaging evidence is also more honest because it now checks bundle structure rather than only the presence of top-level package files
 - Packaged-acceptance readiness is also more honest now because the repository distinguishes bundle availability from actual GUI-launch capability in the current environment
+- Packaged-launch evidence is stronger again because the current AppImage has now been smoke-launched successfully under headless GUI conditions instead of only being inspected on disk
 - However, the remaining evidence gap is still packaging and operator experience, not bootstrap mechanics alone
 - The next step should stay evidence-focused and capture packaged or near-packaged desktop operator notes before resuming Issue `47`
 
