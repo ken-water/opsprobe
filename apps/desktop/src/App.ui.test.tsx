@@ -149,7 +149,7 @@ describe("desktop app shell", () => {
     await user.click(getNavButton(nav, "Inspect"));
 
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: /Run first inspection/i }).getAttribute("aria-selected")).toBe("true");
+      expect(screen.getByRole("button", { name: /First inspection/i })).toBeTruthy();
     });
 
     expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
@@ -158,7 +158,7 @@ describe("desktop app shell", () => {
     expect(screen.queryByText("Save For Reuse")).toBeNull();
     expect(screen.queryByText("Automate Later")).toBeNull();
 
-    await user.click(screen.getByRole("tab", { name: /Save target/i }));
+    await user.click(screen.getByRole("button", { name: /Save for reuse/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Save For Reuse")).toBeTruthy();
@@ -193,24 +193,24 @@ describe("desktop app shell", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Open Inspect Setup" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Start First Inspection" })).toBeTruthy();
     });
 
     expect(screen.getByText("Start Here")).toBeTruthy();
-    expect(screen.getByText("Finish the first real setup path")).toBeTruthy();
-    expect(screen.getByText("Check if this machine is usable")).toBeTruthy();
-    expect(screen.getAllByText("Open Inspect Setup").length).toBeGreaterThan(0);
+    expect(screen.getByText("Run the first real inspection path")).toBeTruthy();
+    expect(screen.getByText("Only three things matter")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Start First Inspection" })).toBeTruthy();
     expect(screen.getByText("What success looks like")).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: "Open Inspect Setup" }));
+    await user.click(screen.getByRole("button", { name: "Start First Inspection" }));
 
     await waitFor(() => {
-      expect(screen.getByText("One step at a time")).toBeTruthy();
+      expect(screen.getByText("Finish one inspection before anything else")).toBeTruthy();
     });
-    expect(screen.getByText("Save For Reuse")).toBeTruthy();
-    expect(screen.getByRole("tab", { name: /Save target/i }).getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /First inspection/i })).toBeTruthy();
 
-    await user.click(screen.getByRole("tab", { name: /Enable automation/i }));
+    await user.click(screen.getByRole("button", { name: /Automation/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Automate Later")).toBeTruthy();

@@ -15,7 +15,6 @@ interface InspectionHubWorkspaceProps {
   latestRun: InspectionRun | null;
   showingDemoExperience: boolean;
   onStartInspection: () => void;
-  onOpenAssets: () => void;
   onOpenResults: () => void;
   onOpenSettings: () => void;
 }
@@ -34,7 +33,6 @@ export function InspectionHubWorkspace({
   latestRun,
   showingDemoExperience,
   onStartInspection,
-  onOpenAssets,
   onOpenResults,
   onOpenSettings,
 }: InspectionHubWorkspaceProps) {
@@ -44,23 +42,23 @@ export function InspectionHubWorkspace({
     ? "Open Inspect"
     : needsSystemRepair
       ? "Open System"
-      : "Open Inspect Setup";
-  const primaryAction = readyForInspection ? onStartInspection : needsSystemRepair ? onOpenSettings : onOpenAssets;
+      : "Start First Inspection";
+  const primaryAction = readyForInspection ? onStartInspection : needsSystemRepair ? onOpenSettings : onStartInspection;
   const secondaryAction = readyForInspection
     ? { label: "Open Latest Result", onClick: onOpenResults }
     : needsSystemRepair
-      ? { label: "Open Inspect Setup", onClick: onOpenAssets }
+      ? { label: "Start First Inspection", onClick: onStartInspection }
       : null;
   const focusTitle = readyForInspection
     ? "Do the first real inspection now"
-    : needsSystemRepair
-      ? "Fix the local machine first"
-      : "Finish the first real setup path";
+      : needsSystemRepair
+        ? "Fix the local machine first"
+        : "Run the first real inspection path";
   const focusDetail = readyForInspection
     ? "Do not start with schedules or exports. Open Inspect, test SSH, and make one preview succeed."
     : needsSystemRepair
       ? "OpsProbe found blocking local problems. Open System, repair the runtime, then come back here."
-      : "The runtime looks healthy, but you still need to save a real target or finish the first setup step before this workspace is truly ready.";
+      : "The runtime looks healthy. Enter one target, test SSH, and get one preview result before worrying about reuse, schedules, or exports.";
 
   return (
     <>
@@ -123,10 +121,10 @@ export function InspectionHubWorkspace({
                 : "Enter one real target before spending more time elsewhere."}
           </span>
         </button>
-        <button className="guided-step-card" onClick={onOpenAssets} type="button">
+        <button className="guided-step-card" onClick={onStartInspection} type="button">
           <span className="guided-step-index">2</span>
-          <strong>Save the target</strong>
-          <span>Only save or reuse targets after the first preview looks right.</span>
+          <strong>Run the preview</strong>
+          <span>Prove the target, SSH path, and checks all work once before saving anything for reuse.</span>
         </button>
         <button className="guided-step-card" onClick={onOpenResults} type="button">
           <span className="guided-step-index">3</span>
@@ -138,70 +136,44 @@ export function InspectionHubWorkspace({
       <section className="hub-grid">
         <article className="hub-card hub-card-emphasis">
           <DesktopSectionHeader
-            eyebrow="Step 1"
-            title="Check if this machine is usable"
-            subtitle="Only the local facts that matter before you try one real inspection."
+            eyebrow="Before You Start"
+            title="Only three things matter"
+            subtitle="If these are clear, the first inspection path will be easy to finish."
           />
-          <div className="hub-readiness-grid">
+          <div className="hub-readiness-grid hub-readiness-grid-single">
             <div className="snapshot-tile">
               <span className="snapshot-label">Setup</span>
               <strong>{completedSetupSteps}/{totalSetupSteps}</strong>
+              <p className="helper-text">How much first-run setup is already complete.</p>
             </div>
             <div className="snapshot-tile">
               <span className="snapshot-label">Runtime</span>
               <strong>{runtimeStatus}</strong>
+              <p className="helper-text">The local runtime state before you try SSH and preview.</p>
             </div>
             <div className="snapshot-tile">
-              <span className="snapshot-label">Warnings</span>
-              <strong>{warningCount}</strong>
-            </div>
-            <div className="snapshot-tile">
-              <span className="snapshot-label">Blocking</span>
-              <strong>{blockingCount}</strong>
+              <span className="snapshot-label">{blockingCount > 0 ? "Blocking" : "Warnings"}</span>
+              <strong>{blockingCount > 0 ? blockingCount : warningCount}</strong>
+              <p className="helper-text">
+                {blockingCount > 0
+                  ? "Fix blocking issues first."
+                  : "Warnings can wait until after the first preview succeeds."}
+              </p>
             </div>
           </div>
         </article>
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Step 2"
-            title="Know whether this workspace is still empty"
-            subtitle="If these numbers are zero, stop exploring and create the first working path."
+            eyebrow="Empty Or Active"
+            title="Is this workspace still new?"
+            subtitle="If saved targets and results are still empty, stay focused on the first working path."
           />
           <div className="hub-kpi-list">
             <div><span>Saved assets</span><strong>{assetCount}</strong></div>
-            <div><span>Schedules</span><strong>{scheduleCount}</strong></div>
             <div><span>Run history</span><strong>{historyCount}</strong></div>
+            <div><span>Schedules</span><strong>{scheduleCount}</strong></div>
           </div>
-        </article>
-
-        <article className="hub-card">
-          <DesktopSectionHeader
-            eyebrow="Step 3"
-            title={latestRun ? latestRun.id : "No inspection run yet"}
-            subtitle={
-              latestRun
-                ? `Latest run created at ${formatDateTime(latestRun.createdAt)}.`
-                : "No result exists yet. Do not spend time in Reports before one real run succeeds."
-            }
-          />
-          {latestRun ? (
-            <>
-              <div className="summary-strip">
-                <span>Total {latestRun.summary.total}</span>
-                <span>Pass {latestRun.summary.passed}</span>
-                <span>Warn {latestRun.summary.warning}</span>
-                <span>Critical {latestRun.summary.critical}</span>
-              </div>
-              <div className="hub-actions hub-actions-compact">
-                <button className="secondary-button" onClick={onOpenResults} type="button">
-                  Review Results
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="helper-text">No local result is available yet.</p>
-          )}
         </article>
 
         <article className="hub-card">
@@ -224,6 +196,35 @@ export function InspectionHubWorkspace({
               <span>After the first path works once, save the target for reuse and come back later for recurring runs and reporting.</span>
             </div>
           </div>
+        </article>
+
+        <article className="hub-card">
+          <DesktopSectionHeader
+            eyebrow="Latest Result"
+            title={latestRun ? latestRun.id : "No inspection run yet"}
+            subtitle={
+              latestRun
+                ? `Latest run created at ${formatDateTime(latestRun.createdAt)}.`
+                : "No result exists yet. Reports only become useful after the first real run succeeds."
+            }
+          />
+          {latestRun ? (
+            <>
+              <div className="summary-strip">
+                <span>Total {latestRun.summary.total}</span>
+                <span>Pass {latestRun.summary.passed}</span>
+                <span>Warn {latestRun.summary.warning}</span>
+                <span>Critical {latestRun.summary.critical}</span>
+              </div>
+              <div className="hub-actions hub-actions-compact">
+                <button className="secondary-button" onClick={onOpenResults} type="button">
+                  Review Results
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="helper-text">No local result is available yet.</p>
+          )}
         </article>
       </section>
     </>

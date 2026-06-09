@@ -1555,13 +1555,12 @@ function App() {
               selectedTemplateName={activeTemplate.name}
               latestRun={latestVisibleRun}
               showingDemoExperience={showingDemoExperience}
-              onStartInspection={() => handleWorkspaceChange("assets-strategy")}
-              onOpenResults={() => handleWorkspaceChange("inspection-results")}
-              onOpenSettings={() => handleWorkspaceChange("system-settings")}
-              onOpenAssets={() => {
-                setActiveInspectSection("assets");
+              onStartInspection={() => {
+                setActiveInspectSection("run");
                 handleWorkspaceChange("assets-strategy");
               }}
+              onOpenResults={() => handleWorkspaceChange("inspection-results")}
+              onOpenSettings={() => handleWorkspaceChange("system-settings")}
             />
           ) : null}
 
@@ -1570,35 +1569,31 @@ function App() {
               <section className="inspect-shell">
                 <div className="inspect-stage-intro">
                   <p className="eyebrow">Inspect Flow</p>
-                  <h3>One step at a time</h3>
+                  <h3>Finish one inspection before anything else</h3>
                   <p className="section-subtitle">
-                    First make one inspection work. Only then save the target or enable recurring automation.
+                    Enter one target, test SSH, run one preview, and read the result. Save for reuse and automation only after that path works.
                   </p>
                 </div>
-                <div className="inspect-mode-switch" role="tablist" aria-label="Inspect sections">
+                <div className="inspect-mode-switch inspect-mode-switch-secondary" aria-label="After the first inspection">
                   <button
                     className={`inspect-mode-button ${activeInspectSection === "run" ? "inspect-mode-button-active" : ""}`}
                     onClick={() => handleInspectSectionChange("run")}
                     type="button"
-                    role="tab"
-                    aria-selected={activeInspectSection === "run"}
                   >
-                    <span className="inspect-mode-step">1</span>
+                    <span className="inspect-mode-step">Now</span>
                     <span>
-                      <strong>Run first inspection</strong>
-                      <small>Target, SSH, preview</small>
+                      <strong>First inspection</strong>
+                      <small>Target, SSH, preview, result</small>
                     </span>
                   </button>
                   <button
                     className={`inspect-mode-button ${activeInspectSection === "assets" ? "inspect-mode-button-active" : ""}`}
                     onClick={() => handleInspectSectionChange("assets")}
                     type="button"
-                    role="tab"
-                    aria-selected={activeInspectSection === "assets"}
                   >
-                    <span className="inspect-mode-step">2</span>
+                    <span className="inspect-mode-step">Later</span>
                     <span>
-                      <strong>Save target</strong>
+                      <strong>Save for reuse</strong>
                       <small>Reuse and move to another machine</small>
                     </span>
                   </button>
@@ -1606,12 +1601,10 @@ function App() {
                     className={`inspect-mode-button ${activeInspectSection === "automation" ? "inspect-mode-button-active" : ""}`}
                     onClick={() => handleInspectSectionChange("automation")}
                     type="button"
-                    role="tab"
-                    aria-selected={activeInspectSection === "automation"}
                   >
-                    <span className="inspect-mode-step">3</span>
+                    <span className="inspect-mode-step">Later</span>
                     <span>
-                      <strong>Enable automation</strong>
+                      <strong>Automation</strong>
                       <small>Schedules and local runtime</small>
                     </span>
                   </button>

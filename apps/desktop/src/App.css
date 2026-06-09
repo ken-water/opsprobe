@@ -315,7 +315,7 @@ body {
 }
 
 .inspect-shell {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .inspect-stage-intro {
@@ -332,6 +332,10 @@ body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+}
+
+.inspect-mode-switch-secondary {
+  margin-top: 2px;
 }
 
 .inspect-mode-button {
@@ -377,8 +381,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
+  min-width: 50px;
   height: 30px;
+  padding: 0 10px;
   border-radius: 999px;
   background: rgba(125, 211, 252, 0.14);
   color: #7dd3fc;
@@ -395,11 +400,11 @@ body {
 }
 
 .inspect-primary-stage {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .inspect-secondary-stage {
-  margin-top: 0;
+  margin-top: 8px;
 }
 
 .inspect-secondary-stage .run-panel {
@@ -801,6 +806,10 @@ body {
   margin-top: 18px;
 }
 
+.hub-readiness-grid-single {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .hub-kpi-list {
   display: grid;
   gap: 14px;
@@ -831,7 +840,7 @@ body {
   display: grid;
   gap: 14px;
   margin-top: 18px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .hub-step-button {
@@ -841,14 +850,6 @@ body {
   border-radius: 18px;
   color: inherit;
   text-align: left;
-  cursor: pointer;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
-}
-
-.hub-step-button:hover {
-  transform: translateY(-1px);
-  border-color: rgba(125, 211, 252, 0.24);
-  background: rgba(15, 23, 42, 0.92);
 }
 
 .hub-step-button strong {
