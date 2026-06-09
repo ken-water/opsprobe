@@ -28,7 +28,7 @@ ui_actions=(
   "Start PostgreSQL"
   "Stop PostgreSQL"
   "Save Current Asset"
-  "Preview Inspection Results"
+  "Run Preview Inspection"
   "Run Through Local Service"
   "Export Local Config"
   "Import Local Config"
@@ -93,7 +93,7 @@ const uiActions = [
   "Start PostgreSQL",
   "Stop PostgreSQL",
   "Save Current Asset",
-  "Preview Inspection Results",
+  "Run Preview Inspection",
   "Run Through Local Service",
   "Export Local Config",
   "Import Local Config",
