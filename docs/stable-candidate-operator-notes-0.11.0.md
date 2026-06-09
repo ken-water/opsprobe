@@ -164,7 +164,7 @@ It is not the final `1.0.0` operator sign-off. Its purpose is to turn the curren
 List anything that still blocks a credible stable release:
 
 - Blocker 1: current evidence is still mostly repository-driven and headless; a real packaged desktop-oriented human acceptance pass is still not captured strongly enough for `0.11.0`
-- Blocker 2: current-version Windows packaged evidence records a missing `0.11.0` NSIS installer, and Wine launch validation is unavailable on this machine
+- Blocker 2: current-version Windows packaged evidence records a missing `0.11.0` NSIS installer, and Wine launch validation is unavailable on this machine; this should be deferred explicitly instead of leaving `0.11.0` open indefinitely
 
 List any limit that might be acceptable for `1.0.0` if documented honestly:
 
@@ -190,8 +190,8 @@ Reasoning:
 - Packaging evidence is also more honest because it now checks bundle structure rather than only the presence of top-level package files
 - Packaged-acceptance readiness is also more honest now because the repository distinguishes bundle availability from actual GUI-launch capability in the current environment
 - Packaged-launch evidence is stronger again because the current AppImage has now been smoke-launched successfully under headless GUI conditions instead of only being inspected on disk
-- However, the remaining evidence gap is still human packaged acceptance and Windows acceptance, not Linux bundle generation
-- The next step should stay evidence-focused and capture packaged desktop operator notes plus Windows acceptance before resuming Issue `47`
+- However, the remaining in-scope `0.11.0` evidence gap should now be treated as human Linux packaged acceptance, not Windows acceptance
+- The next step should stay evidence-focused: capture the packaged Linux operator note, then close `0.11.0` with an explicit Windows defer instead of silently rolling the next platform milestone into this version
 
 ## Related Evidence
 

@@ -12,6 +12,13 @@ The stable-candidate review now distinguishes between:
 - evidence that is still pending manual acceptance or Windows-specific validation
 - evidence that should move to the next issue once the current Linux proof is complete
 
+`0.11.0` should now be treated as the Linux-first stable-candidate evidence line.
+
+That means:
+
+- the remaining in-scope closure item is one real operator-driven Linux packaged acceptance pass
+- Windows acceptance should stay explicit, but it should no longer keep `0.11.0` open once the Linux packaged note is captured and the defer is written honestly
+
 ## What Is Already Aligned To `0.11.0`
 
 - Desktop stable-candidate validation now records `0.11.0` in `.opsprobe-validation/desktop-stable-candidate.json`
@@ -72,6 +79,7 @@ Meaning:
 - Windows packaged acceptance still requires either:
   - a Linux machine that can generate the current NSIS installer successfully, or
   - a Windows-capable machine for direct installer validation
+- that Windows acceptance work should be deferred explicitly instead of silently stretching `0.11.0`
 
 ## What Changed In The Repo
 
@@ -87,16 +95,14 @@ Meaning:
 
 1. Capture one real operator-driven packaged Linux acceptance pass against the current `0.11.0` AppImage or `.deb`.
    - record it in [issue-54-linux-packaged-acceptance-0.11.0.md](./issue-54-linux-packaged-acceptance-0.11.0.md)
-2. Re-run Windows packaged validation after the current-version NSIS installer exists:
-   - `npm run desktop:validate-windows-record`
-   - `npm run desktop:validate-windows-wine-record`
-3. Move the current Windows installer to a Windows-capable environment for real launch or install acceptance evidence.
-4. Decide whether Windows packaged acceptance closes inside `0.11.0` or moves cleanly to `0.11.1`.
+2. Once that Linux note exists, close `0.11.0` with an explicit statement that Windows installer acceptance is deferred.
+3. Keep the current Windows validation records as honest blocker evidence, not as a hidden requirement to keep `0.11.0` open.
+4. Resume Windows installer acceptance only after `0.11.0` is released and the repo intentionally moves to the next minor line.
 
 ## Copy-Paste Summary For Issue 54
 
 Current `0.11.0` stable-candidate work is no longer blocked by stale version evidence or Linux packaging-network failures. Desktop stable-candidate records, packaged validation records, packaged preflight, packaged launch smoke, and operator walkthrough now all align to `0.11.0`, and Linux packaging succeeds through the new vendor-first desktop build flow.
 
-The current machine now produces `0.11.0` `.deb`, `.rpm`, and `.AppImage` artifacts, and the packaged AppImage smoke launch passes under `xvfb-run`. The remaining gap is no longer Linux artifact generation; it is a real operator-driven packaged acceptance pass plus current-version Windows installer acceptance evidence. Windows still needs either a current NSIS installer build path or a Windows-capable environment for direct validation.
+The current machine now produces `0.11.0` `.deb`, `.rpm`, and `.AppImage` artifacts, and the packaged AppImage smoke launch passes under `xvfb-run`. The remaining in-scope `0.11.0` gap is no longer Linux artifact generation; it is one real operator-driven Linux packaged acceptance pass. Windows still needs either a current NSIS installer build path or a Windows-capable environment for direct validation, but that work should be deferred explicitly instead of silently extending `0.11.0`.
 
-Next step: capture packaged Linux operator acceptance, then continue Windows installer acceptance evidence on a Windows-capable environment or split that work explicitly to `0.11.1`.
+Next step: capture packaged Linux operator acceptance, close `0.11.0` with an honest Windows defer note, and only then decide whether a later minor should take ownership of Windows installer acceptance.

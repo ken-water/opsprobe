@@ -60,7 +60,7 @@ This file is the bridge between raw validation evidence and the actual stable-re
 - Unit coverage summary: current smoke run passed 47 unit tests
 - Integration coverage summary: current smoke run passed 9 integration tests
 - Smoke coverage summary: `0.11.0` smoke-release script passed for the active development line before evidence review resumed
-- Manual validation summary: clean-profile validation passed; desktop stable-candidate evidence refreshed; Linux packaged bundle, preflight, launch-smoke, and operator-walkthrough evidence now refresh successfully for `0.11.0`; Windows validation records refreshed; Windows installer acceptance still remains open
+- Manual validation summary: clean-profile validation passed; desktop stable-candidate evidence refreshed; Linux packaged bundle, preflight, launch-smoke, and operator-walkthrough evidence now refresh successfully for `0.11.0`; Windows validation records refreshed; Windows installer acceptance still remains open but should be treated as a deferred next-minor item rather than an implicit requirement to keep `0.11.0` open
 - Thin areas still remaining: real operator-driven packaged Linux acceptance depth, current-version Windows installer generation and acceptance, and broader stable-release human walkthrough evidence
 - The dedicated `0.11.0` Linux packaged acceptance note now exists, so the remaining gap is no longer "how to record it" but only performing and attaching that real operator pass
 
@@ -78,7 +78,7 @@ This file is the bridge between raw validation evidence and the actual stable-re
 ## Blocking Reasons
 
 - Blocker 1: current-version `0.11.0` Linux packaged evidence is still mostly scripted and headless; a real operator-driven packaged acceptance pass should still be captured
-- Blocker 2: current-version `0.11.0` Windows packaged evidence is incomplete because the NSIS installer is missing and Wine is not installed on this machine
+- Blocker 2: current-version Windows packaged evidence is incomplete because the NSIS installer is missing and Wine is not installed on this machine; this should be recorded as an explicit defer item rather than silently expanding `0.11.0`
 
 ## Decision
 
@@ -92,8 +92,8 @@ Reasoning:
 - `0.11.0` no longer depends on stale `0.10.3` desktop stable-candidate evidence; the current build and Tauri-shell validation record is aligned to the active version
 - clean-profile bootstrap, restart guidance, backup scope, and migration understanding are strong enough to continue the stable-candidate review with concrete operator-facing material
 - Linux packaged proof is now materially stronger because vendor-first `desktop:build`, bundle validation, packaged preflight, packaged launch smoke, and operator walkthrough all align to `0.11.0`
-- the remaining blockers are now narrower and more honest: human packaged acceptance depth and Windows acceptance remain incomplete, rather than the Linux packaging path being undefined
-- the next useful step is to capture real packaged operator acceptance on Linux and then continue Windows acceptance evidence on a Windows-capable environment
+- the remaining blockers are now narrower and more honest: human packaged acceptance depth remains in scope for `0.11.0`, while Windows acceptance should be deferred explicitly instead of silently keeping this version open
+- the next useful step is to capture real packaged operator acceptance on Linux, then close `0.11.0` with a written Windows defer note
 
 ## Evidence Links
 
