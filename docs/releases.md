@@ -352,6 +352,8 @@ Planned checkpoints:
 - `0.10.2`: recovery and upgrade continuity evidence for crash, first-run repair, and upgrade-sensitive flows
 - `0.10.3`: local runtime supervision hardening and honest operator guidance for restart and machine replacement
 - `0.10.4`: post-install readiness summary, grouped repair packs, and stronger desktop UI gates for first-run recovery clarity
+- `0.10.5`: desktop workflow simplification, clearer operator entry points, and stricter development-version discipline after release
+- `0.10.6`: follow-up polish for the simplified desktop flow, including denser action hierarchy, reduced secondary clutter, and stronger packaged-release validation if needed
 
 Related issues:
 
@@ -359,6 +361,18 @@ Related issues:
 - Issue 51
 - Issue 52
 - Issue 53
+
+Current release split after `0.10.4`:
+
+- `0.10.5` scope
+  - simplify desktop navigation to `Home`, `Inspect`, `Results`, and `System`
+  - reduce inspection workflow sprawl into a clearer target, preview, and automation path
+  - remove version ambiguity by separating the current development version from the latest published release tag
+  - strengthen repository gates so new work cannot continue indefinitely under an already released version number
+- `0.10.6` deferred scope
+  - further compress the `Inspect` page so the primary inspection action dominates and secondary controls recede
+  - continue UI consistency work across spacing, table density, visual hierarchy, and operator feedback timing
+  - decide whether packaged desktop validation for the simplified flow needs another bounded patch release before resuming the `1.0.0` decision
 
 ## Stable Milestone
 

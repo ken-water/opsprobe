@@ -4,8 +4,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
-## [0.10.4] - 2026-06-08
-
 ## [0.10.5] - Unreleased
 
 ### Added
@@ -23,6 +21,8 @@ The format is based on Keep a Changelog and the project follows semantic version
 
 - `0.10.5` is a development line, not a published release yet
 - A tag and GitHub release should only be created after release readiness validation and release notes are finalized
+
+## [0.10.4] - 2026-06-08
 
 ### Added
 
