@@ -1693,6 +1693,58 @@ body {
   margin-top: 18px;
 }
 
+.runner-step-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.runner-step-pill {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+  border: 1px solid var(--ops-border-subtle);
+  border-radius: 18px;
+  background: rgba(10, 18, 30, 0.56);
+}
+
+.runner-step-pill-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.12);
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.runner-step-pill strong {
+  display: block;
+  color: var(--ops-text-strong);
+}
+
+.runner-step-pill span:last-child {
+  color: var(--ops-text-muted);
+  line-height: 1.5;
+}
+
+.runner-step-pill-active {
+  border-color: rgba(125, 211, 252, 0.28);
+  background: var(--ops-bg-selected);
+  box-shadow: var(--ops-shadow-soft);
+}
+
+.runner-step-pill-done {
+  border-color: rgba(74, 222, 128, 0.2);
+  background: linear-gradient(180deg, rgba(12, 30, 25, 0.72), rgba(10, 24, 20, 0.58));
+}
+
 .runner-mission-panel {
   display: flex;
   justify-content: space-between;
@@ -1783,7 +1835,7 @@ body {
 
 .runner-focus-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  grid-template-columns: 1fr;
   gap: 18px;
 }
 
@@ -1795,10 +1847,29 @@ body {
   box-shadow: var(--ops-shadow-soft);
 }
 
-.runner-side-card {
+.runner-primary-card,
+.runner-action-card {
   display: grid;
-  align-content: start;
   gap: 16px;
+}
+
+.runner-action-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.runner-action-summary span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--ops-border-subtle);
+  border-radius: 999px;
+  background: rgba(10, 18, 30, 0.66);
+  color: var(--ops-text-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .wizard-progress-grid {
@@ -2450,6 +2521,7 @@ button.data-table-row {
 }
 
 @media (max-width: 1180px) {
+  .runner-step-strip,
   .hub-next-strip,
   .hub-hero,
   .dashboard-hero,
@@ -2478,6 +2550,7 @@ button.data-table-row {
 }
 
 @media (max-width: 860px) {
+  .runner-step-strip,
   .hub-next-strip,
   .hub-grid,
   .runner-focus-grid,

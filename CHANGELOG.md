@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.4] - 2026-06-10
+
+### Changed
+
+- restructured the `Inspect` workspace into a more linear flow with a visible 3-step strip, one target card, one verify-and-preview card, and the result card below them
+- removed the old side-by-side inspect layout so operators no longer need to scan left and right to understand what should happen next
+- added compact step and scope summary pills in the inspect flow so the current connection, template, and next action stay visible without extra explanation blocks
+
+### Fixed
+
+- aligned desktop unit coverage with the updated inspect result heading and step wording
+- moved repository and desktop package versions to `0.11.4` before continuing inspect UX work so the patch history stays contiguous
+
 ## [0.11.3] - 2026-06-10
 
 ### Changed
@@ -625,7 +638,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.11.3] - Unreleased
+## [0.11.4] - Unreleased
 
 ### Planned
 

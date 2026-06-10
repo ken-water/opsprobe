@@ -99,6 +99,7 @@ export function RunnerWorkspace({
       : !hasPreviewResult
         ? "Step 3 of 3"
         : "Complete";
+  const currentStepNumber = !connectionReady ? "1" : !connectionVerified ? "2" : !hasPreviewResult ? "3" : "done";
   const handlePrimaryAction = () => {
     if (!connectionReady) {
       return;
@@ -167,9 +168,33 @@ export function RunnerWorkspace({
         </div>
       </section>
 
+      <section className="runner-step-strip" aria-label="Inspection steps">
+        <article className={`runner-step-pill ${!connectionReady ? "runner-step-pill-active" : "runner-step-pill-done"}`}>
+          <span className="runner-step-pill-index">1</span>
+          <div>
+            <strong>Set target</strong>
+            <span>{connectionReady ? "Required fields are ready." : "Host, username, and secret come first."}</span>
+          </div>
+        </article>
+        <article className={`runner-step-pill ${connectionReady && !connectionVerified ? "runner-step-pill-active" : connectionVerified ? "runner-step-pill-done" : ""}`}>
+          <span className="runner-step-pill-index">2</span>
+          <div>
+            <strong>Verify SSH</strong>
+            <span>{connectionVerified ? "This machine can reach the target." : "Do not run preview before SSH works."}</span>
+          </div>
+        </article>
+        <article className={`runner-step-pill ${connectionVerified && !hasPreviewResult ? "runner-step-pill-active" : hasPreviewResult ? "runner-step-pill-done" : ""}`}>
+          <span className="runner-step-pill-index">3</span>
+          <div>
+            <strong>Read preview</strong>
+            <span>{hasPreviewResult ? "A first result is ready below." : "Run one preview and judge the result quality."}</span>
+          </div>
+        </article>
+      </section>
+
       <div className="workflow-stack">
         <section className="runner-focus-grid">
-          <div className="workflow-step-card">
+          <div className="workflow-step-card runner-primary-card">
             <div className="workflow-step-header">
               <div>
                 <span className="workflow-step-index">1</span>
@@ -343,13 +368,13 @@ export function RunnerWorkspace({
             ) : null}
           </div>
 
-          <div className="workflow-step-card runner-side-card">
+          <div className="workflow-step-card runner-action-card">
             <div className="workflow-step-header">
               <div>
                 <span className="workflow-step-index">2</span>
-                <strong>Verify and preview</strong>
+                <strong>Verify SSH, then run preview</strong>
               </div>
-              <span className="badge badge-unknown">{activeChecksCount} checks</span>
+              <span className="badge badge-unknown">step {currentStepNumber}</span>
             </div>
 
             <div className="runner-checklist" aria-label="First inspection checklist">
@@ -365,6 +390,12 @@ export function RunnerWorkspace({
                 <strong>3. Preview result ready</strong>
                 <span>{hasPreviewResult ? "The first preview result is available below." : "Run one preview and verify the findings are readable."}</span>
               </div>
+            </div>
+
+            <div className="runner-action-summary">
+              <span>{connectionSummary}</span>
+              <span>{activeTemplate.name}</span>
+              <span>{activeChecksCount} checks</span>
             </div>
 
             <section className="form-section">
@@ -421,7 +452,7 @@ export function RunnerWorkspace({
           <div className="workflow-step-header">
             <div>
               <span className="workflow-step-index">3</span>
-              <strong>Read the preview result</strong>
+              <strong>Read the result first</strong>
             </div>
             <span className="badge badge-unknown">{inspectionRun ? "available" : "waiting"}</span>
           </div>

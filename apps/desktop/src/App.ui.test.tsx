@@ -156,7 +156,7 @@ describe("desktop app shell", () => {
     expect(screen.getByText("Current Task")).toBeTruthy();
     expect(screen.getByText("Test SSH now")).toBeTruthy();
     expect(screen.getByText("Set the target")).toBeTruthy();
-    expect(screen.getByText("Read the preview result")).toBeTruthy();
+    expect(screen.getByText("Read the result first")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run Preview Inspection" }).hasAttribute("disabled")).toBe(true);
     expect(screen.queryByText("Save For Reuse")).toBeNull();
     expect(screen.queryByText("Schedules")).toBeNull();
