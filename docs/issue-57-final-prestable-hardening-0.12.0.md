@@ -30,6 +30,7 @@ Current execution records:
 - [Issue 57 Windows Installer Acceptance 0.12.1](./issue-57-windows-installer-acceptance-0.12.1.md)
 - [Issue 57 Progress 0.12.2](./issue-57-progress-0.12.2.md)
 - [Issue 57 Progress 0.12.3](./issue-57-progress-0.12.3.md)
+- [Issue 57 Progress 0.12.4](./issue-57-progress-0.12.4.md)
 
 ## Non-Goals
 

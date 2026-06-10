@@ -817,3 +817,10 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Tauri desktop application bootstrap for the open source edition
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
+
+## [0.12.4] - Unreleased
+
+### Changed
+
+- narrowed the current packaged-build blocker to a single vendored Cargo mismatch on `linux-raw-sys 0.12.2`
+- recorded that both Linux packaged build and Windows installer evidence remain blocked until `.opsprobe-vendor` is refreshed from a machine or network path that can obtain the missing crate
