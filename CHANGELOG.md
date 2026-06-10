@@ -830,3 +830,9 @@ The format is based on Keep a Changelog and the project follows semantic version
 
 - taught the desktop Linux bundle helper to export `APPIMAGE_EXTRACT_AND_RUN=1` when Tauri's cached `linuxdeploy` AppImage is present, which avoids the local `libfuse.so.2` runtime blocker on this machine
 - aligned the generated desktop Cargo lock entry for `opsprobe-desktop` to the active `0.12.6` release version so release gating and packaged evidence stay on one current version
+
+## [0.12.7] - Unreleased
+
+### Planned
+
+- continue the active development checkpoint line
