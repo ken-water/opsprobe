@@ -140,7 +140,10 @@ Issue 47 should capture:
 - the accepted limits
 - the follow-up issues created if `1.0.0` is deferred
 
-When `0.11.2` actually becomes the active development line, use these drafts:
+Current closeout references:
 
+- [Issue 56 Stable Decision Blockers 0.11.15](./issue-56-stable-decision-blockers-0.11.15.md)
+- [Issue 56 Progress 0.11.15](./issue-56-progress-0.11.15.md)
 - [Draft Issue 56 Stable Decision Runbook](./draft-issue-56-stable-decision-runbook.md)
-- [Draft Issue 56 Stable Decision Blockers 0.11.2](./draft-issue-56-stable-decision-blockers-0.11.2.md)
+
+`0.11.16` should use the current blocker table above rather than restarting from the older `0.11.2` draft wording.

@@ -6,18 +6,22 @@ This file is the bridge between raw validation evidence and the actual stable-re
 
 ## Candidate
 
-- Version under review: `0.11.0`
-- Review date: `2026-06-09`
+- Version under review: `0.11.15`
+- Review date: `2026-06-10`
 - Reviewer: Codex-assisted repository review
-- Related issue: Issue `54`
+- Related issues:
+  - Issue `47`
+  - Issue `54`
+  - Issue `55`
+  - Issue `56`
 
 ## 1. Release Discipline
 
-- Checkpoint gate status: current `main` development line is clean and pushed after the `0.10.8` release and `0.11.0` version bump
-- Version gate status: `0.11.0` planning line exists and is now the active development version after `0.10.8`
-- Release-readiness status: not applicable yet for `1.0.0`; `0.11.0` is an evidence line, not a release-candidate tag
-- Release notes draft reviewed: `0.11.0` is still represented by the operator-notes and issue draft path rather than a release-notes file
-- Milestone scope reviewed: yes, against Issue `54` and the current `0.11.x` roadmap line
+- Checkpoint gate status: current `main` development line is clean and pushed after the `0.11.14` release and `0.11.15` version bump
+- Version gate status: `0.11.15` is part of the documented `0.11.x` closeout exception through `0.11.16`
+- Release-readiness status: still not applicable yet for `1.0.0`; the repository is in the final decision-prep line, not a release-candidate tag
+- Release notes draft reviewed: `v1.0.0` release notes still do not exist and should not be fabricated before the final proceed-or-defer decision
+- Milestone scope reviewed: yes, against Issues `47`, `54`, `55`, and `56`
 
 ## 2. Install And Bootstrap Credibility
 
@@ -30,14 +34,14 @@ This file is the bridge between raw validation evidence and the actual stable-re
 ## 3. Primary Workflow Reliability
 
 - Asset save/edit path credible: yes, through clean-profile CLI validation and desktop workflow boundary checks
-- SSH setup credible: partially; SSH path and key-based flow exist, but current `0.11.0` evidence is still more repository-driven than packaged-desktop-driven
+- SSH setup credible: partially; credible enough to classify as an accepted operator-driven limit if stable proceeds, but still not packaged-desktop-proven
 - Inspection preview/run path credible: yes for current local-service validation; still thin for packaged desktop operator proof
-- Report export path credible: partially; export surfaces exist and are checked, but current `0.11.0` evidence is stronger for config export than for packaged desktop report acceptance
+- Report export path credible: partially; export surfaces exist and are checked, but packaged human acceptance depth remains unresolved
 - Failure guidance actionable: yes, especially around local runtime, PostgreSQL bootstrap, and recovery actions
 
 ## 4. Upgrade And Migration Trust
 
-- Latest supported upgrade path reviewed: partially, based on prior `0.10.x` hardening evidence rather than a fresh `0.11.0` upgrade rehearsal
+- Latest supported upgrade path reviewed: partially, based on prior `0.10.x` hardening evidence rather than a fresh current-version upgrade rehearsal
 - Migration behavior documented honestly: yes, including source-machine provenance and post-import operator steps
 - Credential rebind expectations documented: yes, including verification-before-resume expectations from prior hardening work
 - Rollback or recovery expectations documented: partially; recovery guidance is documented, but full upgrade rollback remains manual and thinly validated
@@ -46,28 +50,28 @@ This file is the bridge between raw validation evidence and the actual stable-re
 
 - Crash recovery evidence: present from prior `0.10.2` hardening line and still applicable
 - First-run repair evidence: present through runtime status and recovery-action guidance, but still not packaged-desktop acceptance-grade
-- Upgrade continuity evidence: partially present from `0.10.2` and `0.10.3`; not yet expanded further in `0.11.0`
-- Runtime supervision limits accepted or rejected: not finally accepted yet; currently still an acceptable-limit candidate pending stable decision
+- Upgrade continuity evidence: partially present from `0.10.2` and `0.10.3`; still thin as a stable sign-off input
+- Runtime supervision limits accepted or rejected: now classified as an accepted-limit candidate if stable proceeds
 
 ## 6. Data Boundary
 
-- Active state boundary acceptable: provisionally yes for review, based on `0.10.x` hardening outcomes
+- Active state boundary acceptable: provisionally yes, based on `0.10.x` hardening outcomes and current backup/machine-move documentation
 - Backup and restore expectations acceptable: yes at the current documented scope
 - Machine replacement workflow acceptable: provisionally yes, with explicit credential rebind and schedule trust caveats
 
 ## 7. Coverage Review
 
-- Unit coverage summary: current smoke run passed 47 unit tests
-- Integration coverage summary: current smoke run passed 9 integration tests
-- Smoke coverage summary: `0.11.0` smoke-release script passed for the active development line before evidence review resumed
-- Manual validation summary: clean-profile validation passed; desktop stable-candidate evidence refreshed; Linux packaged bundle, preflight, launch-smoke, and operator-walkthrough evidence now refresh successfully for `0.11.0`; Windows validation records refreshed; Windows installer acceptance still remains open but should be treated as a deferred next-minor item rather than an implicit requirement to keep `0.11.0` open
-- Current machine packaged note status: preconditions and headless launch evidence are captured for `0.11.0`, but the machine is still `tty` without an active `DISPLAY`, so one real operator-facing Linux desktop pass is still outstanding
+- Unit coverage summary: current desktop UI and browser UI validation have continued to pass on the active closeout line
+- Integration coverage summary: current desktop browser validation still covers the main operator workflow, export actions, and responsiveness expectations
+- Smoke coverage summary: the stable-candidate evidence line has repeatable clean-profile, bundle, preflight, launch-smoke, and desktop walkthrough scripts, but not a full stable release rehearsal
+- Manual validation summary: clean-profile validation and repository-driven desktop evidence are strong enough to classify several limits, but they do not replace real operator-facing packaged acceptance on Linux or Windows
+- Current machine packaged note status: preconditions and headless launch evidence are captured, but the machine is still `tty` without an active `DISPLAY`, so one real operator-facing Linux desktop pass is still outstanding
 - Thin areas still remaining: real operator-driven packaged Linux acceptance depth, current-version Windows installer generation and acceptance, and broader stable-release human walkthrough evidence
-- The dedicated `0.11.0` Linux packaged acceptance note now exists, so the remaining gap is no longer "how to record it" but only performing and attaching that real operator pass
+- The dedicated Linux and Windows acceptance note templates now exist, so the remaining gap is no longer how to record the proof but whether the proof itself is present
 
 ## 8. Honest Product Boundary
 
-- README and docs reflect actual scope: yes, after the `0.10.8` release and `0.11.0` development-line reset
+- README and docs reflect actual scope: yes, after the `0.11.x` closeout-line clarification and current community-edition wording
 - Unsupported areas visible before reliance: yes, especially for Windows acceptance and future multilingual / website work
 - Post-stable roadmap not implied as already shipped: yes
 
@@ -75,29 +79,33 @@ This file is the bridge between raw validation evidence and the actual stable-re
 
 - Limit 1: runtime supervision can remain process-based and best-effort if release notes and operator docs state that limit clearly
 - Limit 2: credential rebind and SSH verification can remain operator-driven if recurring schedules stay blocked until verification succeeds
+- Limit 3: upgrade and migration trust can remain partially manual if rollback expectations and post-import operator steps stay explicit
+- Limit 4: HTML/PDF export can be considered stable enough only if release notes avoid overstating packaged-desktop human proof
 
 ## Blocking Reasons
 
-- Blocker 1: current-version `0.11.0` Linux packaged evidence is still mostly scripted and headless; a real operator-driven packaged acceptance pass should still be captured
-- Blocker 2: current-version Windows packaged evidence is incomplete because the NSIS installer is missing and Wine is not installed on this machine; this should be recorded as an explicit defer item rather than silently expanding `0.11.0`
+- Blocker 1: Linux packaged evidence is still mostly scripted and headless; a real operator-driven packaged acceptance pass is still missing
+- Blocker 2: current-version Windows packaged evidence is incomplete because installer acceptance is still not captured on a Windows-capable environment
+- Blocker 3: because those packaged gaps remain open, overall stable-release coverage still looks too thin for a confident `1.0.0` claim
 
 ## Decision
 
-Choose one:
+Current state:
 
-- Continue another pre-stable issue
-- Prepare `1.0.0` release candidate
+- final recommendation not issued yet
+- provisional reading: if no stronger packaged acceptance evidence arrives before `0.11.16`, defer `1.0.0`
 
 Reasoning:
 
-- `0.11.0` no longer depends on stale `0.10.3` desktop stable-candidate evidence; the current build and Tauri-shell validation record is aligned to the active version
-- clean-profile bootstrap, restart guidance, backup scope, and migration understanding are strong enough to continue the stable-candidate review with concrete operator-facing material
-- Linux packaged proof is now materially stronger because vendor-first `desktop:build`, bundle validation, packaged preflight, packaged launch smoke, and operator walkthrough all align to `0.11.0`
-- the remaining blockers are now narrower and more honest: human packaged acceptance depth remains in scope for `0.11.0`, while Windows acceptance should be deferred explicitly instead of silently keeping this version open
-- the next useful step is to capture real packaged operator acceptance on Linux, then close `0.11.0` with a written Windows defer note
+- the stable-candidate evidence line is materially stronger than it was before the later `0.11.x` closeout checkpoints
+- several remaining limits are now explicit enough to classify as accepted rather than vague blockers
+- however, Linux packaged human acceptance and Windows installer acceptance still remain the clearest unresolved blockers
+- `0.11.15` should therefore stop at blocker classification and leave the final proceed-or-defer recommendation to `0.11.16`
 
 ## Evidence Links
 
 - [Stable Candidate Operator Notes 0.11.0 Draft](./stable-candidate-operator-notes-0.11.0.md)
 - [Clean User Profile Validation](./clean-user-profile-validation.md)
 - [Stable Release Readiness](./stable-readiness.md)
+- [Issue 56 Stable Decision Blockers 0.11.15](./issue-56-stable-decision-blockers-0.11.15.md)
+- [Issue 56 Progress 0.11.15](./issue-56-progress-0.11.15.md)

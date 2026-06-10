@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.15] - 2026-06-10
+
+### Changed
+
+- converted the remaining `1.0.0` blockers into an explicit current-version classification table instead of leaving the stable decision spread across older `0.11.0` and `0.11.2` drafts
+- split current pre-stable concerns into accepted limits versus still-blocking gaps so `Issue 47` can be updated from one source of truth
+- refreshed the stable review record and readiness references to use the current `0.11.15` closeout context rather than the earlier evidence-only wording
+
+### Fixed
+
+- added dedicated `0.11.15` support documents for blocker review so the final `0.11.16` recommendation no longer has to infer status from outdated draft files
+- moved repository and desktop package versions to `0.11.15` before continuing the stable-decision closeout line
+
 ## [0.11.14] - 2026-06-10
 
 ### Changed
