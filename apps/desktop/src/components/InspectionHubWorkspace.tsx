@@ -59,6 +59,7 @@ export function InspectionHubWorkspace({
     : needsSystemRepair
       ? "OpsProbe found blocking local problems. Open System, repair the runtime, then come back here."
       : "The runtime looks healthy. Enter one target, test SSH, and get one preview result before worrying about reuse, schedules, or exports.";
+  const primaryStepLabel = readyForInspection ? "Open Inspect" : needsSystemRepair ? "Open System" : "Open Inspect";
 
   return (
     <>
@@ -94,25 +95,12 @@ export function InspectionHubWorkspace({
             ) : null}
           </div>
         </div>
-
-        <div className="hub-hero-side">
-          <article className="hub-side-card">
-            <span className="status-label">What To Ignore For Now</span>
-            <strong>Do not start with reports or schedules</strong>
-            <p>Those only matter after one host is reachable, one preview is correct, and one run result is readable.</p>
-          </article>
-          <article className="hub-side-card">
-            <span className="status-label">Current Context</span>
-            <strong>{showingDemoExperience ? "Demo workspace" : "Real workspace"}</strong>
-            <p>{showingDemoExperience ? "Demo data is active for safe exploration before connecting real hosts." : `Current inspection scope: ${selectedTemplateName}.`}</p>
-          </article>
-        </div>
       </section>
 
       <section className="hub-guided-strip" aria-label="Operator path">
         <button className="guided-step-card guided-step-card-active" onClick={primaryAction} type="button">
           <span className="guided-step-index">1</span>
-          <strong>{readyForInspection ? "Open Inspect" : needsSystemRepair ? "Open System" : "Open Inspect Setup"}</strong>
+          <strong>{primaryStepLabel}</strong>
           <span>
             {readyForInspection
               ? "Go to the target, SSH, and preview workflow."
@@ -165,15 +153,18 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Empty Or Active"
-            title="Is this workspace still new?"
-            subtitle="If saved targets and results are still empty, stay focused on the first working path."
+            eyebrow="Workspace"
+            title="Current workspace"
+            subtitle="Keep this as orientation only. It should not distract from the first inspection path."
           />
           <div className="hub-kpi-list">
             <div><span>Saved assets</span><strong>{assetCount}</strong></div>
             <div><span>Run history</span><strong>{historyCount}</strong></div>
             <div><span>Schedules</span><strong>{scheduleCount}</strong></div>
           </div>
+          <p className="helper-text">
+            {showingDemoExperience ? "Demo data is active for safe exploration." : `Current inspection scope: ${selectedTemplateName}.`}
+          </p>
         </article>
 
         <article className="hub-card">

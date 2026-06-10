@@ -1432,8 +1432,6 @@ function App() {
       step: "04",
     },
   ];
-  const activeWorkspaceMeta =
-    workspaceSections.find((section) => section.id === activeWorkspace) ?? workspaceSections[0];
   const runtimeStatus = serviceResponse?.snapshot.status ?? "unknown";
   const runtimeSummary =
     runtimeStatus === "ready"
@@ -1450,6 +1448,30 @@ function App() {
   const sidebarStatusLabel =
     showingDemoExperience ? "Demo dataset loaded" : hasRealData ? "Live workspace active" : "Awaiting first saved asset";
   const latestVisibleRun = selectedHistoryRun ?? visibleHistoryRuns[0] ?? serviceExecutionRun ?? serviceInspectionRun ?? null;
+  const topbarTitle =
+    activeWorkspace === "inspection-hub"
+      ? "Start"
+      : activeWorkspace === "assets-strategy"
+        ? activeInspectSection === "run"
+          ? "Inspect"
+          : activeInspectSection === "assets"
+            ? "Save Target"
+            : "Automation"
+        : activeWorkspace === "inspection-results"
+          ? "Reports"
+          : "System";
+  const topbarDetail =
+    activeWorkspace === "inspection-hub"
+      ? "Start with one real inspection."
+      : activeWorkspace === "assets-strategy"
+        ? activeInspectSection === "run"
+          ? "Enter one target, test SSH, and run one preview."
+          : activeInspectSection === "assets"
+            ? "Save working targets for reuse and migration."
+            : "Set schedules only after the first inspection works."
+        : activeWorkspace === "inspection-results"
+          ? "Review findings and export a report."
+          : "Fix only what blocks the first inspection.";
 
   useEffect(() => {
     if (pendingWorkspace === null || pendingWorkspace !== activeWorkspace) {
@@ -1477,29 +1499,25 @@ function App() {
           </div>
           <p className="sidebar-kicker">OpsProbe</p>
           <h1>Ops Console</h1>
-          <p className="sidebar-copy">Start at the top. Make one real inspection work before touching schedules, exports, or migration.</p>
         </div>
 
         <nav className="sidebar-nav" aria-label="Primary">
-          <div className="sidebar-group">
-            <p className="sidebar-group-title">Main Flow</p>
-            <div className="sidebar-group-links">
-              {workspaceSections.map((section) => (
-                <button
-                  key={section.id}
-                  className={`sidebar-link ${activeWorkspace === section.id ? "sidebar-link-active" : ""} ${pendingWorkspace === section.id ? "sidebar-link-pending" : ""}`}
-                  onClick={() => handleWorkspaceChange(section.id)}
-                  type="button"
-                  aria-busy={pendingWorkspace === section.id}
-                >
-                  <span className="sidebar-link-main">
-                    <span className="sidebar-link-step">{section.step}</span>
-                    <span className="sidebar-link-label">{section.label}</span>
-                  </span>
-                  {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
-                </button>
-              ))}
-            </div>
+          <div className="sidebar-group-links">
+            {workspaceSections.map((section) => (
+              <button
+                key={section.id}
+                className={`sidebar-link ${activeWorkspace === section.id ? "sidebar-link-active" : ""} ${pendingWorkspace === section.id ? "sidebar-link-pending" : ""}`}
+                onClick={() => handleWorkspaceChange(section.id)}
+                type="button"
+                aria-busy={pendingWorkspace === section.id}
+              >
+                <span className="sidebar-link-main">
+                  <span className="sidebar-link-step">{section.step}</span>
+                  <span className="sidebar-link-label">{section.label}</span>
+                </span>
+                {pendingWorkspace === section.id ? <span className="sidebar-link-pulse" aria-hidden="true" /> : null}
+              </button>
+            ))}
           </div>
         </nav>
 
@@ -1519,16 +1537,16 @@ function App() {
 
       <div className="app-main">
         <header className="app-topbar">
-          <div>
-            <p className="eyebrow">OpsProbe</p>
-            <h2>{activeWorkspaceMeta.title}</h2>
+          <div className="topbar-title-block">
+            <h2>{topbarTitle}</h2>
+            <p>{topbarDetail}</p>
           </div>
           <div className="topbar-metrics">
-            <span className={`topbar-chip ${isBootstrappingWorkspace ? "topbar-chip-loading" : ""}`}>
-              {isBootstrappingWorkspace ? "Loading workspace..." : runtimeSummary}
-            </span>
             <span className={`topbar-chip ${blockingChecks.length > 0 ? "topbar-chip-warning" : "topbar-chip-ok"}`}>
               {blockingChecks.length > 0 ? `${blockingChecks.length} blocking issues` : "Ready to continue"}
+            </span>
+            <span className={`topbar-chip ${isBootstrappingWorkspace ? "topbar-chip-loading" : ""}`}>
+              {isBootstrappingWorkspace ? "Loading workspace..." : runtimeStatus}
             </span>
           </div>
         </header>
@@ -1568,11 +1586,7 @@ function App() {
             <>
               <section className="inspect-shell">
                 <div className="inspect-stage-intro">
-                  <p className="eyebrow">Inspect Flow</p>
-                  <h3>Finish one inspection before anything else</h3>
-                  <p className="section-subtitle">
-                    Enter one target, test SSH, run one preview, and read the result. Save for reuse and automation only after that path works.
-                  </p>
+                  <h3>Run the first inspection</h3>
                 </div>
                 <div className="inspect-mode-switch inspect-mode-switch-secondary" aria-label="After the first inspection">
                   <button
@@ -1580,33 +1594,24 @@ function App() {
                     onClick={() => handleInspectSectionChange("run")}
                     type="button"
                   >
-                    <span className="inspect-mode-step">Now</span>
-                    <span>
-                      <strong>First inspection</strong>
-                      <small>Target, SSH, preview, result</small>
-                    </span>
+                    <span className="inspect-mode-step">1</span>
+                    <span><strong>Run now</strong></span>
                   </button>
                   <button
                     className={`inspect-mode-button ${activeInspectSection === "assets" ? "inspect-mode-button-active" : ""}`}
                     onClick={() => handleInspectSectionChange("assets")}
                     type="button"
                   >
-                    <span className="inspect-mode-step">Later</span>
-                    <span>
-                      <strong>Save for reuse</strong>
-                      <small>Reuse and move to another machine</small>
-                    </span>
+                    <span className="inspect-mode-step">2</span>
+                    <span><strong>Save target</strong></span>
                   </button>
                   <button
                     className={`inspect-mode-button ${activeInspectSection === "automation" ? "inspect-mode-button-active" : ""}`}
                     onClick={() => handleInspectSectionChange("automation")}
                     type="button"
                   >
-                    <span className="inspect-mode-step">Later</span>
-                    <span>
-                      <strong>Automation</strong>
-                      <small>Schedules and local runtime</small>
-                    </span>
+                    <span className="inspect-mode-step">3</span>
+                    <span><strong>Automate later</strong></span>
                   </button>
                 </div>
               </section>

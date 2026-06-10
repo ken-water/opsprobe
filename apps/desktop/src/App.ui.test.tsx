@@ -149,7 +149,7 @@ describe("desktop app shell", () => {
     await user.click(getNavButton(nav, "Inspect"));
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /First inspection/i })).toBeTruthy();
+      expect(screen.getByRole("button", { name: /Run now/i })).toBeTruthy();
     });
 
     expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
@@ -159,9 +159,9 @@ describe("desktop app shell", () => {
     expect(screen.getByText("Read the preview result")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run Preview Inspection" }).hasAttribute("disabled")).toBe(true);
     expect(screen.queryByText("Save For Reuse")).toBeNull();
-    expect(screen.queryByText("Automate Later")).toBeNull();
+    expect(screen.queryByText("Schedules")).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: /Save for reuse/i }));
+    await user.click(screen.getByRole("button", { name: /Save target/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Save For Reuse")).toBeTruthy();
@@ -188,7 +188,7 @@ describe("desktop app shell", () => {
     expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "History And Comparison")).toBe(true);
     expect(screen.getByText("Current Conclusion")).toBeTruthy();
     expect(screen.getByText("Result Snapshot")).toBeTruthy();
-    expect(screen.getByText("Choose how this result should be read")).toBeTruthy();
+    expect(screen.getByText("Choose the export style")).toBeTruthy();
   });
 
   it("keeps the primary operator path visible across start inspect and reports", async () => {
@@ -208,14 +208,14 @@ describe("desktop app shell", () => {
     await user.click(screen.getByRole("button", { name: "Start First Inspection" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Finish one inspection before anything else")).toBeTruthy();
+      expect(screen.getByText("Run the first inspection")).toBeTruthy();
     });
     expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /First inspection/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Run now/i })).toBeTruthy();
     expect(screen.getByText("Current Task")).toBeTruthy();
     expect(screen.getByText("Test SSH now")).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: /Automation/i }));
+    await user.click(screen.getByRole("button", { name: /Automate later/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Automate Later")).toBeTruthy();

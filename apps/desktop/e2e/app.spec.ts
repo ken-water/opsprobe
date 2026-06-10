@@ -342,7 +342,7 @@ test("switches report audience and exports the selected history run with visible
 
   await nav.getByRole("button", { name: /Reports/ }).click();
   const reportsPanel = page.locator(".reports-config-panel");
-  await expect(reportsPanel.getByText("Active report mode")).toBeVisible();
+  await expect(reportsPanel.getByText("Current mode")).toBeVisible();
   await page.getByRole("button", { name: "Use Manager Mode" }).click();
   await expect(reportsPanel.locator(".inline-note").getByText("Manager mode", { exact: true })).toBeVisible();
 
@@ -368,7 +368,7 @@ test("shows immediate runner feedback for ssh test and preview refresh", async (
   const nav = page.getByRole("navigation", { name: "Primary" });
 
   await nav.getByRole("button", { name: "Inspect" }).click();
-  await expect(page.getByText("Finish one inspection before anything else")).toBeVisible();
+  await expect(page.getByText("Run the first inspection")).toBeVisible();
 
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
   await expect(page.getByText("Workspace Update")).toBeVisible();
@@ -390,7 +390,7 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
   await expect(page.getByText("Real setup mode is active")).toBeVisible();
 
   await nav.getByRole("button", { name: "Inspect" }).click();
-  await page.getByRole("button", { name: /Save for reuse/i }).click();
+  await page.getByRole("button", { name: /Save target/i }).click();
   await page.getByRole("button", { name: "Save Current Asset" }).click();
   await expect(page.getByRole("status").getByText("Asset saved.")).toBeVisible();
   await expect(page.locator(".assets-list-panel").getByText("1 total")).toBeVisible();
@@ -403,7 +403,7 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
     page.getByRole("status").getByText(/Imported 1 assets, 2 templates, and 1 schedules from opsprobe-devbox/),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: /Automation/i }).click();
+  await page.getByRole("button", { name: /Automate later/i }).click();
   const servicePanel = page.locator(".service-runtime-panel");
   await page.getByRole("button", { name: "Start Service", exact: true }).click();
   await expect(page.getByRole("status").getByText("Local service started.")).toBeVisible();
@@ -467,10 +467,10 @@ test("keeps the main operator path visible from start to inspect to reports to s
 
   await expect(page.locator(".hub-actions").getByRole("button", { name: /Open Inspect|Start First Inspection/ })).toBeVisible();
   await page.locator(".hub-actions").getByRole("button", { name: /Open Inspect|Start First Inspection/ }).click();
-  await expect(page.getByText("Finish one inspection before anything else")).toBeVisible();
-  await expect(page.getByRole("button", { name: /First inspection/i })).toBeVisible();
+  await expect(page.getByText("Run the first inspection")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Run now/i })).toBeVisible();
 
-  await page.getByRole("button", { name: /Save for reuse/i }).click();
+  await page.getByRole("button", { name: /Save target/i }).click();
   await expect(page.getByRole("heading", { name: "Save For Reuse", level: 2 })).toBeVisible();
 
   await page.getByRole("navigation", { name: "Primary" }).getByRole("button", { name: /Reports/ }).click();

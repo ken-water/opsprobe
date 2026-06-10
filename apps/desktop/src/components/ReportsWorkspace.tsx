@@ -13,9 +13,9 @@ export function ReportsWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Report Strategy"
-        title="Choose how this result should be read"
-        subtitle="The result already appears above. Use this area to decide who the export is for, how remediation should read, and what feedback to send when the report still misses the real need."
+        eyebrow="Report Mode"
+        title="Choose the export style"
+        subtitle="Use this only after the result above is already clear."
         meta={
           <div className="summary-strip">
             <span>Audience {reportAudience}</span>
@@ -26,7 +26,7 @@ export function ReportsWorkspace({
       <div className="reports-workspace">
         <div className="reports-config-panel">
           <article className="history-side-card">
-            <h3>Active report mode</h3>
+            <h3>Current mode</h3>
             <div className="inline-note">
               <strong>{reportAudience === "operator" ? "Operator mode" : "Manager mode"}</strong>
               <span>
@@ -45,7 +45,7 @@ export function ReportsWorkspace({
                   {reportAudience === "operator" ? "selected" : "available"}
                 </span>
               </div>
-              <p>Use this when the reader needs commands, evidence, service context, and direct remediation detail.</p>
+              <p>For the person who will fix the problem.</p>
               <button
                 className="secondary-button"
                 onClick={() => setReportAudience("operator")}
@@ -62,7 +62,7 @@ export function ReportsWorkspace({
                   {reportAudience === "manager" ? "selected" : "available"}
                 </span>
               </div>
-              <p>Use this when the reader needs impact, priority, and ownership rather than low-level evidence.</p>
+              <p>For the person who needs impact and priority, not raw evidence.</p>
               <button
                 className="secondary-button"
                 onClick={() => setReportAudience("manager")}
@@ -78,7 +78,7 @@ export function ReportsWorkspace({
           </p>
 
           <article className="history-side-card">
-            <h3>How remediation should read</h3>
+            <h3>Report rule</h3>
             <div className="history-side-list">
               <article className="service-card">
                 <div className="service-card-header">
@@ -100,7 +100,7 @@ export function ReportsWorkspace({
 
         <div className="reports-side-panel">
           <div className="history-side-card">
-            <h3>Request what is still missing</h3>
+            <h3>Tell us what is missing</h3>
             <div className="history-side-list">
               <article className="service-card">
                 <div className="service-card-header">
@@ -148,26 +148,6 @@ export function ReportsWorkspace({
                 >
                   Open Workflow Friction
                 </a>
-              </article>
-            </div>
-          </div>
-
-          <div className="history-side-card">
-            <h3>What this page is for</h3>
-            <div className="history-side-list">
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>Use the result above to act</strong>
-                  <span className="badge badge-pass">now</span>
-                </div>
-                <p>Read the current conclusion, inspect priority actions, and export the selected audience format from the result section above.</p>
-              </article>
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>Use this panel to shape the report</strong>
-                  <span className="badge badge-warning">feedback</span>
-                </div>
-                <p>Switch audience mode here, then submit inspection, report, or workflow feedback when the current export still does not fit real operations.</p>
               </article>
             </div>
           </div>
