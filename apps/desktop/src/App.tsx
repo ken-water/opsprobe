@@ -1475,7 +1475,7 @@ function App() {
             <strong>{showingDemoExperience ? "Demo" : "Real"}</strong>
           </div>
           <div className="sidebar-footer-note">{sidebarStatusLabel}</div>
-          <div className="sidebar-footer-meta">v0.11.10</div>
+          <div className="sidebar-footer-meta">v0.11.12</div>
         </div>
       </aside>
 
