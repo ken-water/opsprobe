@@ -70,32 +70,42 @@ fi
 if [[ "${TARGET_INDEX}" -gt 0 ]]; then
   PREVIOUS_VERSION="${VERSION_ORDER[$((TARGET_INDEX - 1))]}"
   PREVIOUS_MILESTONE="$(get_milestone "${PREVIOUS_VERSION}")"
+  IFS='.' read -r previous_major previous_minor previous_patch <<<"${PREVIOUS_VERSION}"
+  same_minor_line="false"
 
-  if [[ -z "${PREVIOUS_MILESTONE}" ]]; then
-    echo "[fail] previous milestone ${PREVIOUS_VERSION} does not exist"
-    failures=$((failures + 1))
+  if [[ "${version_kind}" == "patch" && "${target_major}" == "${previous_major}" && "${target_minor}" == "${previous_minor}" ]]; then
+    same_minor_line="true"
+  fi
+
+  if [[ "${same_minor_line}" == "true" ]]; then
+    echo "[pass] previous version ${PREVIOUS_VERSION} is part of the same active minor line as ${TARGET_VERSION}"
   else
-    PREVIOUS_STATE="$(jq -r '.state' <<<"${PREVIOUS_MILESTONE}")"
-    if [[ "${PREVIOUS_STATE}" == "closed" ]]; then
-      echo "[pass] previous milestone ${PREVIOUS_VERSION} is closed"
+    if [[ -z "${PREVIOUS_MILESTONE}" ]]; then
+      echo "[fail] previous milestone ${PREVIOUS_VERSION} does not exist"
+      failures=$((failures + 1))
     else
-      echo "[fail] previous milestone ${PREVIOUS_VERSION} is still open"
+      PREVIOUS_STATE="$(jq -r '.state' <<<"${PREVIOUS_MILESTONE}")"
+      if [[ "${PREVIOUS_STATE}" == "closed" ]]; then
+        echo "[pass] previous milestone ${PREVIOUS_VERSION} is closed"
+      else
+        echo "[fail] previous milestone ${PREVIOUS_VERSION} is still open"
+        failures=$((failures + 1))
+      fi
+    fi
+
+    if gh release view "v${PREVIOUS_VERSION}" >/dev/null 2>&1; then
+      echo "[pass] previous version v${PREVIOUS_VERSION} has a GitHub release"
+    else
+      echo "[fail] previous version v${PREVIOUS_VERSION} is missing a GitHub release"
       failures=$((failures + 1))
     fi
-  fi
 
-  if gh release view "v${PREVIOUS_VERSION}" >/dev/null 2>&1; then
-    echo "[pass] previous version v${PREVIOUS_VERSION} has a GitHub release"
-  else
-    echo "[fail] previous version v${PREVIOUS_VERSION} is missing a GitHub release"
-    failures=$((failures + 1))
-  fi
-
-  if git ls-remote --exit-code --tags origin "refs/tags/v${PREVIOUS_VERSION}" >/dev/null 2>&1; then
-    echo "[pass] previous version v${PREVIOUS_VERSION} tag exists on origin"
-  else
-    echo "[fail] previous version v${PREVIOUS_VERSION} tag is missing on origin"
-    failures=$((failures + 1))
+    if git ls-remote --exit-code --tags origin "refs/tags/v${PREVIOUS_VERSION}" >/dev/null 2>&1; then
+      echo "[pass] previous version v${PREVIOUS_VERSION} tag exists on origin"
+    else
+      echo "[fail] previous version v${PREVIOUS_VERSION} tag is missing on origin"
+      failures=$((failures + 1))
+    fi
   fi
 fi
 
@@ -105,7 +115,14 @@ for i in "${!VERSION_ORDER[@]}"; do
     break
   fi
 
-  milestone="$(get_milestone "${VERSION_ORDER[$i]}")"
+  candidate_version="${VERSION_ORDER[$i]}"
+  IFS='.' read -r candidate_major candidate_minor candidate_patch <<<"${candidate_version}"
+
+  if [[ "${version_kind}" == "patch" && "${candidate_major}" == "${target_major}" && "${candidate_minor}" == "${target_minor}" ]]; then
+    continue
+  fi
+
+  milestone="$(get_milestone "${candidate_version}")"
   if [[ -n "${milestone}" ]]; then
     count="$(jq -r '.open_issues' <<<"${milestone}")"
     open_earlier=$((open_earlier + count))
@@ -113,9 +130,17 @@ for i in "${!VERSION_ORDER[@]}"; do
 done
 
 if [[ "${open_earlier}" -eq 0 ]]; then
-  echo "[pass] no open issues found in milestones before ${TARGET_VERSION}"
+  if [[ "${version_kind}" == "patch" ]]; then
+    echo "[pass] no open issues found in milestones before the active minor line ${target_major}.${target_minor}.x"
+  else
+    echo "[pass] no open issues found in milestones before ${TARGET_VERSION}"
+  fi
 else
-  echo "[fail] found ${open_earlier} open issue(s) in milestones before ${TARGET_VERSION}"
+  if [[ "${version_kind}" == "patch" ]]; then
+    echo "[fail] found ${open_earlier} open issue(s) in milestones before the active minor line ${target_major}.${target_minor}.x"
+  else
+    echo "[fail] found ${open_earlier} open issue(s) in milestones before ${TARGET_VERSION}"
+  fi
   failures=$((failures + 1))
 fi
 

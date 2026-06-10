@@ -13,7 +13,8 @@ OpsProbe releases should be created with all three artifacts aligned:
    - `./scripts/check-worktree-gate.sh`
    - `./scripts/check-version-gate.sh <target-version>`
    - if the previous minor has no tag or GitHub release yet, publish it before starting the next one
-   - for patch releases, still run the checkpoint gate and version gate, but milestone creation may be skipped when the patch only covers bounded fixes, docs, UX polish, or release metadata
+   - for patch checkpoints on the same active minor line, still run the checkpoint gate and version gate, but the immediately previous patch does not need its own tag or GitHub release yet
+   - for patch releases, milestone creation may be skipped when the patch only covers bounded fixes, docs, UX polish, or release metadata
 1. Before switching to another issue or ending the work session, commit and push the current checkpoint
 2. Before each meaningful pushed checkpoint on an active minor line, bump to the next patch version so the checkpoint has a unique version identity
    - use `npm run version:bump-dev -- <next-version>`

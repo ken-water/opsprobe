@@ -13,17 +13,19 @@ These gates exist to prevent four recurring problems:
 
 Before starting development for a target version:
 
-1. The previous milestone must be closed
-2. The previous version must already have a pushed git tag and a published GitHub release
+1. When starting a new minor or major version, the previous milestone must be closed
+2. When starting a new minor or major version, the previous version must already have a pushed git tag and a published GitHub release
 3. Earlier milestones must not have open issues
 4. Minor and major releases must have a target milestone already created
 5. Minor and major releases must have at least one open issue in the target milestone
 6. Patch releases may skip target milestone creation when they only ship bounded fixes, docs, UX polish, or release metadata
-7. Any new scope discovered during planning must be added as a new issue before implementation starts
-8. Published version history must remain contiguous; if a planned or shipped version is missing its tag or GitHub release, repair that gap before starting the next version
-9. The repository development version may be ahead of GitHub Releases, but only when the changelog entry is explicitly marked `Unreleased` and no release tag has been claimed yet
-10. While the repository is on one active development version, future minor-version materials must stay in draft or issue-list form; do not create non-draft `0.x.y` version documents for later minors before the current minor is released
-11. Within one active minor line, every meaningful pushed checkpoint must consume the next patch version instead of continuing under the previous patch number
+7. Patch checkpoints inside the same active minor line may advance without requiring the immediately previous patch to have a tag or GitHub release yet
+8. Patch checkpoints inside the same active minor line must still stay contiguous and must not skip patch numbers
+9. Any new scope discovered during planning must be added as a new issue before implementation starts
+10. Published version history must remain contiguous; if a planned or shipped version is missing its tag or GitHub release, repair that gap before starting the next minor or major version
+11. The repository development version may be ahead of GitHub Releases, but only when the changelog entry is explicitly marked `Unreleased` and no release tag has been claimed yet
+12. While the repository is on one active development version, future minor-version materials must stay in draft or issue-list form; do not create non-draft `0.x.y` version documents for later minors before the current minor is released
+13. Within one active minor line, every meaningful pushed checkpoint must consume the next patch version instead of continuing under the previous patch number
 
 If the gate fails, development should pause until the issue and milestone state is corrected.
 
@@ -67,6 +69,7 @@ For every new version:
 ## Current Practice For OpsProbe
 
 - Patch releases may skip milestone creation if they are limited to fixes, docs, or release metadata
+- Patch checkpoints on the same active minor line do not require the previous patch checkpoint to already be published
 - Minor releases must pass the full gate
 - Major releases must pass the full gate and include a release plan review
 - `1.0.0` specifically must also complete the stable decision checklist in [stable-readiness.md](./stable-readiness.md)

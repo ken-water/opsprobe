@@ -87,6 +87,7 @@ OpsProbe rule:
 - During `0.x`, patch versions may also be used to break a larger exploration milestone into smaller, releasable checkpoints when the product theme stays the same and the workflow remains backward-compatible enough for early users
 - Once a minor line is active, every meaningful committed checkpoint should move to the next patch version before the checkpoint is pushed
 - "Meaningful checkpoint" includes user-facing UX changes, new bounded implementation slices, new evidence or validation records, release-discipline changes, and non-trivial docs or gate updates
+- These patch checkpoints may stay unreleased until the broader minor line is ready, as long as patch numbers remain contiguous and the line is clearly marked `Unreleased`
 
 ## Pre-1.0 Rules
 
