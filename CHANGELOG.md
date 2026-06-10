@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.16] - 2026-06-10
+
+### Changed
+
+- issued the final `0.11.x` stable-decision recommendation: do not publish `1.0.0` yet; open `0.12.0` as a bounded final pre-stable hardening line
+- added an explicit Issue 47 decision summary and a concrete `0.12.0` problem statement so the repository now states what happens next instead of leaving the stable decision implied
+- updated roadmap, release plan, issue map, and stable review references so `0.11.x` ends cleanly and `0.12.0` becomes the only allowed next pre-stable line
+
+### Fixed
+
+- created the GitHub `0.12.0` milestone and `Issue 57` so the deferred stable decision already has a concrete follow-up line before more coding begins
+- moved repository and desktop package versions to `0.11.16` before closing the `0.11.x` line
+
 ## [0.11.15] - 2026-06-10
 
 ### Changed

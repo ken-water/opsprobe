@@ -6,7 +6,7 @@ This file is the bridge between raw validation evidence and the actual stable-re
 
 ## Candidate
 
-- Version under review: `0.11.15`
+- Version under review: `0.11.16`
 - Review date: `2026-06-10`
 - Reviewer: Codex-assisted repository review
 - Related issues:
@@ -90,17 +90,18 @@ This file is the bridge between raw validation evidence and the actual stable-re
 
 ## Decision
 
-Current state:
+Outcome:
 
-- final recommendation not issued yet
-- provisional reading: if no stronger packaged acceptance evidence arrives before `0.11.16`, defer `1.0.0`
+- defer `1.0.0`
+- open `0.12.0` as a bounded final pre-stable hardening line
 
 Reasoning:
 
 - the stable-candidate evidence line is materially stronger than it was before the later `0.11.x` closeout checkpoints
 - several remaining limits are now explicit enough to classify as accepted rather than vague blockers
 - however, Linux packaged human acceptance and Windows installer acceptance still remain the clearest unresolved blockers
-- `0.11.15` should therefore stop at blocker classification and leave the final proceed-or-defer recommendation to `0.11.16`
+- because those packaged gaps remain open, overall stable-release coverage is still too thin for a defensible `1.0.0`
+- the remaining work is now narrow enough to justify one last bounded pre-stable line instead of another open-ended defer cycle
 
 ## Evidence Links
 
@@ -109,3 +110,5 @@ Reasoning:
 - [Stable Release Readiness](./stable-readiness.md)
 - [Issue 56 Stable Decision Blockers 0.11.15](./issue-56-stable-decision-blockers-0.11.15.md)
 - [Issue 56 Progress 0.11.15](./issue-56-progress-0.11.15.md)
+- [Issue 47 Stable Decision Summary 0.11.16](./issue-47-stable-decision-0.11.16.md)
+- [Issue 57 Final Pre-Stable Hardening 0.12.0](./issue-57-final-prestable-hardening-0.12.0.md)

@@ -41,6 +41,9 @@ Release mapping:
   `0.11.1`: Issue 54 follow-up checkpoint
   `0.11.2`: Issue 55
   `0.11.3`: Issue 56
+- `0.12.0`: final pre-stable packaged acceptance hardening line
+  Current issue line:
+  `0.12.0`: Issue 57
 - `1.0.0`: stable-release decision line
   Current issue line:
   `1.0.0`: Issue 47
@@ -64,8 +67,9 @@ Recommended priority order:
 2. `0.11.1`: bounded follow-up checkpoint on the same stable-candidate line
 3. `0.11.2`: Windows installer acceptance evidence on a Windows-capable environment
 4. `0.11.3`: explicit `1.0.0` blocker review and written decision support
-5. `1.1.0` / `1.1.1`: multilingual desktop and report foundation
-6. `1.2.0` / `1.2.1`: multilingual website and download distribution
+5. `0.12.0`: final packaged acceptance hardening before the stable decision is reopened
+6. `1.1.0` / `1.1.1`: multilingual desktop and report foundation
+7. `1.2.0` / `1.2.1`: multilingual website and download distribution
 
 Recommended execution order after the current environment-gate work:
 

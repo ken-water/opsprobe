@@ -466,6 +466,34 @@ Closeout rule:
 - do not create `0.11.17+`
 - if `1.0.0` is still not defensible after `0.11.16`, the next development line must be `0.12.0`, not another `0.11.x` patch
 
+Final decision after `0.11.16`:
+
+- `1.0.0` is deferred
+- the next development line is `0.12.0`
+- `0.12.0` should be limited to final packaged acceptance hardening, not another broad product iteration
+
+## `0.12.0` Final Pre-Stable Hardening
+
+Goal:
+
+- close the last packaged acceptance gaps that still block a defensible `1.0.0`
+
+Includes:
+
+- one real operator-facing Linux packaged acceptance pass
+- one real Windows installer acceptance pass
+- refreshed stable review record and release-or-defer evidence after those proofs exist
+
+Exit criteria:
+
+- Linux packaged acceptance is no longer only scripted/headless evidence
+- Windows installer acceptance is no longer only artifact or environment-limitation evidence
+- Issue `47` can be resumed without packaged acceptance being the dominant blocker
+
+Related issues:
+
+- Issue 57
+
 ## Post-Stable Direction
 
 ### `1.1.0`

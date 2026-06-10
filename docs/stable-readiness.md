@@ -145,5 +145,7 @@ Current closeout references:
 - [Issue 56 Stable Decision Blockers 0.11.15](./issue-56-stable-decision-blockers-0.11.15.md)
 - [Issue 56 Progress 0.11.15](./issue-56-progress-0.11.15.md)
 - [Draft Issue 56 Stable Decision Runbook](./draft-issue-56-stable-decision-runbook.md)
+- [Issue 47 Stable Decision Summary 0.11.16](./issue-47-stable-decision-0.11.16.md)
+- [Issue 57 Final Pre-Stable Hardening 0.12.0](./issue-57-final-prestable-hardening-0.12.0.md)
 
 `0.11.16` should use the current blocker table above rather than restarting from the older `0.11.2` draft wording.

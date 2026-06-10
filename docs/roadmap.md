@@ -182,6 +182,12 @@ Potential future capabilities outside the open source scope:
 - Reserve `1.0.1+` only for bounded post-stable regressions; do not hide unfinished pre-stable work inside future stable patch numbers
 - If `0.11.16` still does not justify `1.0.0`, open `0.12.0` explicitly rather than allowing `0.11.x` to continue growing
 
+Current outcome after `0.11.16`:
+
+- `1.0.0` is deferred
+- the next line is `0.12.0`
+- `0.12.0` should be limited to final packaged acceptance hardening before the stable decision is reopened
+
 ### `1.1.0` Multilingual Foundation
 
 - Add multilingual infrastructure for the desktop UI
