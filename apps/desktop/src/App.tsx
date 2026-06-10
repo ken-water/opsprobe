@@ -65,14 +65,6 @@ const defaultPdfReportPath = "/tmp/opsprobe-report.pdf";
 type ServiceHealthCheck = LocalServiceStatusResponse["snapshot"]["health"]["checks"][number];
 type FeedbackTone = "info" | "success" | "error";
 
-interface TroubleshootingCard {
-  key: string;
-  label: string;
-  status: "warning" | "critical";
-  detail: string;
-  actions: string[];
-}
-
 interface RepairPack {
   id: string;
   title: string;
@@ -82,12 +74,6 @@ interface RepairPack {
   nextAction: string;
   actionLabel: string;
   checks: ServiceHealthCheck[];
-}
-
-function isActionableServiceCheck(
-  check: ServiceHealthCheck,
-): check is ServiceHealthCheck & { status: "warning" | "critical" } {
-  return check.status === "warning" || check.status === "critical";
 }
 
 function templateLabel(templateId: string) {
@@ -108,84 +94,6 @@ function extractErrorMessage(error: unknown) {
 
 function formatActionError(action: string, error: unknown) {
   return `${action} failed. ${extractErrorMessage(error)}`;
-}
-
-function buildServiceCheckActions(
-  check: ServiceHealthCheck,
-  response: LocalServiceStatusResponse | null,
-): string[] {
-  const port = response?.snapshot.config.postgres.port ?? 15432;
-  const paths = response?.snapshot.config.paths;
-
-  switch (check.id) {
-    case "service.process":
-      return [
-        "Use Start Service to launch the background local service.",
-        paths?.serviceStatusFile
-          ? `If it still does not stay up, inspect ${paths.serviceStatusFile} and the local service logs under ${paths.logDir}.`
-          : "If it still does not stay up, inspect the local service status file and logs under ~/.opsprobe/logs.",
-      ];
-    case "local.binary.ssh":
-      return [
-        "Install the OpenSSH client on the local machine and ensure `ssh` is in PATH.",
-        "Re-run Refresh Service Status after the shell can execute `ssh -V` successfully.",
-      ];
-    case "local.binary.sshpass":
-      return [
-        "If you want password-based SSH, install `sshpass` on the local machine.",
-        "If you do not want to install `sshpass`, switch the asset to private-key authentication.",
-      ];
-    case "local.report_dir":
-      return [
-        paths?.reportDir
-          ? `Ensure ${paths.reportDir} exists and is writable by the current desktop user.`
-          : "Ensure the configured report directory exists and is writable by the current desktop user.",
-        "Move reports to another writable directory if this machine restricts writes under the current location.",
-      ];
-    case "service.bootstrap":
-      return [
-        "Install the required PostgreSQL binaries (`postgres`, `pg_ctl`, `initdb`) for the local service runtime.",
-        "Re-open the desktop from a shell where those binaries are already available in PATH.",
-      ];
-    case "postgres.data_dir":
-      return [
-        "Use Bootstrap PostgreSQL to initialize the dedicated OpsProbe data directory.",
-        paths?.postgresDataDir
-          ? `Verify ${paths.postgresDataDir} is writable and not managed by another PostgreSQL instance.`
-          : "Verify the managed PostgreSQL data directory is writable and not managed by another PostgreSQL instance.",
-      ];
-    case "postgres.port":
-      return [
-        `Find what is already using port ${port} with \`ss -ltnp '( sport = :${port} )'\` or \`lsof -i :${port}\`.`,
-        "Stop the conflicting service or move OpsProbe to another managed PostgreSQL port before retrying start.",
-      ];
-    case "postgres.process":
-      return [
-        "Use Start PostgreSQL after bootstrap completes.",
-        paths?.postgresCtlLogFile
-          ? `If startup still fails, inspect ${paths.postgresCtlLogFile} and the PostgreSQL log directory for the first fatal error.`
-          : "If startup still fails, inspect the managed PostgreSQL control log for the first fatal error.",
-      ];
-    case "storage.backend":
-      return [
-        "OpsProbe can continue with local file storage, but history and migration should be rechecked after PostgreSQL is healthy.",
-        "Resolve PostgreSQL runtime problems first if you want the intended managed database path.",
-      ];
-    case "scheduling.local":
-      return [
-        "Review the affected asset or schedule and rerun the inspection manually to reproduce the failure.",
-        "Keep the local service running so recurring schedules can execute on time.",
-      ];
-    default:
-      if (check.id.startsWith("postgres.binary.")) {
-        return [
-          "Install the missing PostgreSQL binary and confirm it is available in PATH for the desktop process.",
-          "Restart the desktop or launch it from a shell that already exports the PostgreSQL bin directory.",
-        ];
-      }
-
-      return ["Refresh the environment status after correcting the underlying local dependency or permission problem."];
-  }
 }
 
 function buildSshTroubleshooting(result: SshConnectionTestResult | null, asset: Asset): string[] {
@@ -1247,15 +1155,6 @@ function App() {
   const assetsNeedingVerification = savedAssets.filter(
     (savedAsset) => savedAsset.credential.bindingStatus === "verification-required",
   );
-  const troubleshootingCards: TroubleshootingCard[] = serviceChecks
-    .filter(isActionableServiceCheck)
-    .map((check) => ({
-      key: check.id,
-      label: check.label,
-      status: check.status,
-      detail: check.detail,
-      actions: buildServiceCheckActions(check, serviceResponse),
-    }));
   const repairPacks: RepairPack[] = [
     {
       id: "runtime",
@@ -1532,7 +1431,7 @@ function App() {
             <strong>{showingDemoExperience ? "Demo" : "Real"}</strong>
           </div>
           <div className="sidebar-footer-note">{sidebarStatusLabel}</div>
-          <div className="sidebar-footer-meta">v0.11.1</div>
+          <div className="sidebar-footer-meta">v0.11.2</div>
         </div>
       </aside>
 
@@ -1766,9 +1665,6 @@ function App() {
                 blockingChecks={blockingChecks}
                 warningChecks={warningChecks}
                 repairPacks={repairPacks}
-                troubleshootingCards={troubleshootingCards}
-                sshTroubleshooting={sshTroubleshooting}
-                sshMessage={sshResult?.message ?? null}
                 onEnterDemoMode={handleEnterDemoMode}
                 onSwitchToRealSetup={handleSwitchToRealSetup}
                 onOpenAssetsStrategy={() => handleWorkspaceChange("assets-strategy")}

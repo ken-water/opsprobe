@@ -901,6 +901,11 @@ body {
   margin-top: 18px;
 }
 
+.setup-focus-stack {
+  display: grid;
+  gap: 14px;
+}
+
 .hub-readiness-grid-single {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1384,6 +1389,11 @@ body {
   border-radius: 16px;
 }
 
+.onboarding-banner-compact {
+  margin-top: 16px;
+  padding: 14px 16px;
+}
+
 .onboarding-demo {
   background: rgba(255, 242, 210, 0.9);
   color: #6f4a0b;
@@ -1513,8 +1523,9 @@ body {
 
 .readiness-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  margin-top: 18px;
 }
 
 .readiness-metric {
@@ -1587,6 +1598,11 @@ body {
 .repair-pack-check-critical {
   border-color: rgba(248, 113, 113, 0.2);
   color: #fecaca;
+}
+
+.setup-return-card {
+  border-color: rgba(125, 211, 252, 0.12);
+  background: linear-gradient(180deg, rgba(10, 20, 33, 0.94), rgba(10, 18, 30, 0.82));
 }
 
 .troubleshooting-list {
@@ -2393,6 +2409,7 @@ button.data-table-row {
   .hub-grid,
   .runner-focus-grid,
   .hub-readiness-grid,
+  .setup-focus-stack,
   .journey-strip,
   .results-overview-hero,
   .results-insight-grid,
@@ -2417,6 +2434,7 @@ button.data-table-row {
   .hub-grid,
   .runner-focus-grid,
   .hub-readiness-grid,
+  .readiness-metrics-grid,
   .dashboard-metrics,
   .ops-snapshot-grid {
     grid-template-columns: 1fr;

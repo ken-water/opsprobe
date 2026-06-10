@@ -4,12 +4,49 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
-## [0.11.1] - Unreleased
+## [0.11.2] - 2026-06-10
 
-### Planned
+### Changed
 
-- consolidate clean-machine and stable-candidate evidence before resuming the `1.0.0` decision
-- turn the current stable-review record into a version-aligned, reviewable checkpoint for Issue `54`
+- simplified the `System` workspace into a blocker-first repair flow so operators see only what prevents the first real inspection and how to return to the main inspection path
+- removed the old reference-heavy troubleshooting surface from `System` and replaced it with one explicit return path, one demo-mode entry, and a denser readiness summary
+- aligned the desktop browser regression suite to the new `System` information architecture so the streamlined operator flow is enforced in CI
+
+### Fixed
+
+- removed duplicated return-path and demo-mode content that caused repeated guidance and failing browser assertions
+- cleaned up stale desktop helper logic after the `System` page refactor so the `0.11.2` build and UI tests pass again
+
+## [0.11.1] - 2026-06-10
+
+### Changed
+
+- aligned the desktop shell more tightly around the inspect entry and report mode flow so the first useful operator actions stay easier to find
+- formalized patch-checkpoint discipline for the active minor line so pushed work no longer accumulates under one ambiguous version number
+- allowed unreleased patch checkpoints inside the active minor line while still keeping the contiguous-version gate in place
+
+### Known Limits
+
+- `0.11.1` improved version discipline and inspect/report focus, but the `System` workspace was still carrying too much duplicated guidance
+- broader stable-candidate evidence and `1.0.0` decision work remain deferred beyond this checkpoint
+
+## [0.11.0] - 2026-06-10
+
+### Changed
+
+- established the `0.11.x` line around stable-candidate evidence, Linux packaging credibility, and a more inspect-first desktop workflow
+- tightened the main desktop visual system and first-run path so operators reach target setup, inspection preview, and report follow-up with less clutter
+- repaired packaged local-service resolution and added packaging/build-environment hardening needed for current-version desktop artifacts
+
+### Added
+
+- version-specific Linux packaged-acceptance, stable-candidate, and issue-progress notes so the `0.11.0` evidence line can be reviewed as one coherent checkpoint
+- stricter environment and scenario gates for development, validation, and desktop packaging work
+
+### Known Limits
+
+- `0.11.0` strengthened Linux packaging and first-run workflow credibility, but Windows installer acceptance was still not closed
+- the `System` workspace still needed one more simplification pass before it matched the intended low-learning-curve operator experience
 
 ## [0.10.8] - 2026-06-09
 

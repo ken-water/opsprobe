@@ -325,10 +325,8 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: "Refresh Environment" })).toBeVisible();
   await expect(page.getByText("Demo mode is active")).toBeVisible();
   await expect(page.getByRole("button", { name: "Switch to Real Setup" }).first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Reference only", level: 2 })).toBeVisible();
 
   await page.getByRole("button", { name: "Switch to Real Setup" }).first().click();
-  await expect(page.getByText("Real setup mode is active")).toBeVisible();
   await expect(page.getByText("Real setup mode is active")).toBeVisible();
 
   await page.getByRole("button", { name: "Explore Demo Data" }).first().click();
