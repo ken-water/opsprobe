@@ -1252,6 +1252,23 @@ body {
   gap: 10px;
 }
 
+.text-button {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7dd3fc;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.text-button:hover {
+  color: #bae6fd;
+  text-decoration: underline;
+}
+
 .ssh-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1851,6 +1868,11 @@ body {
 .runner-action-card {
   display: grid;
   gap: 16px;
+}
+
+.assets-transfer-card {
+  border-color: rgba(148, 163, 184, 0.1);
+  background: linear-gradient(180deg, rgba(10, 18, 30, 0.86), rgba(10, 18, 30, 0.68));
 }
 
 .runner-action-summary {

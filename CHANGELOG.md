@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.8] - 2026-06-10
+
+### Changed
+
+- simplified the `System` return area by reducing competing buttons and moving environment refresh into a lighter secondary action
+- tightened the `Assets` workspace around one primary action: save a proven target first, then reuse saved targets, and only later handle machine transfer
+- visually demoted cross-machine migration in `Assets` so export/import no longer competes with the first save-and-reuse path
+
+### Fixed
+
+- moved repository and desktop package versions to `0.11.8` before continuing the `System` and `Assets` UX cleanup
+
 ## [0.11.7] - 2026-06-10
 
 ### Fixed
@@ -664,7 +676,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.11.7] - Unreleased
+## [0.11.8] - Unreleased
 
 ### Planned
 

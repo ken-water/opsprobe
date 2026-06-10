@@ -216,10 +216,11 @@ export function SetupWorkspace({
               >
                 {showingDemoExperience ? "Switch to Real Setup" : "Explore Demo Data"}
               </button>
-              <button className="secondary-button" onClick={onRefreshEnvironment} type="button">
-                Refresh Environment
-              </button>
             </div>
+
+            <button className="text-button" onClick={onRefreshEnvironment} type="button">
+              {readyForRealInspection ? "Refresh system status" : "Refresh environment status"}
+            </button>
 
             <div className={`onboarding-banner onboarding-banner-compact ${showingDemoExperience ? "onboarding-demo" : "onboarding-real"}`}>
               <strong>{showingDemoExperience ? "Demo mode is active" : "Real setup mode is active"}</strong>

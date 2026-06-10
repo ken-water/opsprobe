@@ -43,11 +43,11 @@ export function AssetsWorkspace({
         subtitle="Do this only after the first preview is already trustworthy."
         actions={
           <div className="service-actions">
-            <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
-              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Targets"}
-            </button>
             <button className="primary-button" onClick={onSaveCurrentAsset} type="button">
               Save Current Target
+            </button>
+            <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
+              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Targets"}
             </button>
           </div>
         }
@@ -55,11 +55,11 @@ export function AssetsWorkspace({
 
       <div className="workflow-stack">
         <section className="runner-focus-grid">
-          <div className="workflow-step-card">
+          <div className="workflow-step-card runner-primary-card">
             <div className="workflow-step-header">
               <div>
                 <span className="workflow-step-index">1</span>
-                <strong>Edit before saving</strong>
+                <strong>Save one working target</strong>
               </div>
               <span className="badge badge-unknown">{savedAssets.length} saved</span>
             </div>
@@ -137,13 +137,17 @@ export function AssetsWorkspace({
                 {asset.protocol.toUpperCase()} · updated {formatDateTime(asset.updatedAt)}
               </span>
             </div>
+
+            <div className="helper-stack">
+              <p className="helper-text">Only save after one SSH verification and one readable preview result already exist.</p>
+            </div>
           </div>
 
-          <div className="workflow-step-card runner-side-card">
+          <div className="workflow-step-card runner-action-card">
             <div className="workflow-step-header">
               <div>
                 <span className="workflow-step-index">2</span>
-                <strong>Saved targets</strong>
+                <strong>Reuse a saved target</strong>
               </div>
               <span className="badge badge-unknown">{savedAssets.length} total</span>
             </div>
@@ -195,11 +199,11 @@ export function AssetsWorkspace({
           </div>
         </section>
 
-        <section className="workflow-step-card">
+        <section className="workflow-step-card assets-transfer-card">
           <div className="workflow-step-header">
             <div>
               <span className="workflow-step-index">3</span>
-              <strong>Move to another machine</strong>
+              <strong>Move this setup later</strong>
             </div>
             <span className="badge badge-unknown">optional</span>
           </div>

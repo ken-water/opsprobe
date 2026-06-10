@@ -322,7 +322,7 @@ test("makes setup mode and demo entry explicit", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /What to do after this page|System is no longer the bottleneck/, level: 2 })).toBeVisible();
   await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: "Back To Start" })).toBeVisible();
   await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: "Open Inspect Setup" })).toBeVisible();
-  await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: "Refresh Environment" })).toBeVisible();
+  await expect(page.locator(".workflow-step-card").first().getByRole("button", { name: /Refresh .*status/ })).toBeVisible();
   await expect(page.getByText("Demo mode is active")).toBeVisible();
   await expect(page.getByRole("button", { name: "Switch to Real Setup" }).first()).toBeVisible();
 
