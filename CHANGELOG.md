@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.12.2] - 2026-06-10
+
+### Changed
+
+- diagnosed the current `0.12.2` Windows GNU packaging blocker and recorded it as an explicit environment/build-chain failure instead of leaving the missing NSIS installer as a vague product gap
+- updated the Cargo cache hydration script to try multiple crate download sources before failing
+- added a current-version Issue 57 progress note for the Windows packaging-chain failure
+
+### Fixed
+
+- moved repository and desktop package versions to `0.12.2` before continuing packaged acceptance hardening
+
 ## [0.12.1] - 2026-06-10
 
 ### Changed

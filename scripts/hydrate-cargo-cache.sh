@@ -6,7 +6,14 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/.." && pwd)"
 
 lockfile="${1:-${repo_root}/apps/desktop/src-tauri/Cargo.lock}"
-mirror_api_base="${CARGO_CRATE_DOWNLOAD_BASE:-https://rsproxy.cn/api/v1/crates}"
+mirror_api_bases="${CARGO_CRATE_DOWNLOAD_BASES:-}"
+if [[ -z "${mirror_api_bases}" ]]; then
+  if [[ -n "${CARGO_CRATE_DOWNLOAD_BASE:-}" ]]; then
+    mirror_api_bases="${CARGO_CRATE_DOWNLOAD_BASE}"
+  else
+    mirror_api_bases="https://rsproxy.cn/api/v1/crates https://crates.io/api/v1/crates"
+  fi
+fi
 cargo_home="${CARGO_HOME:-$HOME/.cargo}"
 cache_dir="${cargo_home}/registry/cache/rsproxy.cn-e3de039b2554c837"
 
@@ -17,7 +24,7 @@ fi
 
 mkdir -p "${cache_dir}"
 
-python3 - "${lockfile}" "${mirror_api_base}" "${cache_dir}" <<'PY'
+python3 - "${lockfile}" "${mirror_api_bases}" "${cache_dir}" <<'PY'
 import pathlib
 import sys
 import tomllib
@@ -26,7 +33,7 @@ import urllib.parse
 import urllib.request
 
 lockfile = pathlib.Path(sys.argv[1])
-mirror_api_base = sys.argv[2].rstrip("/")
+mirror_api_bases = [base.rstrip("/") for base in sys.argv[2].split() if base.strip()]
 cache_dir = pathlib.Path(sys.argv[3])
 
 packages = tomllib.loads(lockfile.read_text()).get("package", [])
@@ -47,15 +54,20 @@ for package in packages:
         skipped += 1
         continue
 
-    url = f"{mirror_api_base}/{urllib.parse.quote(name)}/{urllib.parse.quote(version)}/download"
-    try:
-        with urllib.request.urlopen(url, timeout=30) as response:
-            crate_path.write_bytes(response.read())
-        downloaded += 1
-        print(f"[downloaded] {crate_name}")
-    except (urllib.error.URLError, TimeoutError, OSError) as error:
-        failed.append((crate_name, str(error)))
-        print(f"[failed] {crate_name}: {error}", file=sys.stderr)
+    errors = []
+    for mirror_api_base in mirror_api_bases:
+        url = f"{mirror_api_base}/{urllib.parse.quote(name)}/{urllib.parse.quote(version)}/download"
+        try:
+            with urllib.request.urlopen(url, timeout=30) as response:
+                crate_path.write_bytes(response.read())
+            downloaded += 1
+            print(f"[downloaded] {crate_name} via {mirror_api_base}")
+            break
+        except (urllib.error.URLError, TimeoutError, OSError) as error:
+            errors.append(f"{mirror_api_base}: {error}")
+    else:
+        failed.append((crate_name, "; ".join(errors)))
+        print(f"[failed] {crate_name}: {'; '.join(errors)}", file=sys.stderr)
 
 print(f"[summary] downloaded={downloaded} skipped={skipped} failed={len(failed)}")
 if failed:
