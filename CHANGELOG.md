@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.12.3] - 2026-06-10
+
+### Changed
+
+- narrowed the Windows GNU packaging blocker from a generic vendoring failure to one specific missing crate cache requirement: `linux-raw-sys 0.12.2`
+- documented that the current machine has `0.12.1` cached but not `0.12.2`, so the active vendored source cannot be regenerated for the current lockfile
+- recorded that online `cargo update` is not a safe recovery path here because it both touches the network and can drift the lockfile unexpectedly
+
+### Fixed
+
+- kept the `0.12.3` line honest by discarding the accidental lockfile drift from an online Cargo attempt and preserving the known current dependency state
+- moved repository and desktop package versions to `0.12.3` before continuing packaged acceptance hardening
+
 ## [0.12.2] - 2026-06-10
 
 ### Changed
