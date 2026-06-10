@@ -97,6 +97,22 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
   const priorityResults =
     activeCriticalResults.length > 0 ? activeCriticalResults : activeWarningResults.length > 0 ? activeWarningResults : activeRun?.results.slice(0, 3) ?? [];
   const activeResultCount = activeRun?.results.length ?? 0;
+  const currentConclusionTitle =
+    activeRun?.summary.critical && activeRun.summary.critical > 0
+      ? `${activeRun.summary.critical} critical finding${activeRun.summary.critical === 1 ? "" : "s"} need attention`
+      : activeRun?.summary.warning && activeRun.summary.warning > 0
+        ? `${activeRun.summary.warning} warning${activeRun.summary.warning === 1 ? "" : "s"} should be reviewed`
+        : activeRun
+          ? "This result is ready to share"
+          : "No current result";
+  const currentConclusionDetail =
+    activeRun?.summary.critical && activeRun.summary.critical > 0
+      ? "Start with the critical findings below, then decide whether this target is ready to share or rerun."
+      : activeRun?.summary.warning && activeRun.summary.warning > 0
+        ? "The inspection path is working, but warnings still need review before you present this result as complete."
+        : activeRun
+          ? "The result has no warning or critical findings. Export or compare only after you confirm the evidence looks correct."
+          : "Run or select an inspection first.";
 
   return (
     <>
@@ -126,81 +142,93 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
 
         {activeRun ? (
           <div className="results-overview-stack">
-            <div className="results-overview-hero results-overview-hero-single">
-              <article className="history-detail-card results-conclusion-card">
-                <div className="assets-panel-header">
-                  <strong>Current Conclusion</strong>
-                  <span>{activeRun.id}</span>
-                </div>
-                <div className="summary-strip">
-                  <span>Total {activeRun.summary.total}</span>
-                  <span>Pass {activeRun.summary.passed}</span>
-                  <span>Warn {activeRun.summary.warning}</span>
-                  <span>Critical {activeRun.summary.critical}</span>
-                </div>
-                <div className="asset-banner">
-                  <strong>{asset.name}</strong>
-                  <span>{asset.host}:{asset.port}</span>
-                  <span>{templateLabel(activeRun.templateId)}</span>
-                  <span>{formatDateTime(activeRun.createdAt)}</span>
-                </div>
+            <article className="history-detail-card results-conclusion-card">
+              <div className="assets-panel-header">
+                <strong>Current Conclusion</strong>
+                <span>{activeRun.id}</span>
+              </div>
+              <div className="summary-strip">
+                <span>Total {activeRun.summary.total}</span>
+                <span>Pass {activeRun.summary.passed}</span>
+                <span>Warn {activeRun.summary.warning}</span>
+                <span>Critical {activeRun.summary.critical}</span>
+              </div>
+              <div className="asset-banner">
+                <strong>{asset.name}</strong>
+                <span>{asset.host}:{asset.port}</span>
+                <span>{templateLabel(activeRun.templateId)}</span>
+                <span>{formatDateTime(activeRun.createdAt)}</span>
+              </div>
 
-                <div className="results-operator-grid">
-                  <article className="history-side-card results-priority-card">
-                    <h3>Priority Actions</h3>
-                    <div className="history-side-list">
-                      {priorityResults.map((result) => (
-                        <article className="service-card" key={`priority-${activeRun.id}-${result.checkId}`}>
-                          <div className="service-card-header">
-                            <strong>{result.title}</strong>
-                            <span className={`badge badge-${result.status}`}>{formatStatusLabel(result.status)}</span>
-                          </div>
-                          <p>{result.summary}</p>
-                          <p className="helper-text">{result.remediation}</p>
-                        </article>
-                      ))}
-                    </div>
-                  </article>
+              <section className="results-current-story">
+                <div className="results-current-story-copy">
+                  <p className="eyebrow">Read This First</p>
+                  <h3>{currentConclusionTitle}</h3>
+                  <p className="helper-text">{currentConclusionDetail}</p>
+                </div>
+                <div className="results-current-story-metrics">
+                  <div><span>Checks</span><strong>{activeRun.summary.total}</strong></div>
+                  <div><span>Critical</span><strong>{activeRun.summary.critical}</strong></div>
+                  <div><span>Warnings</span><strong>{activeRun.summary.warning}</strong></div>
+                  <div><span>Evidence</span><strong>{activeResultCount}</strong></div>
+                </div>
+              </section>
+            </article>
 
-                  <article className="history-side-card results-export-card">
-                    <h3>Export This Result</h3>
-                    <div className="ssh-grid">
-                      <label>
-                        <span>Report File</span>
-                        <input value={reportPath} onChange={(event) => onReportPathChange(event.target.value)} />
-                      </label>
-                      <label>
-                        <span>PDF Report File</span>
-                        <input value={pdfReportPath} onChange={(event) => onPdfReportPathChange(event.target.value)} />
-                      </label>
-                    </div>
-                    <div className="inline-note">
-                      <strong>Audience: {reportAudience}</strong>
-                      <span>The chosen report audience will be used for both export formats.</span>
-                    </div>
-                    <div className="service-actions">
-                      <button className="secondary-button" onClick={() => onExportHtmlReport(activeRun)} type="button">
-                        {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
-                      </button>
-                      <button className="secondary-button" onClick={() => onExportPdfReport(activeRun)} type="button">
-                        {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
-                      </button>
-                    </div>
-                    <div className="service-actions">
-                      <button className="secondary-button" onClick={() => onOpenExportFile(reportPath)} type="button">
-                        Open HTML File
-                      </button>
-                      <button className="secondary-button" onClick={() => onRevealExportFile(reportPath)} type="button">
-                        Show HTML In Folder
-                      </button>
-                      <button className="secondary-button" onClick={() => onOpenExportFile(pdfReportPath)} type="button">
-                        Open PDF File
-                      </button>
-                      <button className="secondary-button" onClick={() => onRevealExportFile(pdfReportPath)} type="button">
-                        Show PDF In Folder
-                      </button>
-                    </div>
-                  </article>
+            <div className="results-reading-grid">
+              <article className="history-side-card results-priority-card">
+                <h3>What To Do Next</h3>
+                <div className="history-side-list">
+                  {priorityResults.map((result) => (
+                    <article className="service-card" key={`priority-${activeRun.id}-${result.checkId}`}>
+                      <div className="service-card-header">
+                        <strong>{result.title}</strong>
+                        <span className={`badge badge-${result.status}`}>{formatStatusLabel(result.status)}</span>
+                      </div>
+                      <p>{result.summary}</p>
+                      <p className="helper-text">{result.remediation}</p>
+                    </article>
+                  ))}
+                </div>
+              </article>
+
+              <article className="history-side-card results-export-card">
+                <h3>Export This Result</h3>
+                <div className="ssh-grid">
+                  <label>
+                    <span>Report File</span>
+                    <input value={reportPath} onChange={(event) => onReportPathChange(event.target.value)} />
+                  </label>
+                  <label>
+                    <span>PDF Report File</span>
+                    <input value={pdfReportPath} onChange={(event) => onPdfReportPathChange(event.target.value)} />
+                  </label>
+                </div>
+                <div className="inline-note">
+                  <strong>Audience: {reportAudience}</strong>
+                  <span>Export only after the conclusion and next actions are clear.</span>
+                </div>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={() => onExportHtmlReport(activeRun)} type="button">
+                    {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
+                  </button>
+                  <button className="secondary-button" onClick={() => onExportPdfReport(activeRun)} type="button">
+                    {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
+                  </button>
+                </div>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={() => onOpenExportFile(reportPath)} type="button">
+                    Open HTML File
+                  </button>
+                  <button className="secondary-button" onClick={() => onRevealExportFile(reportPath)} type="button">
+                    Show HTML In Folder
+                  </button>
+                  <button className="secondary-button" onClick={() => onOpenExportFile(pdfReportPath)} type="button">
+                    Open PDF File
+                  </button>
+                  <button className="secondary-button" onClick={() => onRevealExportFile(pdfReportPath)} type="button">
+                    Show PDF In Folder
+                  </button>
                 </div>
               </article>
             </div>
@@ -287,7 +315,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         <DesktopSectionHeader
           eyebrow="Inspection Results"
           title="History And Comparison"
-          subtitle="After reading the current result, switch here to compare older runs, reopen a selected run, or inspect trends."
+          subtitle="Use this after the current result is clear. Compare older runs, reopen a selected run, or inspect trends."
           actions={
             <div className="service-actions">
               <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">

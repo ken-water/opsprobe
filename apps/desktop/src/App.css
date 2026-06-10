@@ -2037,7 +2037,7 @@ body {
     radial-gradient(circle at top left, rgba(14, 165, 233, 0.1), transparent 35%);
 }
 
-.results-operator-grid {
+.results-reading-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
   gap: 18px;
@@ -2046,6 +2046,42 @@ body {
 .results-priority-card,
 .results-export-card {
   margin-top: 0;
+}
+
+.results-current-story {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+  gap: 18px;
+}
+
+.results-current-story-copy h3 {
+  margin: 2px 0 0;
+  font-size: 1.4rem;
+  color: var(--ops-text-strong);
+  line-height: 1.2;
+}
+
+.results-current-story-metrics {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(10, 18, 30, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.results-current-story-metrics div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.results-current-story-metrics span {
+  color: var(--ops-text-muted);
+}
+
+.results-current-story-metrics strong {
+  color: var(--ops-text-strong);
 }
 
 .results-kpi-list {

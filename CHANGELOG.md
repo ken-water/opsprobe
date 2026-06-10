@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.6] - 2026-06-10
+
+### Changed
+
+- reordered the `Reports` and `History` workspace so the current conclusion, next actions, and export controls read as one top-down flow instead of multiple competing panels
+- moved summary metrics into the main conclusion story block so operators can understand severity and evidence volume before they compare history or open export files
+- demoted history and trend comparison into a clear second stage that follows the current result instead of competing with it on the first read
+
+### Fixed
+
+- kept repository and desktop package versions aligned at `0.11.6` before continuing report-workspace UX changes
+
 ## [0.11.5] - 2026-06-10
 
 ### Fixed
@@ -645,7 +657,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.11.5] - Unreleased
+## [0.11.6] - Unreleased
 
 ### Planned
 
