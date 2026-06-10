@@ -818,10 +818,15 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.12.6] - Unreleased
+## [0.12.6] - 2026-06-10
 
 ### Changed
 
-- narrowed the current packaged-build blocker to a single vendored Cargo mismatch on `linux-raw-sys 0.12.2`
-- recorded that both Linux packaged build and Windows installer evidence remain blocked until `.opsprobe-vendor` is refreshed from a machine or network path that can obtain the missing crate
-- added an offline preload path for missing Cargo `.crate` files so vendored desktop dependencies can be refreshed from another machine
+- completed the current-version Linux packaged build line for `deb`, `rpm`, and `AppImage` artifacts after repairing the vendored `linux-raw-sys 0.12.2` metadata mismatch
+- completed the current-version Windows GNU installer build line and refreshed the Windows validation records so the current package evidence is no longer split across older patch versions
+- refreshed the desktop operator walkthrough and packaged validation record against the current UI labels so packaged release proof no longer depends on stale `0.11.0` walkthrough evidence
+
+### Fixed
+
+- taught the desktop Linux bundle helper to export `APPIMAGE_EXTRACT_AND_RUN=1` when Tauri's cached `linuxdeploy` AppImage is present, which avoids the local `libfuse.so.2` runtime blocker on this machine
+- aligned the generated desktop Cargo lock entry for `opsprobe-desktop` to the active `0.12.6` release version so release gating and packaged evidence stay on one current version

@@ -17,9 +17,9 @@ appimage_path="${bundle_root}/appimage/OpsProbe_${version}_amd64.AppImage"
 appdir_path="${bundle_root}/appimage/OpsProbe.AppDir"
 
 ui_actions=(
-  "Readiness Summary"
-  "Actionable Repair Packs"
-  "First-Run Wizard"
+  "Start First Inspection"
+  "Open Inspect"
+  "Open System"
   "Open Assets & Strategy"
   "Refresh Environment"
   "Refresh Service Status"
@@ -32,12 +32,10 @@ ui_actions=(
   "Save Current Asset"
   "Run Preview Inspection"
   "Run Through Local Service"
-  "Export Local Config"
-  "Import Local Config"
-  "Open HTML File"
-  "Show HTML In Folder"
-  "Open PDF File"
-  "Show PDF In Folder"
+  "Export Config"
+  "Import Config"
+  "Open Reports"
+  "Review Results"
 )
 
 tauri_commands=(
@@ -82,9 +80,9 @@ const bundleRoot = "apps/desktop/src-tauri/target/release/bundle";
 const version = rootPkg.version;
 
 const uiActions = [
-  "Readiness Summary",
-  "Actionable Repair Packs",
-  "First-Run Wizard",
+  "Start First Inspection",
+  "Open Inspect",
+  "Open System",
   "Open Assets & Strategy",
   "Refresh Environment",
   "Refresh Service Status",
@@ -97,12 +95,10 @@ const uiActions = [
   "Save Current Asset",
   "Run Preview Inspection",
   "Run Through Local Service",
-  "Export Local Config",
-  "Import Local Config",
-  "Open HTML File",
-  "Show HTML In Folder",
-  "Open PDF File",
-  "Show PDF In Folder",
+  "Export Config",
+  "Import Config",
+  "Open Reports",
+  "Review Results",
 ];
 
 const tauriCommands = [

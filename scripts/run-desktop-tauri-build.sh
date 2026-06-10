@@ -5,6 +5,13 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/.." && pwd)"
 vendor_dir="${OPSPROBE_VENDOR_DIR:-${repo_root}/.opsprobe-vendor}"
+tauri_cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/tauri"
+
+# Tauri's Linux bundling helpers are distributed as AppImages. On systems
+# without libfuse2 they still run correctly when extracted to a temp dir.
+if [[ -f "${tauri_cache_dir}/linuxdeploy-x86_64.AppImage" ]]; then
+  export APPIMAGE_EXTRACT_AND_RUN="${APPIMAGE_EXTRACT_AND_RUN:-1}"
+fi
 
 if [[ -d "${vendor_dir}" ]]; then
   temp_cargo_home="$(mktemp -d)"
