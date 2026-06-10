@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
-## [0.11.0] - Unreleased
+## [0.11.1] - Unreleased
 
 ### Planned
 

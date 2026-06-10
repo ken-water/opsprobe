@@ -23,6 +23,7 @@ Before starting development for a target version:
 8. Published version history must remain contiguous; if a planned or shipped version is missing its tag or GitHub release, repair that gap before starting the next version
 9. The repository development version may be ahead of GitHub Releases, but only when the changelog entry is explicitly marked `Unreleased` and no release tag has been claimed yet
 10. While the repository is on one active development version, future minor-version materials must stay in draft or issue-list form; do not create non-draft `0.x.y` version documents for later minors before the current minor is released
+11. Within one active minor line, every meaningful pushed checkpoint must consume the next patch version instead of continuing under the previous patch number
 
 If the gate fails, development should pause until the issue and milestone state is corrected.
 
@@ -35,6 +36,7 @@ Before starting a new issue, before ending a work session, and before starting a
 3. There must be no unpushed local commits
 4. The local branch must not be behind upstream
 5. If new commits exist after the latest published tag, the repository version must already be bumped to a new development version
+6. Before a meaningful checkpoint is pushed, the patch version must advance if the previous pushed checkpoint already used the current version
 
 If the gate fails, work should stop until code is committed and pushed or local state is reconciled.
 
@@ -47,8 +49,9 @@ For every new issue:
 1. Finish implementation in a small enough slice to commit safely
 2. Commit the checkpoint locally
 3. Push the checkpoint to GitHub
-4. Run the checkpoint gate before opening the next issue
-5. If the previous release has already been tagged, bump to the next development version before larger follow-up work begins
+4. Immediately bump to the next patch development version when the next meaningful checkpoint starts
+5. Run the checkpoint gate before opening the next issue
+6. If the previous release has already been tagged, bump to the next development version before larger follow-up work begins
 
 For every new version:
 
@@ -68,11 +71,13 @@ For every new version:
 - Major releases must pass the full gate and include a release plan review
 - `1.0.0` specifically must also complete the stable decision checklist in [stable-readiness.md](./stable-readiness.md)
 - No new issue work should begin on top of uncommitted or unpushed code
+- The active repository version should advance like `0.11.0` -> `0.11.1` -> `0.11.2` as checkpoints are pushed, even if the broader theme still belongs to the same `0.11.x` line
 
 ## Commands
 
 ```bash
 npm run env:check:strict
+npm run version:bump-dev -- 0.11.1
 ./scripts/check-worktree-gate.sh
 ./scripts/check-version-gate.sh 0.2.0
 ./scripts/check-release-readiness.sh 0.2.0

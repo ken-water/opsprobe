@@ -22,7 +22,7 @@ These records are intentionally split:
 - the Windows validation record answers whether the current version has a matching Windows binary and NSIS installer artifact
 - the Wine validation record answers whether the current machine can actually attempt a Windows installer launch
 
-For future `0.11.1` acceptance planning, continue with these drafts after `0.11.0` is released:
+For a later `0.11.x` Windows acceptance checkpoint, continue with these drafts after the current stable-candidate checkpoint is released:
 
 - [Draft Issue 55 Runbook](./draft-issue-55-windows-installer-runbook.md)
 - [Draft Issue 55 Windows Installer Acceptance 0.11.1](./draft-issue-55-windows-installer-acceptance-0.11.1.md)

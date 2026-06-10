@@ -1,12 +1,13 @@
 {
   "name": "opsprobe",
   "private": true,
-  "version": "0.11.0",
+  "version": "0.11.1",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
+    "version:bump-dev": "./scripts/bump-development-version.sh",
     "desktop:dev": "npm --workspace @opsprobe/desktop run tauri dev",
     "desktop:build": "./scripts/run-desktop-tauri-build.sh",
     "desktop:lint": "npm --workspace @opsprobe/desktop run lint",

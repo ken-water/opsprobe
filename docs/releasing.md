@@ -15,16 +15,19 @@ OpsProbe releases should be created with all three artifacts aligned:
    - if the previous minor has no tag or GitHub release yet, publish it before starting the next one
    - for patch releases, still run the checkpoint gate and version gate, but milestone creation may be skipped when the patch only covers bounded fixes, docs, UX polish, or release metadata
 1. Before switching to another issue or ending the work session, commit and push the current checkpoint
-2. After a version is tagged and released, immediately bump repository version files to the next development version before substantial follow-up work begins
-3. Update version references in:
+2. Before each meaningful pushed checkpoint on an active minor line, bump to the next patch version so the checkpoint has a unique version identity
+   - use `npm run version:bump-dev -- <next-version>`
+   - example: after `0.11.0`, the next pushed checkpoint should move to `0.11.1`, then `0.11.2`, then `0.11.3`
+3. After a version is tagged and released, immediately bump repository version files to the next development version before substantial follow-up work begins
+4. Update version references in:
    - root `package.json`
    - `apps/desktop/package.json`
    - `apps/desktop/src-tauri/Cargo.toml`
    - `apps/desktop/src-tauri/tauri.conf.json`
    - `CHANGELOG.md`
-4. Verify the release scope matches the current milestone in [releases.md](./releases.md)
+5. Verify the release scope matches the current milestone in [releases.md](./releases.md)
    - for `1.0.0`, complete the review in [stable-readiness.md](./stable-readiness.md)
-5. Run build and validation commands
+6. Run build and validation commands
    - `./scripts/smoke-release-candidate.sh`
    - `./scripts/validate-desktop-bundle-candidate.sh`
    - `./scripts/validate-desktop-packaged-acceptance-preflight.sh`
@@ -34,13 +37,13 @@ OpsProbe releases should be created with all three artifacts aligned:
    - `npm run desktop:validate-packaged-gate`
    - `./scripts/check-release-readiness.sh <target-version>`
    - for desktop packaging, also verify the target-specific bundle command succeeds
-6. Commit with a release-oriented message
-7. Create an annotated tag
-8. Push branch and tags
-9. Publish a GitHub release with structured notes
-10. If a historical release was backfilled, explicitly restore the GitHub `Latest` marker to the newest shipped version instead of leaving it on the newly created older release
-11. Bump to the next development version and push that checkpoint before starting broader follow-up work
-12. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
+7. Commit with a release-oriented message
+8. Create an annotated tag
+9. Push branch and tags
+10. Publish a GitHub release with structured notes
+11. If a historical release was backfilled, explicitly restore the GitHub `Latest` marker to the newest shipped version instead of leaving it on the newly created older release
+12. Bump to the next development version and push that checkpoint before starting broader follow-up work
+13. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
 
 Patch-release note:
 

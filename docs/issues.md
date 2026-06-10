@@ -37,9 +37,10 @@ Release mapping:
   `0.10.4`: patch release for desktop readiness UX and regression-gate hardening
 - `0.11.x`: pre-stable evidence line after the `0.10.x` hardening cycle
   Current issue line:
-  `0.11.0`: Issue 54
-  `0.11.1`: Issue 55
-  `0.11.2`: Issue 56
+  `0.11.0`: Issue 54 base checkpoint
+  `0.11.1`: Issue 54 follow-up checkpoint
+  `0.11.2`: Issue 55
+  `0.11.3`: Issue 56
 - `1.0.0`: stable-release decision line
   Current issue line:
   `1.0.0`: Issue 47
@@ -60,18 +61,19 @@ Recommended next issue additions:
 Recommended priority order:
 
 1. `0.11.0`: clean-machine and stable-candidate evidence consolidation
-2. `0.11.1`: Windows installer acceptance evidence on a Windows-capable environment
-3. `0.11.2`: explicit `1.0.0` blocker review and written decision support
-4. `1.1.0` / `1.1.1`: multilingual desktop and report foundation
-5. `1.2.0` / `1.2.1`: multilingual website and download distribution
+2. `0.11.1`: bounded follow-up checkpoint on the same stable-candidate line
+3. `0.11.2`: Windows installer acceptance evidence on a Windows-capable environment
+4. `0.11.3`: explicit `1.0.0` blocker review and written decision support
+5. `1.1.0` / `1.1.1`: multilingual desktop and report foundation
+6. `1.2.0` / `1.2.1`: multilingual website and download distribution
 
 Recommended execution order after the current environment-gate work:
 
 1. Close the remaining `0.11.0` evidence gaps with one real packaged Linux operator acceptance pass
-2. Start `0.11.1` only after the current `0.11.0` evidence note and blocker table are pushed
-3. Treat `0.11.1` as the Windows acceptance and packaged-install credibility line, not as another UI polish cycle
-4. Use `0.11.2` only for the `1.0.0` decision table, release-or-defer rationale, and any last explicit blocker carryover
-5. Do not begin `1.1.0` multilingual work until `0.11.2` states clearly whether `1.0.0` proceeds or is deferred
+2. Treat later `0.11.x` checkpoints as bounded patch-level checkpoints on the same minor line instead of leaving multiple pushed commits under one version number
+3. Use `0.11.2` as the Windows acceptance and packaged-install credibility line unless `0.11.1` already closes that gap
+4. Use `0.11.3` for the `1.0.0` decision table, release-or-defer rationale, and any last explicit blocker carryover
+5. Do not begin `1.1.0` multilingual work until the last planned `0.11.x` checkpoint states clearly whether `1.0.0` proceeds or is deferred
 
 ## Foundation
 

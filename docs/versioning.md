@@ -85,6 +85,8 @@ OpsProbe rule:
 - Patch versions should not change product scope
 - Patch versions should be safe upgrades for users on the same minor line
 - During `0.x`, patch versions may also be used to break a larger exploration milestone into smaller, releasable checkpoints when the product theme stays the same and the workflow remains backward-compatible enough for early users
+- Once a minor line is active, every meaningful committed checkpoint should move to the next patch version before the checkpoint is pushed
+- "Meaningful checkpoint" includes user-facing UX changes, new bounded implementation slices, new evidence or validation records, release-discipline changes, and non-trivial docs or gate updates
 
 ## Pre-1.0 Rules
 
@@ -98,6 +100,7 @@ Rules:
 - Every minor release should still produce visible user value
 - Consecutive minor versions may belong to the same broader product-validation phase if each version still has a concrete user-facing milestone
 - Consecutive patch versions within the same `0.x` minor line may also be used to close bounded slices of the same exploration stage, such as `0.8.0`, `0.8.1`, and `0.8.2`
+- Once work has moved beyond `0.x.0`, do not continue stacking multiple pushed checkpoints under the same patch number
 
 ## Post-1.0 Rules
 

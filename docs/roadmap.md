@@ -142,8 +142,9 @@ Target release line:
 Current planned checkpoints:
 
 - `0.11.0`: clean-machine install, bootstrap, and stable-decision evidence
-- `0.11.1`: packaged acceptance evidence on a real Windows-capable path plus any deferred current-version Linux packaged proof
-- `0.11.2`: explicit `1.0.0` blocker classification and release-or-defer decision support
+- `0.11.1`: immediate follow-up checkpoint so ongoing pushed work is not left under the same patch number
+- `0.11.2`: packaged acceptance evidence on a real Windows-capable path plus any deferred current-version Linux packaged proof
+- `0.11.3`: explicit `1.0.0` blocker classification and release-or-defer decision support
 
 Immediate priority after the current `0.10.8` line:
 
