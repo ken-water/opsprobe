@@ -97,11 +97,11 @@ export function ServiceWorkspace({
               </div>
 
               <div className="service-actions">
-                <button className="secondary-button" onClick={onRefreshSchedules} type="button">
-                  {isRefreshingSchedules ? "Refreshing..." : "Refresh Schedules"}
-                </button>
                 <button className="primary-button" onClick={onSaveSchedule} type="button">
                   {isSavingSchedule ? "Saving..." : "Create Schedule"}
+                </button>
+                <button className="secondary-button" onClick={onRefreshSchedules} type="button">
+                  {isRefreshingSchedules ? "Refreshing..." : "Refresh Schedules"}
                 </button>
               </div>
             </section>
@@ -156,7 +156,7 @@ export function ServiceWorkspace({
                       <button className="secondary-button" onClick={() => onToggleSchedule(schedule)} type="button">
                         {schedule.enabled ? "Disable" : "Enable"}
                       </button>
-                      <button className="secondary-button" onClick={() => onDeleteSchedule(schedule.id)} type="button">
+                      <button className="danger-button" onClick={() => onDeleteSchedule(schedule.id)} type="button">
                         Delete
                       </button>
                     </div>
@@ -191,16 +191,31 @@ export function ServiceWorkspace({
               <span>{formatStatusLabel(serviceResponse?.snapshot.status ?? "unknown")}</span>
             </div>
 
-            <div className="service-actions">
-              <button className="secondary-button" onClick={onRefreshServiceHealth} type="button">
-                {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
-              </button>
-              <button className="primary-button" onClick={onStartLocalService} type="button">Start Service</button>
-              <button className="secondary-button" onClick={onStopLocalService} type="button">Stop Service</button>
-              <button className="secondary-button" onClick={onRestartLocalService} type="button">Restart Service</button>
-              <button className="secondary-button" onClick={onBootstrapLocalPostgres} type="button">Bootstrap PostgreSQL</button>
-              <button className="secondary-button" onClick={onStartLocalPostgres} type="button">Start PostgreSQL</button>
-              <button className="secondary-button" onClick={onStopLocalPostgres} type="button">Stop PostgreSQL</button>
+            <div className="action-stack">
+              <div className="action-group">
+                <span className="action-group-label">Health</span>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={onRefreshServiceHealth} type="button">
+                    {isRefreshingService ? "Refreshing..." : "Refresh Service Status"}
+                  </button>
+                </div>
+              </div>
+              <div className="action-group">
+                <span className="action-group-label">OpsProbe service</span>
+                <div className="service-actions">
+                  <button className="primary-button" onClick={onStartLocalService} type="button">Start Service</button>
+                  <button className="secondary-button" onClick={onRestartLocalService} type="button">Restart Service</button>
+                  <button className="danger-button" onClick={onStopLocalService} type="button">Stop Service</button>
+                </div>
+              </div>
+              <div className="action-group action-group-danger">
+                <span className="action-group-label">Bundled PostgreSQL</span>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={onBootstrapLocalPostgres} type="button">Bootstrap PostgreSQL</button>
+                  <button className="secondary-button" onClick={onStartLocalPostgres} type="button">Start PostgreSQL</button>
+                  <button className="danger-button" onClick={onStopLocalPostgres} type="button">Stop PostgreSQL</button>
+                </div>
+              </div>
             </div>
 
             <div className="inline-note">

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.13] - 2026-06-10
+
+### Changed
+
+- reorganized `History` actions so the top of the page now focuses on running and refreshing, while export and file-opening actions stay inside the result card where operators expect them
+- grouped `Service` controls into health, OpsProbe service, and bundled PostgreSQL action clusters so start, restart, and stop operations no longer compete in one flat row
+- kept `Assets` centered on one primary action, `Save Current Target`, and demoted migration import/export into clearly separate utility groups instead of letting them compete with the main setup path
+- introduced shared primary, secondary, and danger button hierarchy for destructive actions such as schedule deletion and runtime stop controls
+
+### Fixed
+
+- updated desktop browser coverage to the new export button labels so the `0.11.13` action hierarchy remains enforced in regression tests
+- moved repository and desktop package versions to `0.11.13` before continuing the workspace action cleanup
+
 ## [0.11.12] - 2026-06-10
 
 ### Fixed
@@ -713,9 +727,3 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Tauri desktop application bootstrap for the open source edition
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
-
-## [0.11.12] - Unreleased
-
-### Planned
-
-- continue the active development checkpoint line

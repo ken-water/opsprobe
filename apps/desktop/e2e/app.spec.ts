@@ -452,10 +452,10 @@ test("supports opening exported files and revealing them in the local folder", a
 
   await nav.getByRole("button", { name: /Reports/ }).click();
 
-  await page.getByRole("button", { name: "Open HTML File" }).click();
+  await page.getByRole("button", { name: "Open HTML" }).click();
   await expect(page.getByRole("status").getByText(/Opened exported file .*opsprobe-report.*\.html/)).toBeVisible();
 
-  await page.getByRole("button", { name: "Show PDF In Folder" }).click();
+  await page.getByRole("button", { name: "Reveal PDF" }).click();
   await expect(page.getByRole("status").getByText(/Revealed exported file .*opsprobe-report.*\.pdf/)).toBeVisible();
 });
 

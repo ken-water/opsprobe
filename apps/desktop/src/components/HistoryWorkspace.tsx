@@ -122,20 +122,26 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
           title="Current Result"
           subtitle="Read the latest conclusion first. Export only after the main findings and remediation steps make sense."
           actions={
-            <div className="service-actions">
-              <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
-                {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
-              </button>
-              {activeRun ? (
-                <>
-                  <button className="secondary-button" onClick={() => onExportHtmlReport(activeRun)} type="button">
-                    {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
+            <div className="action-stack action-stack-compact">
+              <div className="action-group">
+                <span className="action-group-label">Run</span>
+                <div className="service-actions">
+                  <button className="primary-button" onClick={onRunLocalServiceInspection} type="button">
+                    {isRunningServiceInspection ? "Running..." : "Run Through Local Service"}
                   </button>
-                  <button className="secondary-button" onClick={() => onExportPdfReport(activeRun)} type="button">
-                    {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
+                </div>
+              </div>
+              <div className="action-group">
+                <span className="action-group-label">Refresh</span>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">
+                    {isRefreshingServicePreview ? "Refreshing..." : "Refresh Preview"}
                   </button>
-                </>
-              ) : null}
+                  <button className="secondary-button" onClick={onRefreshLocalServiceHistory} type="button">
+                    {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
+                  </button>
+                </div>
+              </div>
             </div>
           }
         />
@@ -208,27 +214,35 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                   <strong>Audience: {reportAudience}</strong>
                   <span>Export only after the conclusion and next actions are clear.</span>
                 </div>
-                <div className="service-actions">
-                  <button className="secondary-button" onClick={() => onExportHtmlReport(activeRun)} type="button">
-                    {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
-                  </button>
-                  <button className="secondary-button" onClick={() => onExportPdfReport(activeRun)} type="button">
-                    {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
-                  </button>
-                </div>
-                <div className="service-actions">
-                  <button className="secondary-button" onClick={() => onOpenExportFile(reportPath)} type="button">
-                    Open HTML File
-                  </button>
-                  <button className="secondary-button" onClick={() => onRevealExportFile(reportPath)} type="button">
-                    Show HTML In Folder
-                  </button>
-                  <button className="secondary-button" onClick={() => onOpenExportFile(pdfReportPath)} type="button">
-                    Open PDF File
-                  </button>
-                  <button className="secondary-button" onClick={() => onRevealExportFile(pdfReportPath)} type="button">
-                    Show PDF In Folder
-                  </button>
+                <div className="action-stack">
+                  <div className="action-group">
+                    <span className="action-group-label">Create files</span>
+                    <div className="service-actions">
+                      <button className="primary-button" onClick={() => onExportHtmlReport(activeRun)} type="button">
+                        {isExportingReport ? "Exporting..." : `Export ${reportAudience} HTML`}
+                      </button>
+                      <button className="secondary-button" onClick={() => onExportPdfReport(activeRun)} type="button">
+                        {isExportingPdfReport ? "Exporting..." : `Export ${reportAudience} PDF`}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="action-group">
+                    <span className="action-group-label">Open files</span>
+                    <div className="service-actions">
+                      <button className="secondary-button" onClick={() => onOpenExportFile(reportPath)} type="button">
+                        Open HTML
+                      </button>
+                      <button className="secondary-button" onClick={() => onRevealExportFile(reportPath)} type="button">
+                        Reveal HTML
+                      </button>
+                      <button className="secondary-button" onClick={() => onOpenExportFile(pdfReportPath)} type="button">
+                        Open PDF
+                      </button>
+                      <button className="secondary-button" onClick={() => onRevealExportFile(pdfReportPath)} type="button">
+                        Reveal PDF
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </article>
             </div>
@@ -317,13 +331,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
           title="History And Comparison"
           subtitle="Use this after the current result is clear. Compare older runs, reopen a selected run, or inspect trends."
           actions={
-            <div className="service-actions">
-              <button className="secondary-button" onClick={onRefreshLocalServiceInspectionPreview} type="button">
-                {isRefreshingServicePreview ? "Refreshing..." : "Refresh Preview"}
-              </button>
-              <button className="secondary-button" onClick={onRefreshLocalServiceHistory} type="button">
-                {isRefreshingHistory ? "Refreshing..." : "Refresh History"}
-              </button>
+            <div className="inline-note inline-note-compact">
+              <strong>Review mode</strong>
+              <span>Pick a run from the list to compare timelines and reopen its conclusion above.</span>
             </div>
           }
         />

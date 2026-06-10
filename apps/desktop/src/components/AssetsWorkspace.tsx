@@ -42,13 +42,23 @@ export function AssetsWorkspace({
         title="Save this target"
         subtitle="Do this only after the first preview is already trustworthy."
         actions={
-          <div className="service-actions">
-            <button className="primary-button" onClick={onSaveCurrentAsset} type="button">
-              Save Current Target
-            </button>
-            <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
-              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Targets"}
-            </button>
+          <div className="action-stack action-stack-compact">
+            <div className="action-group">
+              <span className="action-group-label">Main action</span>
+              <div className="service-actions">
+                <button className="primary-button" onClick={onSaveCurrentAsset} type="button">
+                  Save Current Target
+                </button>
+              </div>
+            </div>
+            <div className="action-group">
+              <span className="action-group-label">List</span>
+              <div className="service-actions">
+                <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
+                  {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Targets"}
+                </button>
+              </div>
+            </div>
           </div>
         }
       />
@@ -223,13 +233,23 @@ export function AssetsWorkspace({
                 placeholder="/tmp/opsprobe-config.json"
               />
             </label>
-            <div className="service-actions">
-              <button className="primary-button" onClick={onExportConfig} type="button">
-                {isExportingConfig ? "Exporting..." : "Export Config"}
-              </button>
-              <button className="secondary-button" onClick={onImportConfig} type="button">
-                {isImportingConfig ? "Importing..." : "Import Config"}
-              </button>
+            <div className="action-stack">
+              <div className="action-group">
+                <span className="action-group-label">Move out</span>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={onExportConfig} type="button">
+                    {isExportingConfig ? "Exporting..." : "Export Config"}
+                  </button>
+                </div>
+              </div>
+              <div className="action-group">
+                <span className="action-group-label">Move in</span>
+                <div className="service-actions">
+                  <button className="secondary-button" onClick={onImportConfig} type="button">
+                    {isImportingConfig ? "Importing..." : "Import Config"}
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
 
