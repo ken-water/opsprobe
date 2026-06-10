@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.14] - 2026-06-10
+
+### Changed
+
+- added a default patch-ceiling rule so one minor line should normally stop at `x.y.9` instead of growing indefinitely
+- documented the one-time `0.11.x` closeout exception through `0.11.16` and tied the remaining checkpoints to closeout work only
+- updated release planning and roadmap docs so the next decision is explicit: finish `0.11.15` and `0.11.16`, then move to `1.0.0` or open `0.12.0`
+
+### Fixed
+
+- enforced the patch-ceiling rule in `scripts/check-version-gate.sh` so future minor lines cannot drift past the default ceiling without a documented exception
+- moved repository and desktop package versions to `0.11.14` before continuing the stable-decision closeout line
+
 ## [0.11.13] - 2026-06-10
 
 ### Changed

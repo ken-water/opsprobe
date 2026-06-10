@@ -88,6 +88,13 @@ OpsProbe rule:
 - Once a minor line is active, every meaningful committed checkpoint should move to the next patch version before the checkpoint is pushed
 - "Meaningful checkpoint" includes user-facing UX changes, new bounded implementation slices, new evidence or validation records, release-discipline changes, and non-trivial docs or gate updates
 - These patch checkpoints may stay unreleased until the broader minor line is ready, as long as patch numbers remain contiguous and the line is clearly marked `Unreleased`
+- Patch lines must stay bounded. Default ceiling: `x.y.0` through `x.y.9`
+- If a minor line would need `x.y.10+`, do not keep extending it by default
+- Before any `x.y.10+` checkpoint is allowed, the repository must record a written closeout exception with:
+  - the exact minor line
+  - the last allowed patch in that exception window
+  - the reason the line is being closed instead of rolled into the next minor
+- Closeout exceptions are temporary and should only be used to finish a release-or-defer decision, release-discipline repair, or another bounded end-of-line task
 
 ## Pre-1.0 Rules
 
@@ -102,6 +109,13 @@ Rules:
 - Consecutive minor versions may belong to the same broader product-validation phase if each version still has a concrete user-facing milestone
 - Consecutive patch versions within the same `0.x` minor line may also be used to close bounded slices of the same exploration stage, such as `0.8.0`, `0.8.1`, and `0.8.2`
 - Once work has moved beyond `0.x.0`, do not continue stacking multiple pushed checkpoints under the same patch number
+- Do not let a `0.x` minor line grow indefinitely. If the line reaches `0.x.9`, the next step must be one of:
+  - open the next minor line with a clearer theme
+  - stop feature work and finish a bounded closeout exception
+  - make the release-or-defer decision for the next major milestone
+- Current explicit closeout exception:
+  - `0.11.x` may continue only through `0.11.16`
+  - `0.11.14`, `0.11.15`, and `0.11.16` are reserved to close the stable-decision evidence line and must not become another open-ended feature stream
 
 ## Post-1.0 Rules
 

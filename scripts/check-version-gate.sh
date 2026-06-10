@@ -29,6 +29,21 @@ MILESTONES_JSON="$(gh api "repos/${REPO}/milestones?state=all&per_page=100")"
 failures=0
 
 version_kind="patch"
+line_patch_ceiling=9
+allowed_closeout_ceiling=""
+
+get_closeout_patch_ceiling() {
+  local major="$1"
+  local minor="$2"
+  case "${major}.${minor}" in
+    "0.11")
+      echo "16"
+      ;;
+    *)
+      echo ""
+      ;;
+  esac
+}
 
 get_milestone() {
   local title="$1"
@@ -45,6 +60,18 @@ fi
 IFS='.' read -r target_major target_minor target_patch <<<"${TARGET_VERSION}"
 if [[ "${target_patch}" == "0" ]]; then
   version_kind="minor_or_major"
+fi
+
+if [[ "${version_kind}" == "patch" ]]; then
+  allowed_closeout_ceiling="$(get_closeout_patch_ceiling "${target_major}" "${target_minor}")"
+  if [[ "${target_patch}" -le "${line_patch_ceiling}" ]]; then
+    echo "[pass] patch version ${TARGET_VERSION} stays within the default ${target_major}.${target_minor}.0-${target_major}.${target_minor}.${line_patch_ceiling} ceiling"
+  elif [[ -n "${allowed_closeout_ceiling}" && "${target_patch}" -le "${allowed_closeout_ceiling}" ]]; then
+    echo "[pass] patch version ${TARGET_VERSION} uses the documented ${target_major}.${target_minor}.x closeout exception through ${target_major}.${target_minor}.${allowed_closeout_ceiling}"
+  else
+    echo "[fail] patch version ${TARGET_VERSION} exceeds the default ${target_major}.${target_minor}.x ceiling and has no documented closeout exception"
+    failures=$((failures + 1))
+  fi
 fi
 
 mapfile -t VERSION_ORDER < <(

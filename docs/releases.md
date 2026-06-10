@@ -449,6 +449,23 @@ Recommended issue split inside `0.11.x`:
 - `0.11.2`: current-version Linux packaged evidence refresh on a viable build environment plus Windows installer acceptance evidence on a real Windows or Wine-capable validation environment if earlier `0.11.x` checkpoints still lack install credibility
 - `0.11.3`: final blocker acceptance or follow-up defer decision before reopening `1.0.0`
 
+Observed closeout adjustment:
+
+- `0.11.x` has already grown beyond the original `0.11.3` plan because the stable-candidate line absorbed release-discipline repairs and desktop UX cleanup that should have been cut more aggressively
+- do not treat that drift as the new default versioning model
+- the line is now in a bounded closeout window and may continue only through `0.11.16`
+
+Forced closeout checkpoints:
+
+- `0.11.14`: codify the patch-ceiling rule, publish the closeout plan, and prevent future minor lines from drifting past `x.y.9` without an explicit exception
+- `0.11.15`: finish the explicit `1.0.0` blocker classification and release-or-defer support artifacts
+- `0.11.16`: publish the final recommendation for `1.0.0` or open the next bounded `0.12.0` hardening line
+
+Closeout rule:
+
+- do not create `0.11.17+`
+- if `1.0.0` is still not defensible after `0.11.16`, the next development line must be `0.12.0`, not another `0.11.x` patch
+
 ## Post-Stable Direction
 
 ### `1.1.0`

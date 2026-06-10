@@ -19,6 +19,8 @@ OpsProbe releases should be created with all three artifacts aligned:
 2. Before each meaningful pushed checkpoint on an active minor line, bump to the next patch version so the checkpoint has a unique version identity
    - use `npm run version:bump-dev -- <next-version>`
    - example: after `0.11.0`, the next pushed checkpoint should move to `0.11.1`, then `0.11.2`, then `0.11.3`
+   - default patch ceiling: do not continue past `x.y.9` unless a documented closeout exception already exists in the roadmap and versioning docs
+   - a closeout exception must name the final allowed patch in that line before work starts
 3. After a version is tagged and released, immediately bump repository version files to the next development version before substantial follow-up work begins
 4. Update version references in:
    - root `package.json`
@@ -45,6 +47,8 @@ OpsProbe releases should be created with all three artifacts aligned:
 11. If a historical release was backfilled, explicitly restore the GitHub `Latest` marker to the newest shipped version instead of leaving it on the newly created older release
 12. Bump to the next development version and push that checkpoint before starting broader follow-up work
 13. Do not begin the next minor version until the previous minor's release commit, tag, and GitHub release all exist on GitHub
+14. Do not extend a minor line indefinitely just because more polish is possible
+   - once a line reaches its patch ceiling, either close it, move to the next minor, or finish the documented closeout exception and stop
 
 Patch-release note:
 
@@ -105,6 +109,14 @@ For the pre-stable `0.11.x` evidence line, also capture:
 - the filled validation record based on [stable-candidate-operator-notes.md](./stable-candidate-operator-notes.md)
 - the current issue-specific draft such as [stable-candidate-operator-notes-0.11.0.md](./stable-candidate-operator-notes-0.11.0.md)
 - the decision summary based on [stable-review-record.md](./stable-review-record.md)
+
+Current bounded exception:
+
+- `0.11.x` is allowed to continue through `0.11.16` only
+- `0.11.14`: codify the patch-ceiling rule and closeout plan
+- `0.11.15`: complete blocker classification and release-or-defer support
+- `0.11.16`: final `1.0.0` proceed-or-defer recommendation
+- after `0.11.16`, do not create `0.11.17+`
 
 The environment report should be preserved alongside the other `.opsprobe-validation` artifacts whenever a new machine or changed toolchain is involved in packaged evidence collection.
 

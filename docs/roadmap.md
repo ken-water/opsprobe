@@ -146,6 +146,14 @@ Current planned checkpoints:
 - `0.11.2`: packaged acceptance evidence on a real Windows-capable path plus any deferred current-version Linux packaged proof
 - `0.11.3`: explicit `1.0.0` blocker classification and release-or-defer decision support
 
+Current enforced closeout plan:
+
+- `0.11.14`: encode the patch-ceiling rule and close the loophole that allowed one minor line to keep growing
+- `0.11.15`: finish the blocker table and written release-or-defer support for `1.0.0`
+- `0.11.16`: make the final pre-`1.0.0` recommendation
+- no `0.11.17+`
+- if more hardening is still needed, continue as `0.12.0` with a new theme instead of extending `0.11.x`
+
 Immediate priority after the current `0.10.8` line:
 
 - finish Windows installer acceptance evidence instead of only Windows cross-build artifact proof
@@ -172,6 +180,7 @@ Potential future capabilities outside the open source scope:
 - Use `Issue 47` to decide whether current blockers must be fixed first or can be explicitly accepted
 - Require a defensible stable-release rationale, not just another finished release
 - Reserve `1.0.1+` only for bounded post-stable regressions; do not hide unfinished pre-stable work inside future stable patch numbers
+- If `0.11.16` still does not justify `1.0.0`, open `0.12.0` explicitly rather than allowing `0.11.x` to continue growing
 
 ### `1.1.0` Multilingual Foundation
 
