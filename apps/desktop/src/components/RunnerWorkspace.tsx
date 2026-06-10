@@ -81,6 +81,17 @@ export function RunnerWorkspace({
       : !hasPreviewResult
         ? "Run the first preview now"
         : "First inspection complete";
+  const primaryActionLabel = !connectionReady
+    ? "Complete Required Fields"
+    : !connectionVerified
+      ? isTestingSsh
+        ? "Testing SSH..."
+        : "Start SSH Test"
+      : !hasPreviewResult
+        ? isRefreshingPreview
+          ? "Running Preview..."
+          : "Start Preview Run"
+        : "Open Reports";
   const stepSummary = !connectionReady
     ? "Step 1 of 3"
     : !connectionVerified
@@ -88,6 +99,24 @@ export function RunnerWorkspace({
       : !hasPreviewResult
         ? "Step 3 of 3"
         : "Complete";
+  const handlePrimaryAction = () => {
+    if (!connectionReady) {
+      return;
+    }
+
+    if (!connectionVerified) {
+      onTestSsh();
+      return;
+    }
+
+    if (!hasPreviewResult) {
+      onRefreshInspectionPreview();
+      return;
+    }
+
+    onOpenResults();
+  };
+  const primaryActionDisabled = !connectionReady || isTestingSsh || isRefreshingPreview;
 
   return (
     <section className="run-panel">
@@ -103,7 +132,7 @@ export function RunnerWorkspace({
       />
 
       <section className={`runner-mission-panel ${firstInspectionComplete ? "runner-mission-panel-done" : ""}`}>
-        <div>
+        <div className="runner-mission-copy">
           <p className="eyebrow">Current Task</p>
           <h3>{nextActionLabel}</h3>
           <p className="helper-text">
@@ -115,6 +144,21 @@ export function RunnerWorkspace({
                   ? "SSH is verified. Run one preview and confirm the result is readable."
                   : "The first inspection path is working. You can now save this target or move on to automation."}
           </p>
+          <div className="runner-mission-actions">
+            <button
+              className="primary-button primary-button-large"
+              onClick={handlePrimaryAction}
+              type="button"
+              disabled={primaryActionDisabled}
+            >
+              {primaryActionLabel}
+            </button>
+            {firstInspectionComplete ? (
+              <button className="secondary-button" onClick={onOpenAssets} type="button">
+                Save This Target
+              </button>
+            ) : null}
+          </div>
         </div>
         <div className="runner-mission-status">
           <strong>{stepSummary}</strong>

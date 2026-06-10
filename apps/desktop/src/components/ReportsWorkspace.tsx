@@ -15,7 +15,7 @@ export function ReportsWorkspace({
       <DesktopSectionHeader
         eyebrow="Report Mode"
         title="Export this result"
-        subtitle="Choose the audience, then export from the current result section above."
+        subtitle="Choose who will read it, then export from the current result view."
         meta={
           <div className="summary-strip">
             <span>Audience {reportAudience}</span>
@@ -25,8 +25,11 @@ export function ReportsWorkspace({
 
       <div className="reports-workspace">
         <div className="reports-config-panel">
-          <article className="history-side-card">
-            <h3>Current export mode</h3>
+          <article className="service-card reports-mode-card reports-mode-card-active">
+            <div className="service-card-header">
+              <strong>Current export mode</strong>
+              <span className="badge badge-pass">{reportAudience === "operator" ? "operator" : "manager"}</span>
+            </div>
             <div className="inline-note">
               <strong>{reportAudience === "operator" ? "Operator mode" : "Manager mode"}</strong>
               <span>
@@ -35,102 +38,78 @@ export function ReportsWorkspace({
                   : "Keep the summary short, decision-oriented, and focused on risk and next action."}
               </span>
             </div>
+            <p className="helper-text">This choice applies to both HTML and PDF export for the selected run.</p>
           </article>
+        </div>
 
-          <div className="service-checks">
-            <article className="service-card">
+        <div className="reports-side-panel">
+          <div className="reports-mode-grid">
+            <article className="service-card reports-mode-card">
               <div className="service-card-header">
                 <strong>Operator report</strong>
                 <span className={`badge badge-${reportAudience === "operator" ? "pass" : "unknown"}`}>
                   {reportAudience === "operator" ? "selected" : "available"}
                 </span>
               </div>
-              <p>For the person who will fix the problem.</p>
+              <p>Use this when the reader will investigate evidence and make the repair.</p>
               <button
-                className="secondary-button"
+                className={reportAudience === "operator" ? "primary-button" : "secondary-button"}
                 onClick={() => setReportAudience("operator")}
                 type="button"
               >
-                Use Operator Mode
+                {reportAudience === "operator" ? "Operator Mode Active" : "Use Operator Mode"}
               </button>
             </article>
 
-            <article className="service-card">
+            <article className="service-card reports-mode-card">
               <div className="service-card-header">
                 <strong>Manager report</strong>
                 <span className={`badge badge-${reportAudience === "manager" ? "pass" : "unknown"}`}>
                   {reportAudience === "manager" ? "selected" : "available"}
                 </span>
               </div>
-              <p>For the person who needs impact and priority, not raw evidence.</p>
+              <p>Use this when the reader only needs risk, priority, and what should happen next.</p>
               <button
-                className="secondary-button"
+                className={reportAudience === "manager" ? "primary-button" : "secondary-button"}
                 onClick={() => setReportAudience("manager")}
                 type="button"
               >
-                Use Manager Mode
+                {reportAudience === "manager" ? "Manager Mode Active" : "Use Manager Mode"}
               </button>
             </article>
           </div>
-
-          <p className="helper-text">This choice affects both HTML and PDF export for the selected run.</p>
-        </div>
-
-        <div className="reports-side-panel">
-          <div className="history-side-card">
-            <h3>Missing something?</h3>
-            <div className="history-side-list">
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>Inspection Need</strong>
-                  <span className="badge badge-warning">missing check</span>
-                </div>
-                <p>Template, evidence field, or service check missing.</p>
-                <a
-                  className="support-link"
-                  href="https://github.com/ken-water/opsprobe/issues/new?template=inspection-need.yml"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open Inspection Need
-                </a>
-              </article>
-
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>Report Feedback</strong>
-                  <span className="badge badge-warning">report fit</span>
-                </div>
-                <p>The report exists, but structure or wording is wrong.</p>
-                <a
-                  className="support-link"
-                  href="https://github.com/ken-water/opsprobe/issues/new?template=report-feedback.yml"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open Report Feedback
-                </a>
-              </article>
-
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>Workflow Friction</strong>
-                  <span className="badge badge-warning">real usage pain</span>
-                </div>
-                <p>OpsProbe does not fit the real sequence of work.</p>
-                <a
-                  className="support-link"
-                  href="https://github.com/ken-water/opsprobe/issues/new?template=workflow-friction.yml"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open Workflow Friction
-                </a>
-              </article>
-            </div>
-          </div>
         </div>
       </div>
+
+      <article className="history-side-card reports-feedback-card">
+        <h3>Need another report shape?</h3>
+        <div className="reports-feedback-links">
+          <a
+            className="support-link"
+            href="https://github.com/ken-water/opsprobe/issues/new?template=inspection-need.yml"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Missing Check
+          </a>
+          <a
+            className="support-link"
+            href="https://github.com/ken-water/opsprobe/issues/new?template=report-feedback.yml"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Report Feedback
+          </a>
+          <a
+            className="support-link"
+            href="https://github.com/ken-water/opsprobe/issues/new?template=workflow-friction.yml"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Workflow Friction
+          </a>
+        </div>
+      </article>
     </section>
   );
 }

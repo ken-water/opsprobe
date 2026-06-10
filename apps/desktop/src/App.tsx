@@ -1472,6 +1472,7 @@ function App() {
         : activeWorkspace === "inspection-results"
           ? "Review findings and export a report."
           : "Fix only what blocks the first inspection.";
+  const inspectionFlowReady = sshResult?.ok === true && inspectionRun !== null;
 
   useEffect(() => {
     if (pendingWorkspace === null || pendingWorkspace !== activeWorkspace) {
@@ -1587,32 +1588,54 @@ function App() {
               <section className="inspect-shell">
                 <div className="inspect-stage-intro">
                   <h3>Run the first inspection</h3>
+                  <p className="helper-text inspect-stage-copy">
+                    Stay in step 1 until SSH succeeds and one preview result is readable. Save targets and automation come after that.
+                  </p>
                 </div>
-                <div className="inspect-mode-switch inspect-mode-switch-secondary" aria-label="After the first inspection">
+                <div className="inspect-mode-switch" aria-label="Inspect entry">
                   <button
                     className={`inspect-mode-button ${activeInspectSection === "run" ? "inspect-mode-button-active" : ""}`}
                     onClick={() => handleInspectSectionChange("run")}
                     type="button"
                   >
                     <span className="inspect-mode-step">1</span>
-                    <span><strong>Run now</strong></span>
+                    <span>
+                      <strong>Run now</strong>
+                      <small>Enter one target, test SSH, and prove one preview.</small>
+                    </span>
                   </button>
-                  <button
-                    className={`inspect-mode-button ${activeInspectSection === "assets" ? "inspect-mode-button-active" : ""}`}
-                    onClick={() => handleInspectSectionChange("assets")}
-                    type="button"
-                  >
-                    <span className="inspect-mode-step">2</span>
-                    <span><strong>Save target</strong></span>
-                  </button>
-                  <button
-                    className={`inspect-mode-button ${activeInspectSection === "automation" ? "inspect-mode-button-active" : ""}`}
-                    onClick={() => handleInspectSectionChange("automation")}
-                    type="button"
-                  >
-                    <span className="inspect-mode-step">3</span>
-                    <span><strong>Automate later</strong></span>
-                  </button>
+                </div>
+                <div className="inspect-follow-up">
+                  <span className="inspect-follow-up-label">After the first preview succeeds</span>
+                  <div className="inspect-mode-switch inspect-mode-switch-secondary" aria-label="After the first inspection">
+                    <button
+                      className={`inspect-mode-button ${activeInspectSection === "assets" ? "inspect-mode-button-active" : ""}`}
+                      onClick={() => handleInspectSectionChange("assets")}
+                      type="button"
+                    >
+                      <span className="inspect-mode-step">2</span>
+                      <span>
+                        <strong>Save target</strong>
+                        <small>Keep this working target for reuse and machine transfer.</small>
+                      </span>
+                    </button>
+                    <button
+                      className={`inspect-mode-button ${activeInspectSection === "automation" ? "inspect-mode-button-active" : ""}`}
+                      onClick={() => handleInspectSectionChange("automation")}
+                      type="button"
+                    >
+                      <span className="inspect-mode-step">3</span>
+                      <span>
+                        <strong>Automate later</strong>
+                        <small>Only schedule recurring runs after the first manual result is trusted.</small>
+                      </span>
+                    </button>
+                  </div>
+                  {!inspectionFlowReady ? (
+                    <p className="helper-text inspect-follow-up-note">
+                      These are follow-up steps. You can open them now, but they only become reliable after one SSH verification and one preview result succeed.
+                    </p>
+                  ) : null}
                 </div>
               </section>
               {activeInspectSection === "run" ? (
