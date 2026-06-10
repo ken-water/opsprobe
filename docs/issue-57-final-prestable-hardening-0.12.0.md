@@ -31,6 +31,7 @@ Current execution records:
 - [Issue 57 Progress 0.12.2](./issue-57-progress-0.12.2.md)
 - [Issue 57 Progress 0.12.3](./issue-57-progress-0.12.3.md)
 - [Issue 57 Progress 0.12.4](./issue-57-progress-0.12.4.md)
+- [Issue 57 Progress 0.12.5](./issue-57-progress-0.12.5.md)
 
 ## Non-Goals
 

@@ -824,3 +824,4 @@ The format is based on Keep a Changelog and the project follows semantic version
 
 - narrowed the current packaged-build blocker to a single vendored Cargo mismatch on `linux-raw-sys 0.12.2`
 - recorded that both Linux packaged build and Windows installer evidence remain blocked until `.opsprobe-vendor` is refreshed from a machine or network path that can obtain the missing crate
+- added an offline preload path for missing Cargo `.crate` files so vendored desktop dependencies can be refreshed from another machine

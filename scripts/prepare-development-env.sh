@@ -20,6 +20,11 @@ Bootstraps the local OpsProbe development environment by:
 - discovering local PostgreSQL binary directories
 - preparing desktop Cargo vendor sources for more reliable Tauri packaging
 - recording a structured development environment report
+
+Optional:
+
+- set `OPSPROBE_PRELOADED_CRATE_DIRS` to one or more local directories separated by `:`
+- any matching `*.crate` files in those directories are copied into the Cargo cache before online download is attempted
 EOF
 }
 

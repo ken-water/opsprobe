@@ -36,6 +36,17 @@ If Cargo mirror access is unstable, first hydrate the local Cargo cache from the
 ./scripts/hydrate-cargo-cache.sh
 ```
 
+If the machine cannot download a required crate directly, preload it from another machine first and point the script at that directory:
+
+```bash
+mkdir -p .opsprobe-preloaded-crates
+# copy linux-raw-sys-0.12.2.crate into .opsprobe-preloaded-crates/
+OPSPROBE_PRELOADED_CRATE_DIRS="$PWD/.opsprobe-preloaded-crates" \
+  ./scripts/hydrate-cargo-cache.sh
+```
+
+`OPSPROBE_PRELOADED_CRATE_DIRS` accepts multiple directories separated by `:`.
+
 Then prepare vendored sources for the desktop build:
 
 ```bash
