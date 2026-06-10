@@ -12,6 +12,7 @@
     "desktop:lint": "npm --workspace @opsprobe/desktop run lint",
     "desktop:typecheck": "npm --workspace @opsprobe/desktop run typecheck",
     "desktop:validate-packaged-record": "./scripts/record-desktop-packaged-validation.sh",
+    "desktop:validate-packaged-gate": "./scripts/validate-desktop-packaged-gate.sh",
     "desktop:validate-windows-record": "./scripts/record-desktop-windows-validation.sh",
     "desktop:validate-windows-wine-record": "./scripts/record-desktop-windows-wine-validation.sh",
     "local-service:postgres-bootstrap": "npm --workspace @opsprobe/local-service run postgres-bootstrap",

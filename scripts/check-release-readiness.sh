@@ -92,6 +92,14 @@ else
   failures=$((failures + 1))
 fi
 
+packaged_gate_record=".opsprobe-validation/desktop-packaged-gate.json"
+if ./scripts/validate-desktop-packaged-gate.sh >/dev/null; then
+  echo "[pass] desktop packaged gate passed for ${TARGET_VERSION}"
+else
+  echo "[fail] desktop packaged gate failed; inspect ${packaged_gate_record}"
+  failures=$((failures + 1))
+fi
+
 if [[ "${failures}" -gt 0 ]]; then
   echo "Release readiness failed for version ${TARGET_VERSION}"
   exit 1

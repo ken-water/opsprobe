@@ -26,6 +26,12 @@ OpsProbe releases should be created with all three artifacts aligned:
    - for `1.0.0`, complete the review in [stable-readiness.md](./stable-readiness.md)
 5. Run build and validation commands
    - `./scripts/smoke-release-candidate.sh`
+   - `./scripts/validate-desktop-bundle-candidate.sh`
+   - `./scripts/validate-desktop-packaged-acceptance-preflight.sh`
+   - `./scripts/validate-desktop-packaged-launch-smoke.sh`
+   - `npm run desktop:validate-windows-record`
+   - `npm run desktop:validate-windows-wine-record`
+   - `npm run desktop:validate-packaged-gate`
    - `./scripts/check-release-readiness.sh <target-version>`
    - for desktop packaging, also verify the target-specific bundle command succeeds
 6. Commit with a release-oriented message
@@ -61,10 +67,21 @@ Before publishing a release, OpsProbe also requires a release-readiness gate:
 - `release-notes/v<target-version>.md` must exist
 - `CHANGELOG.md`, `README.md`, and desktop release copy must reference the target release
 - the release-candidate smoke script must have completed for the same target version
+- the desktop packaged gate must pass for the same target version
 
 Use:
 
 `./scripts/check-release-readiness.sh <target-version>`
+
+Use the packaged-evidence aggregate directly when refreshing desktop release proof:
+
+`npm run desktop:validate-packaged-gate`
+
+For the current `0.11.x` line this means:
+
+- Linux bundle candidate evidence is mandatory
+- Linux packaged launch smoke must show the AppImage stayed alive
+- Windows artifact and Wine records must exist for the current version even if they still document limitations
 
 For `1.0.0`, release readiness is necessary but not sufficient. The stable-release review in [stable-readiness.md](./stable-readiness.md) must also be completed with explicit evidence and a written decision.
 
