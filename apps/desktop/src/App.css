@@ -643,13 +643,14 @@ body {
 
 .hub-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
   gap: 18px;
   margin-bottom: 28px;
 }
 
 .hub-hero-main,
 .hub-side-card,
+.hub-hero-side-card,
 .hub-card,
 .hub-step-button {
   border: 1px solid var(--ops-border-soft);
@@ -667,6 +668,52 @@ body {
   max-width: 700px;
   font-size: clamp(1.9rem, 2.6vw, 2.7rem);
   line-height: 1.02;
+  color: var(--ops-text-strong);
+}
+
+.hub-hero-side-card {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 30px;
+}
+
+.hub-hero-side-block {
+  display: grid;
+  gap: 8px;
+}
+
+.hub-hero-side-block strong {
+  color: var(--ops-text-strong);
+  font-size: 1.05rem;
+}
+
+.hub-hero-side-block p {
+  margin: 0;
+  color: var(--ops-text-muted);
+  line-height: 1.6;
+}
+
+.hub-hero-side-metrics {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: rgba(10, 18, 30, 0.56);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.hub-hero-side-metrics div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hub-hero-side-metrics span {
+  color: var(--ops-text-muted);
+}
+
+.hub-hero-side-metrics strong {
   color: var(--ops-text-strong);
 }
 
@@ -698,14 +745,14 @@ body {
   border-color: rgba(251, 191, 36, 0.18);
 }
 
-.hub-guided-strip {
+.hub-next-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin: 0 0 20px;
 }
 
-.guided-step-card {
+.hub-next-card {
   display: grid;
   gap: 8px;
   padding: 16px 18px;
@@ -713,28 +760,19 @@ body {
   border-radius: 18px;
   background: rgba(10, 18, 30, 0.74);
   color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
-.guided-step-card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(125, 211, 252, 0.22);
-  background: rgba(12, 22, 36, 0.92);
-}
-
-.guided-step-card strong {
+.hub-next-card strong {
   color: var(--ops-text-strong);
   font-size: 0.98rem;
 }
 
-.guided-step-card span:last-child {
+.hub-next-card span:last-child {
   color: var(--ops-text-muted);
   line-height: 1.55;
 }
 
-.guided-step-card-active {
+.hub-next-card-active {
   border-color: rgba(125, 211, 252, 0.3);
   background: linear-gradient(180deg, rgba(12, 24, 39, 0.96), rgba(10, 18, 30, 0.86));
   box-shadow: var(--ops-shadow-soft);
@@ -751,11 +789,6 @@ body {
   color: #7dd3fc;
   font-size: 0.8rem;
   font-weight: 800;
-}
-
-.hub-hero-side {
-  display: grid;
-  gap: 16px;
 }
 
 .hub-side-card {
@@ -1555,8 +1588,9 @@ body {
 }
 
 .runner-mission-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 18px;
   margin-top: 18px;
   padding: 20px;
@@ -1572,6 +1606,25 @@ body {
   margin: 2px 0 0;
   font-size: 1.4rem;
   color: var(--ops-text-strong);
+}
+
+.runner-mission-status {
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(10, 18, 30, 0.56);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.runner-mission-status strong {
+  color: var(--ops-text-strong);
+  font-size: 1rem;
+}
+
+.runner-mission-status span {
+  color: var(--ops-text-muted);
 }
 
 .runner-mission-panel-done {
@@ -1610,49 +1663,10 @@ body {
   background: linear-gradient(180deg, rgba(12, 30, 25, 0.72), rgba(10, 24, 20, 0.58));
 }
 
-.runner-path-strip {
+.runner-focus-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 18px;
-}
-
-.runner-path-card {
-  display: grid;
-  gap: 8px;
-  padding: 16px 18px;
-  border: 1px solid rgba(148, 163, 184, 0.08);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(11, 21, 34, 0.9), rgba(10, 18, 30, 0.74));
-}
-
-.runner-path-card strong {
-  color: var(--ops-text-strong);
-  font-size: 0.96rem;
-}
-
-.runner-path-card span:last-child {
-  color: var(--ops-text-muted);
-  line-height: 1.55;
-}
-
-.runner-path-card-active {
-  border-color: rgba(125, 211, 252, 0.24);
-  background: linear-gradient(180deg, rgba(12, 24, 39, 0.96), rgba(10, 18, 30, 0.84));
-  box-shadow: var(--ops-shadow-soft);
-}
-
-.runner-path-index {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: rgba(125, 211, 252, 0.14);
-  color: #7dd3fc;
-  font-size: 0.8rem;
-  font-weight: 800;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 18px;
 }
 
 .workflow-step-card {
@@ -1661,6 +1675,12 @@ body {
   border-radius: var(--ops-radius-panel);
   background: linear-gradient(180deg, rgba(10, 20, 33, 0.96), rgba(10, 18, 30, 0.88));
   box-shadow: var(--ops-shadow-soft);
+}
+
+.runner-side-card {
+  display: grid;
+  align-content: start;
+  gap: 16px;
 }
 
 .wizard-progress-grid {
@@ -2281,11 +2301,11 @@ button.data-table-row {
 }
 
 @media (max-width: 1180px) {
-  .hub-guided-strip,
+  .hub-next-strip,
   .hub-hero,
   .dashboard-hero,
   .hub-grid,
-  .runner-path-strip,
+  .runner-focus-grid,
   .hub-readiness-grid,
   .journey-strip,
   .results-overview-hero,
@@ -2306,9 +2326,9 @@ button.data-table-row {
 }
 
 @media (max-width: 860px) {
-  .hub-guided-strip,
+  .hub-next-strip,
   .hub-grid,
-  .runner-path-strip,
+  .runner-focus-grid,
   .hub-readiness-grid,
   .dashboard-metrics,
   .ops-snapshot-grid {
@@ -2375,11 +2395,12 @@ button.data-table-row {
   }
 
   .hub-hero-main,
-  .hub-side-card {
+  .hub-side-card,
+  .hub-hero-side-card {
     padding: 18px;
   }
 
-  .hub-guided-strip {
+  .hub-next-strip {
     grid-template-columns: 1fr;
   }
 

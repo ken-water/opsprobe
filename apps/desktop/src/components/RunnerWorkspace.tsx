@@ -81,6 +81,13 @@ export function RunnerWorkspace({
       : !hasPreviewResult
         ? "Run the first preview now"
         : "First inspection complete";
+  const stepSummary = !connectionReady
+    ? "Step 1 of 3"
+    : !connectionVerified
+      ? "Step 2 of 3"
+      : !hasPreviewResult
+        ? "Step 3 of 3"
+        : "Complete";
 
   return (
     <section className="run-panel">
@@ -109,278 +116,261 @@ export function RunnerWorkspace({
                   : "The first inspection path is working. You can now save this target or move on to automation."}
           </p>
         </div>
-        <div className="runner-checklist" aria-label="First inspection checklist">
-          <div className={`runner-checklist-item ${connectionReady ? "runner-checklist-item-done" : ""}`}>
-            <strong>1. Target entered</strong>
-            <span>{connectionReady ? connectionSummary : "Host, username, and secret still need input."}</span>
-          </div>
-          <div className={`runner-checklist-item ${connectionVerified ? "runner-checklist-item-done" : ""}`}>
-            <strong>2. SSH verified</strong>
-            <span>{connectionVerified ? "This machine can reach the target over SSH." : "Run Test SSH Connection before preview."}</span>
-          </div>
-          <div className={`runner-checklist-item ${hasPreviewResult ? "runner-checklist-item-done" : ""}`}>
-            <strong>3. Preview result ready</strong>
-            <span>{hasPreviewResult ? "The first preview result is available below." : "Run one preview and verify the findings are readable."}</span>
-          </div>
+        <div className="runner-mission-status">
+          <strong>{stepSummary}</strong>
+          <span>{connectionSummary}</span>
+          <span>{activeTemplate.name}</span>
         </div>
       </section>
 
-      <section className="runner-path-strip" aria-label="Inspection path">
-        <article className={`runner-path-card ${connectionReady ? "runner-path-card-active" : ""}`}>
-          <span className="runner-path-index">1</span>
-          <strong>Set target</strong>
-          <span>{connectionSummary}</span>
-        </article>
-        <article className={`runner-path-card ${connectionVerified ? "runner-path-card-active" : ""}`}>
-          <span className="runner-path-index">2</span>
-          <strong>Test SSH</strong>
-          <span>{connectionVerified ? "SSH path verified" : "Confirm the host is reachable from this machine"}</span>
-        </article>
-        <article className="runner-path-card runner-path-card-active">
-          <span className="runner-path-index">3</span>
-          <strong>Choose checks</strong>
-          <span>{activeTemplate.name}</span>
-        </article>
-        <article className={`runner-path-card ${hasPreviewResult ? "runner-path-card-active" : ""}`}>
-          <span className="runner-path-index">4</span>
-          <strong>Read result</strong>
-          <span>{hasPreviewResult ? "Preview is available below" : "Run preview to inspect findings and remediation"}</span>
-        </article>
-      </section>
-
       <div className="workflow-stack">
-        <section className="workflow-step-card">
-          <div className="workflow-step-header">
-            <div>
-              <span className="workflow-step-index">1</span>
-              <strong>Set the target</strong>
-            </div>
-            <span className={`badge badge-${connectionReady ? "pass" : "warning"}`}>
-              {connectionReady ? "ready" : "incomplete"}
-            </span>
-          </div>
-
-          <section className="form-section">
-            <div className="form-section-header">
-              <strong>Connection basics</strong>
-              <span>{connectionSummary}</span>
-            </div>
-            <div className="target-primary-grid">
-              <label>
-                <span>Host</span>
-                <input
-                  value={asset.host}
-                  onChange={(event) => onPatchAsset({ host: event.target.value })}
-                  placeholder="10.0.0.12"
-                />
-              </label>
-              <label>
-                <span>Username</span>
-                <input
-                  value={asset.credential.username}
-                  onChange={(event) => onPatchCredential({ username: event.target.value })}
-                  placeholder="root"
-                />
-              </label>
-              <label>
-                <span>Auth Method</span>
-                <select
-                  value={asset.credential.method}
-                  onChange={(event) =>
-                    onPatchCredential({
-                      method: event.target.value as SshConnectionTestInput["authMethod"],
-                    })
-                  }
-                >
-                  <option value="private-key">private-key</option>
-                  <option value="password">password</option>
-                </select>
-              </label>
-              <label className="field-block field-block-inline">
-                <span>
-                  {asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}
-                </span>
-                <input
-                  type={asset.credential.method === "password" ? "password" : "text"}
-                  value={asset.credential.secretRef}
-                  onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
-                  placeholder={
-                    asset.credential.method === "private-key"
-                      ? "/home/user/.ssh/id_rsa"
-                      : "Enter the SSH password used for this host."
-                  }
-                />
-              </label>
-            </div>
-
-            <div className="target-secondary-note">
-              <div className="target-secondary-copy">
-                <strong>Optional details</strong>
-                <span>Name, port, and tags help reuse later, but they are not required to prove the first inspection flow.</span>
+        <section className="runner-focus-grid">
+          <div className="workflow-step-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">1</span>
+                <strong>Set the target</strong>
               </div>
+              <span className={`badge badge-${connectionReady ? "pass" : "warning"}`}>
+                {connectionReady ? "ready" : "incomplete"}
+              </span>
             </div>
 
-            <div className="ssh-grid ssh-grid-secondary">
-              <label>
-                <span>Asset Name</span>
-                <input
-                  value={asset.name}
-                  onChange={(event) => onPatchAsset({ name: event.target.value })}
-                  placeholder="opsprobe-demo-host"
-                />
-              </label>
-              <label>
-                <span>Port</span>
-                <input
-                  type="number"
-                  value={asset.port}
-                  onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
-                  placeholder="22"
-                />
-              </label>
-              <label>
-                <span>Tags</span>
-                <input
-                  value={asset.tags.join(", ")}
-                  onChange={(event) =>
-                    onPatchAsset({
-                      tags: event.target.value
-                        .split(",")
-                        .map((tag) => tag.trim())
-                        .filter(Boolean),
-                    })
-                  }
-                  placeholder="demo, linux"
-                />
-              </label>
-            </div>
-          </section>
+            <section className="form-section">
+              <div className="form-section-header">
+                <strong>Connection basics</strong>
+                <span>{connectionSummary}</span>
+              </div>
+              <div className="target-primary-grid">
+                <label>
+                  <span>Host</span>
+                  <input
+                    value={asset.host}
+                    onChange={(event) => onPatchAsset({ host: event.target.value })}
+                    placeholder="10.0.0.12"
+                  />
+                </label>
+                <label>
+                  <span>Username</span>
+                  <input
+                    value={asset.credential.username}
+                    onChange={(event) => onPatchCredential({ username: event.target.value })}
+                    placeholder="root"
+                  />
+                </label>
+                <label>
+                  <span>Auth Method</span>
+                  <select
+                    value={asset.credential.method}
+                    onChange={(event) =>
+                      onPatchCredential({
+                        method: event.target.value as SshConnectionTestInput["authMethod"],
+                      })
+                    }
+                  >
+                    <option value="private-key">private-key</option>
+                    <option value="password">password</option>
+                  </select>
+                </label>
+                <label className="field-block field-block-inline">
+                  <span>{asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}</span>
+                  <input
+                    type={asset.credential.method === "password" ? "password" : "text"}
+                    value={asset.credential.secretRef}
+                    onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
+                    placeholder={
+                      asset.credential.method === "private-key"
+                        ? "/home/user/.ssh/id_rsa"
+                        : "Enter the SSH password used for this host."
+                    }
+                  />
+                </label>
+              </div>
 
-          {sshResult ? (
-            <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`} role="status">
-              {sshResult.message}
-            </p>
-          ) : (
-            <p className="helper-text">Fill the host and credential fields, then move to step 2 and test SSH.</p>
-          )}
-
-          {showRepairGuide ? (
-            <article className="ssh-repair-guide">
-              <div className="workflow-step-header">
-                <div>
-                  <span className="workflow-step-index">Fix</span>
-                  <strong>{failureLabel}</strong>
+              <div className="target-secondary-note">
+                <div className="target-secondary-copy">
+                  <strong>Optional details</strong>
+                  <span>Name, port, and tags help reuse later, but they are not required to prove the first inspection flow.</span>
                 </div>
-                <span className="badge badge-warning">action needed</span>
               </div>
 
-              <div className="summary-strip">
-                <span>{asset.host}:{asset.port}</span>
-                <span>{formatStatusLabel(asset.credential.method)}</span>
-                <span>{asset.credential.username}</span>
+              <div className="ssh-grid ssh-grid-secondary">
+                <label>
+                  <span>Asset Name</span>
+                  <input
+                    value={asset.name}
+                    onChange={(event) => onPatchAsset({ name: event.target.value })}
+                    placeholder="opsprobe-demo-host"
+                  />
+                </label>
+                <label>
+                  <span>Port</span>
+                  <input
+                    type="number"
+                    value={asset.port}
+                    onChange={(event) => onPatchAsset({ port: Number(event.target.value) || 22 })}
+                    placeholder="22"
+                  />
+                </label>
+                <label>
+                  <span>Tags</span>
+                  <input
+                    value={asset.tags.join(", ")}
+                    onChange={(event) =>
+                      onPatchAsset({
+                        tags: event.target.value
+                          .split(",")
+                          .map((tag) => tag.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    placeholder="demo, linux"
+                  />
+                </label>
               </div>
+            </section>
 
-              <ul className="troubleshooting-list">
-                {sshTroubleshooting.map((action) => (
-                  <li key={`runner-ssh-guidance-${action}`}>{action}</li>
-                ))}
-              </ul>
+            {sshResult ? (
+              <p className={`connection-result ${sshResult.ok ? "result-ok" : "result-error"}`} role="status">
+                {sshResult.message}
+              </p>
+            ) : (
+              <p className="helper-text">Fill the host and credential fields, then move to step 2 and test SSH.</p>
+            )}
 
-              <div className="service-actions">
-                <button className="primary-button" onClick={onTestSsh} type="button">
-                  Retry SSH Test
-                </button>
-                {canSwitchToPrivateKey ? (
-                  <button
-                    className="secondary-button"
-                    onClick={() => onPatchCredential({ method: "private-key", secretRef: "" })}
-                    type="button"
-                  >
-                    Switch To Private Key
-                  </button>
-                ) : null}
-                {canSwitchToPassword ? (
-                  <button
-                    className="secondary-button"
-                    onClick={() => onPatchCredential({ method: "password", secretRef: "" })}
-                    type="button"
-                  >
-                    Switch To Password
-                  </button>
-                ) : null}
-                {canResetPort ? (
-                  <button className="secondary-button" onClick={() => onPatchAsset({ port: 22 })} type="button">
-                    Reset Port To 22
-                  </button>
-                ) : null}
-                <button
-                  className="secondary-button"
-                  onClick={() => onPatchCredential({ secretRef: "" })}
-                  type="button"
-                >
-                  Clear Secret
-                </button>
-              </div>
-            </article>
-          ) : null}
-        </section>
+            {showRepairGuide ? (
+              <article className="ssh-repair-guide">
+                <div className="workflow-step-header">
+                  <div>
+                    <span className="workflow-step-index">Fix</span>
+                    <strong>{failureLabel}</strong>
+                  </div>
+                  <span className="badge badge-warning">action needed</span>
+                </div>
 
-        <section className="workflow-step-card">
-          <div className="workflow-step-header">
-            <div>
-              <span className="workflow-step-index">2</span>
-              <strong>Verify SSH and choose checks</strong>
-            </div>
-            <span className="badge badge-unknown">{activeChecksCount} checks</span>
-          </div>
+                <div className="summary-strip">
+                  <span>{asset.host}:{asset.port}</span>
+                  <span>{formatStatusLabel(asset.credential.method)}</span>
+                  <span>{asset.credential.username}</span>
+                </div>
 
-          <section className="form-section">
-            <div className="form-section-header">
-              <strong>Check scope</strong>
-              <span>{activeChecksCount} checks</span>
-            </div>
-            <div className="target-primary-grid">
-              <label>
-                <span>Inspection Template</span>
-                <select
-                  value={selectedTemplateId}
-                  onChange={(event) => onSelectTemplate(event.target.value)}
-                >
-                  {builtInTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.name}
-                    </option>
+                <ul className="troubleshooting-list">
+                  {sshTroubleshooting.map((action) => (
+                    <li key={`runner-ssh-guidance-${action}`}>{action}</li>
                   ))}
-                </select>
-              </label>
-            </div>
-            <div className="inline-note">
-              <strong>{formatStatusLabel(asset.credential.method)} mode</strong>
-              <span>{activeTemplate.description ?? "No template description provided."}</span>
-            </div>
-          </section>
+                </ul>
 
-          <div className="service-actions service-actions-primary runner-action-bar">
-            <button className="primary-button primary-button-large" onClick={onTestSsh} type="button" disabled={!connectionReady || isTestingSsh}>
-              {isTestingSsh ? "Testing..." : "Test SSH Connection"}
-            </button>
-            <button
-              className="secondary-button"
-              onClick={onRefreshInspectionPreview}
-              type="button"
-              disabled={!connectionVerified || isRefreshingPreview}
-            >
-              {isRefreshingPreview ? "Running Preview..." : "Run Preview Inspection"}
-            </button>
+                <div className="service-actions">
+                  <button className="primary-button" onClick={onTestSsh} type="button">
+                    Retry SSH Test
+                  </button>
+                  {canSwitchToPrivateKey ? (
+                    <button
+                      className="secondary-button"
+                      onClick={() => onPatchCredential({ method: "private-key", secretRef: "" })}
+                      type="button"
+                    >
+                      Switch To Private Key
+                    </button>
+                  ) : null}
+                  {canSwitchToPassword ? (
+                    <button
+                      className="secondary-button"
+                      onClick={() => onPatchCredential({ method: "password", secretRef: "" })}
+                      type="button"
+                    >
+                      Switch To Password
+                    </button>
+                  ) : null}
+                  {canResetPort ? (
+                    <button className="secondary-button" onClick={() => onPatchAsset({ port: 22 })} type="button">
+                      Reset Port To 22
+                    </button>
+                  ) : null}
+                  <button
+                    className="secondary-button"
+                    onClick={() => onPatchCredential({ secretRef: "" })}
+                    type="button"
+                  >
+                    Clear Secret
+                  </button>
+                </div>
+              </article>
+            ) : null}
           </div>
 
-          <p className="helper-text">
-            {!connectionReady
-              ? "Complete the required target fields before you test SSH."
-              : !connectionVerified
-                ? "Run the SSH test first. Password mode requires `sshpass` on the local machine."
-                : "SSH is verified. You can run the preview inspection now."}
-          </p>
+          <div className="workflow-step-card runner-side-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">2</span>
+                <strong>Verify and preview</strong>
+              </div>
+              <span className="badge badge-unknown">{activeChecksCount} checks</span>
+            </div>
+
+            <div className="runner-checklist" aria-label="First inspection checklist">
+              <div className={`runner-checklist-item ${connectionReady ? "runner-checklist-item-done" : ""}`}>
+                <strong>1. Target entered</strong>
+                <span>{connectionReady ? connectionSummary : "Host, username, and secret still need input."}</span>
+              </div>
+              <div className={`runner-checklist-item ${connectionVerified ? "runner-checklist-item-done" : ""}`}>
+                <strong>2. SSH verified</strong>
+                <span>{connectionVerified ? "This machine can reach the target over SSH." : "Run Test SSH Connection before preview."}</span>
+              </div>
+              <div className={`runner-checklist-item ${hasPreviewResult ? "runner-checklist-item-done" : ""}`}>
+                <strong>3. Preview result ready</strong>
+                <span>{hasPreviewResult ? "The first preview result is available below." : "Run one preview and verify the findings are readable."}</span>
+              </div>
+            </div>
+
+            <section className="form-section">
+              <div className="form-section-header">
+                <strong>Check scope</strong>
+                <span>{activeChecksCount} checks</span>
+              </div>
+              <div className="target-primary-grid">
+                <label>
+                  <span>Inspection Template</span>
+                  <select
+                    value={selectedTemplateId}
+                    onChange={(event) => onSelectTemplate(event.target.value)}
+                  >
+                    {builtInTemplates.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="inline-note">
+                <strong>{formatStatusLabel(asset.credential.method)} mode</strong>
+                <span>{activeTemplate.description ?? "No template description provided."}</span>
+              </div>
+            </section>
+
+            <div className="service-actions service-actions-primary runner-action-bar">
+              <button className="primary-button primary-button-large" onClick={onTestSsh} type="button" disabled={!connectionReady || isTestingSsh}>
+                {isTestingSsh ? "Testing..." : "Test SSH Connection"}
+              </button>
+              <button
+                className="secondary-button"
+                onClick={onRefreshInspectionPreview}
+                type="button"
+                disabled={!connectionVerified || isRefreshingPreview}
+              >
+                {isRefreshingPreview ? "Running Preview..." : "Run Preview Inspection"}
+              </button>
+            </div>
+
+            <p className="helper-text">
+              {!connectionReady
+                ? "Complete the required target fields before you test SSH."
+                : !connectionVerified
+                  ? "Run the SSH test first. Password mode requires `sshpass` on the local machine."
+                  : "SSH is verified. You can run the preview inspection now."}
+            </p>
+          </div>
         </section>
 
         <section className="workflow-step-card runner-results-panel">

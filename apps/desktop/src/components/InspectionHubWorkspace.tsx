@@ -51,15 +51,18 @@ export function InspectionHubWorkspace({
       : null;
   const focusTitle = readyForInspection
     ? "Do the first real inspection now"
-      : needsSystemRepair
-        ? "Fix the local machine first"
-        : "Run the first real inspection path";
+    : needsSystemRepair
+      ? "Fix the local machine first"
+      : "Run the first real inspection path";
   const focusDetail = readyForInspection
     ? "Do not start with schedules or exports. Open Inspect, test SSH, and make one preview succeed."
     : needsSystemRepair
       ? "OpsProbe found blocking local problems. Open System, repair the runtime, then come back here."
       : "The runtime looks healthy. Enter one target, test SSH, and get one preview result before worrying about reuse, schedules, or exports.";
   const primaryStepLabel = readyForInspection ? "Open Inspect" : needsSystemRepair ? "Open System" : "Open Inspect";
+  const latestRunSummary = latestRun
+    ? `Pass ${latestRun.summary.passed} · Warn ${latestRun.summary.warning} · Critical ${latestRun.summary.critical}`
+    : "No result yet";
 
   return (
     <>
@@ -67,9 +70,7 @@ export function InspectionHubWorkspace({
         <div className="hub-hero-main">
           <p className="eyebrow">Start Here</p>
           <h1>{focusTitle}</h1>
-          <p className="summary">
-            {focusDetail}
-          </p>
+          <p className="summary">{focusDetail}</p>
           <div className={`hub-launch-banner ${readyForInspection ? "hub-launch-banner-ready" : "hub-launch-banner-attention"}`}>
             <strong>
               {readyForInspection
@@ -81,11 +82,7 @@ export function InspectionHubWorkspace({
             <span>{runtimeSummary}</span>
           </div>
           <div className="hub-actions">
-            <button
-              className="primary-button primary-button-large"
-              onClick={primaryAction}
-              type="button"
-            >
+            <button className="primary-button primary-button-large" onClick={primaryAction} type="button">
               {primaryActionLabel}
             </button>
             {secondaryAction ? (
@@ -95,10 +92,33 @@ export function InspectionHubWorkspace({
             ) : null}
           </div>
         </div>
+
+        <aside className="hub-hero-side-card">
+          <div className="hub-hero-side-block">
+            <span className="status-label">Current Status</span>
+            <strong>{needsSystemRepair ? "Blocked by system issues" : readyForInspection ? "Ready to inspect" : "Ready to start"}</strong>
+            <p>{runtimeSummary}</p>
+          </div>
+          <div className="hub-hero-side-metrics">
+            <div><span>Setup</span><strong>{completedSetupSteps}/{totalSetupSteps}</strong></div>
+            <div><span>{blockingCount > 0 ? "Blocking" : "Warnings"}</span><strong>{blockingCount > 0 ? blockingCount : warningCount}</strong></div>
+            <div><span>Assets</span><strong>{assetCount}</strong></div>
+          </div>
+          <div className="hub-hero-side-block">
+            <span className="status-label">Latest Result</span>
+            <strong>{latestRun ? latestRun.id : "No inspection run yet"}</strong>
+            <p>{latestRun ? latestRunSummary : "Reports only matter after the first preview succeeds."}</p>
+            {latestRun ? (
+              <button className="secondary-button" onClick={onOpenResults} type="button">
+                Review Results
+              </button>
+            ) : null}
+          </div>
+        </aside>
       </section>
 
-      <section className="hub-guided-strip" aria-label="Operator path">
-        <button className="guided-step-card guided-step-card-active" onClick={primaryAction} type="button">
+      <section className="hub-next-strip" aria-label="Operator path">
+        <article className="hub-next-card hub-next-card-active">
           <span className="guided-step-index">1</span>
           <strong>{primaryStepLabel}</strong>
           <span>
@@ -108,17 +128,17 @@ export function InspectionHubWorkspace({
                 ? runtimeSummary
                 : "Enter one real target before spending more time elsewhere."}
           </span>
-        </button>
-        <button className="guided-step-card" onClick={onStartInspection} type="button">
+        </article>
+        <article className="hub-next-card">
           <span className="guided-step-index">2</span>
           <strong>Run the preview</strong>
-          <span>Prove the target, SSH path, and checks all work once before saving anything for reuse.</span>
-        </button>
-        <button className="guided-step-card" onClick={onOpenResults} type="button">
+          <span>Prove the target, SSH path, and checks all work once.</span>
+        </article>
+        <article className="hub-next-card">
           <span className="guided-step-index">3</span>
           <strong>Read the result</strong>
-          <span>Read the latest finding, then export only if the result is worth sharing.</span>
-        </button>
+          <span>Share only after the result is readable and useful.</span>
+        </article>
       </section>
 
       <section className="hub-grid">
@@ -143,9 +163,7 @@ export function InspectionHubWorkspace({
               <span className="snapshot-label">{blockingCount > 0 ? "Blocking" : "Warnings"}</span>
               <strong>{blockingCount > 0 ? blockingCount : warningCount}</strong>
               <p className="helper-text">
-                {blockingCount > 0
-                  ? "Fix blocking issues first."
-                  : "Warnings can wait until after the first preview succeeds."}
+                {blockingCount > 0 ? "Fix blocking issues first." : "Warnings can wait until after the first preview succeeds."}
               </p>
             </div>
           </div>
@@ -153,25 +171,9 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Workspace"
-            title="Current workspace"
-            subtitle="Keep this as orientation only. It should not distract from the first inspection path."
-          />
-          <div className="hub-kpi-list">
-            <div><span>Saved assets</span><strong>{assetCount}</strong></div>
-            <div><span>Run history</span><strong>{historyCount}</strong></div>
-            <div><span>Schedules</span><strong>{scheduleCount}</strong></div>
-          </div>
-          <p className="helper-text">
-            {showingDemoExperience ? "Demo data is active for safe exploration." : `Current inspection scope: ${selectedTemplateName}.`}
-          </p>
-        </article>
-
-        <article className="hub-card">
-          <DesktopSectionHeader
-            eyebrow="Before You Leave This Page"
-            title="What success looks like"
-            subtitle="Use this checklist to know whether the first inspection path is actually working."
+            eyebrow="What Success Looks Like"
+            title="Stop after these three wins"
+            subtitle="If these are true, the first inspection path is working."
           />
           <div className="hub-step-list">
             <div className="hub-step-button">
@@ -191,31 +193,22 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="Latest Result"
-            title={latestRun ? latestRun.id : "No inspection run yet"}
-            subtitle={
-              latestRun
-                ? `Latest run created at ${formatDateTime(latestRun.createdAt)}.`
-                : "No result exists yet. Reports only become useful after the first real run succeeds."
-            }
+            eyebrow="Workspace"
+            title="Current workspace"
+            subtitle="Reference only. Do not leave the first inspection path just to fill these numbers."
           />
-          {latestRun ? (
-            <>
-              <div className="summary-strip">
-                <span>Total {latestRun.summary.total}</span>
-                <span>Pass {latestRun.summary.passed}</span>
-                <span>Warn {latestRun.summary.warning}</span>
-                <span>Critical {latestRun.summary.critical}</span>
-              </div>
-              <div className="hub-actions hub-actions-compact">
-                <button className="secondary-button" onClick={onOpenResults} type="button">
-                  Review Results
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="helper-text">No local result is available yet.</p>
-          )}
+          <div className="hub-kpi-list">
+            <div><span>Saved assets</span><strong>{assetCount}</strong></div>
+            <div><span>Run history</span><strong>{historyCount}</strong></div>
+            <div><span>Schedules</span><strong>{scheduleCount}</strong></div>
+          </div>
+          <p className="helper-text">
+            {showingDemoExperience
+              ? "Demo data is active for safe exploration."
+              : latestRun
+                ? `Latest run created at ${formatDateTime(latestRun.createdAt)}. Scope: ${selectedTemplateName}.`
+                : `Current inspection scope: ${selectedTemplateName}.`}
+          </p>
         </article>
       </section>
     </>

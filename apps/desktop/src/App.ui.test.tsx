@@ -155,7 +155,7 @@ describe("desktop app shell", () => {
     expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
     expect(screen.getByText("Current Task")).toBeTruthy();
     expect(screen.getByText("Test SSH now")).toBeTruthy();
-    expect(screen.getByText("Set target")).toBeTruthy();
+    expect(screen.getByText("Set the target")).toBeTruthy();
     expect(screen.getByText("Read the preview result")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run Preview Inspection" }).hasAttribute("disabled")).toBe(true);
     expect(screen.queryByText("Save For Reuse")).toBeNull();
@@ -203,7 +203,7 @@ describe("desktop app shell", () => {
     expect(screen.getByText("Run the first real inspection path")).toBeTruthy();
     expect(screen.getByText("Only three things matter")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Start First Inspection" })).toBeTruthy();
-    expect(screen.getByText("What success looks like")).toBeTruthy();
+    expect(screen.getByText("Stop after these three wins")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Start First Inspection" }));
 
