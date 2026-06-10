@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.5] - 2026-06-10
+
+### Fixed
+
+- aligned the desktop sidebar version label with the active repository and package version so the built app no longer reports `v0.11.4` after the repository moved forward
+- preserved contiguous patch history by shipping the version-label correction as its own checkpoint instead of silently rewriting the published `0.11.4` release
+
 ## [0.11.4] - 2026-06-10
 
 ### Changed
@@ -638,7 +645,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.11.4] - Unreleased
+## [0.11.5] - Unreleased
 
 ### Planned
 
