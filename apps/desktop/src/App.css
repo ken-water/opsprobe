@@ -2240,9 +2240,38 @@ body {
   gap: 12px;
 }
 
+.data-table-cluster {
+  display: grid;
+  gap: 10px;
+}
+
+.data-table-list-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: end;
+}
+
+.data-table-list-header strong {
+  display: block;
+  color: var(--ops-text-strong);
+  font-size: 1rem;
+}
+
+.data-table-list-header span {
+  color: var(--ops-text-muted);
+  line-height: 1.5;
+}
+
+.data-table-count {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
 .data-table-shell {
   --ops-table-columns: repeat(auto-fit, minmax(140px, 1fr));
-  margin-top: 8px;
   border: 1px solid var(--ops-border-subtle);
   border-radius: 20px;
   background: linear-gradient(180deg, rgba(9, 17, 29, 0.88), rgba(9, 17, 29, 0.7));

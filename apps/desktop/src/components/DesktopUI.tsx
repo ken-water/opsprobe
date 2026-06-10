@@ -43,6 +43,8 @@ interface DesktopDataTableProps<T> {
   columns: Array<DesktopDataTableColumn<T>>;
   rows: T[];
   getRowKey: (row: T) => string;
+  title?: string;
+  subtitle?: string;
   onRowClick?: (row: T) => void;
   isRowActive?: (row: T) => boolean;
   emptyTitle: string;
@@ -103,6 +105,8 @@ export function DesktopDataTable<T>({
   columns,
   rows,
   getRowKey,
+  title,
+  subtitle,
   onRowClick,
   isRowActive,
   emptyTitle,
@@ -112,63 +116,98 @@ export function DesktopDataTable<T>({
   loadingDetail = "Fetching the latest local data.",
 }: DesktopDataTableProps<T>) {
   if (isLoading) {
-    return <DesktopLoadingState title={loadingTitle} detail={loadingDetail} />;
+    return (
+      <div className="data-table-cluster">
+        {title || subtitle ? (
+          <div className="data-table-list-header">
+            <div>
+              {title ? <strong>{title}</strong> : null}
+              {subtitle ? <span>{subtitle}</span> : null}
+            </div>
+          </div>
+        ) : null}
+        <DesktopLoadingState title={loadingTitle} detail={loadingDetail} />
+      </div>
+    );
   }
 
   if (rows.length === 0) {
-    return <DesktopEmptyState title={emptyTitle} detail={emptyDetail} />;
+    return (
+      <div className="data-table-cluster">
+        {title || subtitle ? (
+          <div className="data-table-list-header">
+            <div>
+              {title ? <strong>{title}</strong> : null}
+              {subtitle ? <span>{subtitle}</span> : null}
+            </div>
+          </div>
+        ) : null}
+        <DesktopEmptyState title={emptyTitle} detail={emptyDetail} />
+      </div>
+    );
   }
 
   return (
-    <div
-      className="data-table-shell"
-      style={
-        {
-          "--ops-table-columns": columns.map((column) => column.width ?? "minmax(140px, 1fr)").join(" "),
-        } as CSSProperties
-      }
-    >
-      <div className="data-table-header">
-        {columns.map((column) => (
-          <span className="data-table-cell data-table-head" key={column.key}>
-            {column.header}
-          </span>
-        ))}
-      </div>
+    <div className="data-table-cluster">
+      {title || subtitle ? (
+        <div className="data-table-list-header">
+          <div>
+            {title ? <strong>{title}</strong> : null}
+            {subtitle ? <span>{subtitle}</span> : null}
+          </div>
+          <span className="data-table-count">{rows.length} total</span>
+        </div>
+      ) : null}
+      <div
+        className="data-table-shell"
+        style={
+          {
+            "--ops-table-columns": columns.map((column) => column.width ?? "minmax(140px, 1fr)").join(" "),
+          } as CSSProperties
+        }
+      >
+        <div className="data-table-header">
+          {columns.map((column) => (
+            <span className="data-table-cell data-table-head" key={column.key}>
+              {column.header}
+            </span>
+          ))}
+        </div>
 
-      <div className="data-table-body">
-        {rows.map((row) => {
-          const rowKey = getRowKey(row);
-          const active = isRowActive?.(row) ?? false;
-          const content = (
-            <>
-              {columns.map((column) => (
-                <span className="data-table-cell" key={`${rowKey}-${column.key}`}>
-                  {column.render(row)}
-                </span>
-              ))}
-            </>
-          );
-
-          if (onRowClick) {
-            return (
-              <button
-                className={`data-table-row ${active ? "data-table-row-active" : ""}`}
-                key={rowKey}
-                onClick={() => onRowClick(row)}
-                type="button"
-              >
-                {content}
-              </button>
+        <div className="data-table-body">
+          {rows.map((row) => {
+            const rowKey = getRowKey(row);
+            const active = isRowActive?.(row) ?? false;
+            const content = (
+              <>
+                {columns.map((column) => (
+                  <span className="data-table-cell" key={`${rowKey}-${column.key}`}>
+                    {column.render(row)}
+                  </span>
+                ))}
+              </>
             );
-          }
 
-          return (
-            <div className={`data-table-row ${active ? "data-table-row-active" : ""}`} key={rowKey}>
-              {content}
-            </div>
-          );
-        })}
+            if (onRowClick) {
+              return (
+                <button
+                  className={`data-table-row ${active ? "data-table-row-active" : ""}`}
+                  key={rowKey}
+                  onClick={() => onRowClick(row)}
+                  type="button"
+                >
+                  {content}
+                </button>
+              );
+            }
+
+            return (
+              <div className={`data-table-row ${active ? "data-table-row-active" : ""}`} key={rowKey}>
+                {content}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

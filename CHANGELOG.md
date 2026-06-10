@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.11] - 2026-06-10
+
+### Changed
+
+- introduced a shared list-header shell for table-based workspaces so `Assets`, `History`, and `Schedules` now expose row counts and list purpose in the same position and style
+- aligned table, empty-state, and loading-state presentation more closely across reusable list surfaces instead of leaving each page to frame its list differently
+- reduced duplicate count badges inside list cards now that the table shell itself carries the shared list summary
+
+### Fixed
+
+- moved repository and desktop package versions to `0.11.11` before continuing reusable list-surface cleanup
+
 ## [0.11.10] - 2026-06-10
 
 ### Changed
@@ -695,7 +707,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.11.10] - Unreleased
+## [0.11.11] - Unreleased
 
 ### Planned
 

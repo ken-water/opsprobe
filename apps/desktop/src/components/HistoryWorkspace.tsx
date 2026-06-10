@@ -360,6 +360,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
           <div className="history-workspace">
             <div className="history-list-panel">
               <DesktopDataTable
+                title="Recorded runs"
+                subtitle="Pick one run to compare timelines or reopen its conclusion in the detail panel."
                 columns={[
                   {
                     key: "run",

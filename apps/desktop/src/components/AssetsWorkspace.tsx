@@ -149,10 +149,12 @@ export function AssetsWorkspace({
                 <span className="workflow-step-index">2</span>
                 <strong>Reuse a saved target</strong>
               </div>
-              <span className="badge badge-unknown">{savedAssets.length} total</span>
+              <span className="badge badge-unknown">list</span>
             </div>
 
             <DesktopDataTable
+              title="Saved targets"
+              subtitle="Reuse a verified target instead of retyping host and credential details."
               columns={[
                 {
                   key: "name",

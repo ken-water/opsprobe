@@ -118,10 +118,12 @@ export function ServiceWorkspace({
                 <span className="workflow-step-index">2</span>
                 <strong>Current schedules</strong>
               </div>
-              <span className="badge badge-unknown">{schedules.length} total</span>
+              <span className="badge badge-unknown">list</span>
             </div>
 
             <DesktopDataTable
+              title="Saved schedules"
+              subtitle="These recurring plans only become trustworthy after the manual inspection path is already proven."
               columns={[
                 {
                   key: "asset",
