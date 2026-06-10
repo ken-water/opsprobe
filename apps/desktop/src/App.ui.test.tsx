@@ -188,7 +188,7 @@ describe("desktop app shell", () => {
     expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "History And Comparison")).toBe(true);
     expect(screen.getByText("Current Conclusion")).toBeTruthy();
     expect(screen.getByText("Result Snapshot")).toBeTruthy();
-    expect(screen.getByText("Choose the export style")).toBeTruthy();
+    expect(screen.getByText("Export this result")).toBeTruthy();
   });
 
   it("keeps the primary operator path visible across start inspect and reports", async () => {

@@ -14,8 +14,8 @@ export function ReportsWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Report Mode"
-        title="Choose the export style"
-        subtitle="Use this only after the result above is already clear."
+        title="Export this result"
+        subtitle="Choose the audience, then export from the current result section above."
         meta={
           <div className="summary-strip">
             <span>Audience {reportAudience}</span>
@@ -26,7 +26,7 @@ export function ReportsWorkspace({
       <div className="reports-workspace">
         <div className="reports-config-panel">
           <article className="history-side-card">
-            <h3>Current mode</h3>
+            <h3>Current export mode</h3>
             <div className="inline-note">
               <strong>{reportAudience === "operator" ? "Operator mode" : "Manager mode"}</strong>
               <span>
@@ -40,7 +40,7 @@ export function ReportsWorkspace({
           <div className="service-checks">
             <article className="service-card">
               <div className="service-card-header">
-                <strong>Operator Detailed Report</strong>
+                <strong>Operator report</strong>
                 <span className={`badge badge-${reportAudience === "operator" ? "pass" : "unknown"}`}>
                   {reportAudience === "operator" ? "selected" : "available"}
                 </span>
@@ -57,7 +57,7 @@ export function ReportsWorkspace({
 
             <article className="service-card">
               <div className="service-card-header">
-                <strong>Manager Summary Report</strong>
+                <strong>Manager report</strong>
                 <span className={`badge badge-${reportAudience === "manager" ? "pass" : "unknown"}`}>
                   {reportAudience === "manager" ? "selected" : "available"}
                 </span>
@@ -73,41 +73,19 @@ export function ReportsWorkspace({
             </article>
           </div>
 
-          <p className="helper-text">
-            This choice affects both HTML and PDF export in the current desktop workflow.
-          </p>
-
-          <article className="history-side-card">
-            <h3>Report rule</h3>
-            <div className="history-side-list">
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>State the risk first</strong>
-                  <span className="badge badge-pass">default</span>
-                </div>
-                <p>Start with what is broken or risky, then explain the repair path. Avoid burying the main action under raw evidence.</p>
-              </article>
-              <article className="service-card">
-                <div className="service-card-header">
-                  <strong>Keep evidence attached</strong>
-                  <span className="badge badge-pass">required</span>
-                </div>
-                <p>Every recommendation should still be traceable back to the exact check result, host context, and collected evidence.</p>
-              </article>
-            </div>
-          </article>
+          <p className="helper-text">This choice affects both HTML and PDF export for the selected run.</p>
         </div>
 
         <div className="reports-side-panel">
           <div className="history-side-card">
-            <h3>Tell us what is missing</h3>
+            <h3>Missing something?</h3>
             <div className="history-side-list">
               <article className="service-card">
                 <div className="service-card-header">
                   <strong>Inspection Need</strong>
                   <span className="badge badge-warning">missing check</span>
                 </div>
-                <p>Use this when a template, evidence field, or service check is missing from the real workflow you need.</p>
+                <p>Template, evidence field, or service check missing.</p>
                 <a
                   className="support-link"
                   href="https://github.com/ken-water/opsprobe/issues/new?template=inspection-need.yml"
@@ -123,7 +101,7 @@ export function ReportsWorkspace({
                   <strong>Report Feedback</strong>
                   <span className="badge badge-warning">report fit</span>
                 </div>
-                <p>Use this when the report exists, but the structure, detail level, or wording is still wrong.</p>
+                <p>The report exists, but structure or wording is wrong.</p>
                 <a
                   className="support-link"
                   href="https://github.com/ken-water/opsprobe/issues/new?template=report-feedback.yml"
@@ -139,7 +117,7 @@ export function ReportsWorkspace({
                   <strong>Workflow Friction</strong>
                   <span className="badge badge-warning">real usage pain</span>
                 </div>
-                <p>Use this when OpsProbe does not fit the real sequence of work you need to complete.</p>
+                <p>OpsProbe does not fit the real sequence of work.</p>
                 <a
                   className="support-link"
                   href="https://github.com/ken-water/opsprobe/issues/new?template=workflow-friction.yml"

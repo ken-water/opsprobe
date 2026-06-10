@@ -68,6 +68,8 @@ export function SetupWorkspace({
   const blockingRepairPacks = repairPacks.filter((pack) => pack.status === "critical");
   const warningRepairPacks = repairPacks.filter((pack) => pack.status === "warning");
   const primaryRepairPacks = blockingRepairPacks.length > 0 ? blockingRepairPacks : warningRepairPacks;
+  const referenceItems = firstRunChecklist.filter((item) => !item.done);
+  const visibleTroubleshootingCards = troubleshootingCards.slice(0, 4);
 
   return (
     <>
@@ -196,7 +198,7 @@ export function SetupWorkspace({
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="Return Path"
-          title={currentSetupItem ? "What to do after this page" : "System is no longer the bottleneck"}
+          title={currentSetupItem ? "Do this next, then leave System" : "System is no longer the bottleneck"}
           subtitle={currentSetupItem
             ? "Once the repair state is acceptable, go back to the first inspection flow instead of continuing to explore System."
             : "Leave System and complete the first inspection path while the environment is ready."}
@@ -259,27 +261,25 @@ export function SetupWorkspace({
       <section className="run-panel">
         <DesktopSectionHeader
           eyebrow="Reference"
-          title="Everything else"
-          subtitle="These details are still available, but they are no longer the primary focus while you are trying to get the first inspection working."
+          title="Reference only"
+          subtitle="Use this section only when you need details after the main repair path is already clear."
           meta={
             <div className="summary-strip">
-              <span>{completedSetupSteps}/{firstRunChecklist.length} steps complete</span>
-              <span>{warningChecks.length} warnings</span>
+              <span>{referenceItems.length} remaining setup items</span>
+              <span>{visibleTroubleshootingCards.length} troubleshooting cards</span>
             </div>
           }
         />
 
         <div className="setup-grid">
-          {firstRunChecklist.map((item) => (
+          {referenceItems.map((item) => (
             <article className="setup-card" key={item.id}>
               <div className="service-card-header">
                 <strong>{item.label}</strong>
-                <span className={`badge badge-${item.done ? "pass" : "warning"}`}>
-                  {item.done ? "done" : "todo"}
-                </span>
+                <span className="badge badge-warning">todo</span>
               </div>
               <p>{item.detail}</p>
-              {!item.done && item.action ? (
+              {item.action ? (
                 <button className="secondary-button" onClick={item.action} type="button">
                   {item.actionLabel}
                 </button>
@@ -288,57 +288,9 @@ export function SetupWorkspace({
           ))}
         </div>
 
-        {blockingChecks.length > 0 ? (
-          <div className="setup-issue-grid">
-            {blockingChecks.map((check) => (
-              <article className="service-card" key={`blocking-${check.id}`}>
-                <div className="service-card-header">
-                  <strong>{check.label}</strong>
-                  <span className="badge badge-critical">blocking</span>
-                </div>
-                <p>{check.detail}</p>
-                <div className="inline-note">
-                  <strong>Repair first</strong>
-                  <span>Resolve this before relying on recurring inspections or report exports.</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="helper-text">No blocking environment problems are currently detected.</p>
-        )}
-
-        {warningChecks.length > 0 ? (
-          <div className="setup-issue-grid">
-            {warningChecks.map((check) => (
-              <article className="service-card" key={`warning-${check.id}`}>
-                <div className="service-card-header">
-                  <strong>{check.label}</strong>
-                  <span className="badge badge-warning">warning</span>
-                </div>
-                <p>{check.detail}</p>
-              </article>
-            ))}
-          </div>
-        ) : null}
-      </section>
-
-      <section className="run-panel">
-        <DesktopSectionHeader
-          eyebrow="Reference"
-          title="Troubleshooting Guidance"
-          subtitle="Detailed repair steps stay here when you need them, but they should not be the first thing a new user has to read."
-          meta={
-            <div className="summary-strip">
-              <span>{troubleshootingCards.length} environment issues</span>
-              <span>{sshTroubleshooting.length > 0 ? "SSH guidance ready" : "SSH guidance idle"}</span>
-            </div>
-          }
-        />
-
-        {troubleshootingCards.length > 0 ? (
+        {visibleTroubleshootingCards.length > 0 ? (
           <div className="service-checks">
-            {troubleshootingCards.map((card) => (
+            {visibleTroubleshootingCards.map((card) => (
               <article className="service-card" key={`troubleshoot-${card.key}`}>
                 <div className="service-card-header">
                   <strong>{card.label}</strong>
@@ -354,7 +306,7 @@ export function SetupWorkspace({
             ))}
           </div>
         ) : (
-          <p className="helper-text">No environment problems currently need repair guidance.</p>
+          <p className="helper-text">No extra repair guidance is currently needed.</p>
         )}
 
         {sshTroubleshooting.length > 0 ? (
@@ -370,6 +322,10 @@ export function SetupWorkspace({
               ))}
             </ul>
           </article>
+        ) : null}
+
+        {!referenceItems.length && !visibleTroubleshootingCards.length && sshTroubleshooting.length === 0 ? (
+          <p className="helper-text">No extra reference items are currently needed.</p>
         ) : null}
       </section>
     </>
