@@ -299,9 +299,58 @@ body {
   color: #8ea4b8;
 }
 
+.topbar-status-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.topbar-status-card {
+  display: grid;
+  gap: 4px;
+  min-width: 280px;
+  padding: 12px 14px;
+  border: 1px solid var(--ops-border-subtle);
+  border-radius: 18px;
+  background: rgba(10, 18, 30, 0.68);
+}
+
+.topbar-status-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.topbar-status-card strong {
+  color: var(--ops-text-strong);
+  font-size: 0.96rem;
+}
+
+.topbar-status-card p {
+  margin: 0;
+  color: var(--ops-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.topbar-status-card-ok {
+  border-color: rgba(74, 222, 128, 0.16);
+}
+
+.topbar-status-card-warning {
+  border-color: rgba(248, 113, 113, 0.18);
+}
+
+.topbar-status-card-loading {
+  border-color: rgba(251, 191, 36, 0.18);
+}
+
 .topbar-metrics {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
@@ -331,6 +380,11 @@ body {
 .topbar-chip-ok {
   border-color: rgba(74, 222, 128, 0.2);
   color: #bbf7d0;
+}
+
+.topbar-chip-info {
+  border-color: rgba(125, 211, 252, 0.2);
+  color: #bae6fd;
 }
 
 .workspace-scroll {
@@ -540,7 +594,12 @@ body {
 
 .global-feedback-banner strong {
   flex-shrink: 0;
+  min-width: 112px;
   color: #7dd3fc;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .global-feedback-banner span {
@@ -2676,6 +2735,15 @@ button.data-table-row {
 
   .app-topbar {
     padding: 18px;
+  }
+
+  .topbar-status-strip {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .topbar-status-card {
+    min-width: 0;
   }
 
   .hub-hero-main,

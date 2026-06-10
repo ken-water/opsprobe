@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.10] - 2026-06-10
+
+### Changed
+
+- unified the top status area into one clearer status summary plus runtime/mode chips instead of unrelated badges with different meanings
+- changed global feedback banners to use clearer intent labels such as `Working`, `Done`, and `Action Needed` so progress and result messages read consistently across pages
+- aligned the visual language of the sticky topbar and transient feedback banners so both areas now communicate state changes in the same tone
+
+### Fixed
+
+- moved repository and desktop package versions to `0.11.10` before continuing topbar and feedback-system cleanup
+
 ## [0.11.9] - 2026-06-10
 
 ### Fixed
@@ -683,7 +695,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.11.9] - Unreleased
+## [0.11.10] - Unreleased
 
 ### Planned
 

@@ -64,6 +64,7 @@ const defaultReportPath = "/tmp/opsprobe-report.html";
 const defaultPdfReportPath = "/tmp/opsprobe-report.pdf";
 type ServiceHealthCheck = LocalServiceStatusResponse["snapshot"]["health"]["checks"][number];
 type FeedbackTone = "info" | "success" | "error";
+type TopbarTone = "info" | "ok" | "warning" | "loading";
 
 interface RepairPack {
   id: string;
@@ -94,6 +95,14 @@ function extractErrorMessage(error: unknown) {
 
 function formatActionError(action: string, error: unknown) {
   return `${action} failed. ${extractErrorMessage(error)}`;
+}
+
+function isInFlightMessage(message: string | null) {
+  if (!message) {
+    return false;
+  }
+
+  return /^(Opening|Loading|Refreshing|Running|Starting|Stopping|Restarting|Bootstrapping|Saving|Exporting|Importing|Testing|Creating|Deleting|Enabling|Disabling|Revealing)/.test(message);
 }
 
 function buildSshTroubleshooting(result: SshConnectionTestResult | null, asset: Asset): string[] {
@@ -1372,6 +1381,41 @@ function App() {
           ? "Review findings and export a report."
           : "Fix only what blocks the first inspection.";
   const inspectionFlowReady = sshResult?.ok === true && inspectionRun !== null;
+  const topbarTone: TopbarTone =
+    isBootstrappingWorkspace
+      ? "loading"
+      : blockingChecks.length > 0 || runtimeStatus === "error" || runtimeStatus === "degraded"
+        ? "warning"
+        : inspectionFlowReady
+          ? "ok"
+          : "info";
+  const topbarStatusLabel =
+    topbarTone === "loading"
+      ? "Loading workspace"
+      : topbarTone === "warning"
+        ? blockingChecks.length > 0
+          ? `${blockingChecks.length} blockers before inspect`
+          : "Runtime needs attention"
+        : inspectionFlowReady
+          ? "Inspection path proven"
+          : "Ready for next step";
+  const topbarStatusDetail =
+    topbarTone === "loading"
+      ? "Preparing local data and runtime status."
+      : topbarTone === "warning"
+        ? runtimeSummary
+        : inspectionFlowReady
+          ? "SSH and one preview already succeeded."
+          : topbarDetail;
+  const feedbackHeading =
+    serviceMessageTone === "error"
+      ? "Action Needed"
+      : serviceMessageTone === "success"
+        ? "Done"
+        : isInFlightMessage(serviceMessage)
+          ? "Working"
+          : "Workspace Update";
+  const feedbackRole = serviceMessageTone === "error" ? "alert" : "status";
 
   useEffect(() => {
     if (pendingWorkspace === null || pendingWorkspace !== activeWorkspace) {
@@ -1431,7 +1475,7 @@ function App() {
             <strong>{showingDemoExperience ? "Demo" : "Real"}</strong>
           </div>
           <div className="sidebar-footer-note">{sidebarStatusLabel}</div>
-          <div className="sidebar-footer-meta">v0.11.9</div>
+          <div className="sidebar-footer-meta">v0.11.10</div>
         </div>
       </aside>
 
@@ -1441,20 +1485,27 @@ function App() {
             <h2>{topbarTitle}</h2>
             <p>{topbarDetail}</p>
           </div>
-          <div className="topbar-metrics">
-            <span className={`topbar-chip ${blockingChecks.length > 0 ? "topbar-chip-warning" : "topbar-chip-ok"}`}>
-              {blockingChecks.length > 0 ? `${blockingChecks.length} blocking issues` : "Ready to continue"}
-            </span>
-            <span className={`topbar-chip ${isBootstrappingWorkspace ? "topbar-chip-loading" : ""}`}>
-              {isBootstrappingWorkspace ? "Loading workspace..." : runtimeStatus}
-            </span>
+          <div className="topbar-status-strip">
+            <div className={`topbar-status-card topbar-status-card-${topbarTone}`}>
+              <span className="topbar-status-label">Current Status</span>
+              <strong>{topbarStatusLabel}</strong>
+              <p>{topbarStatusDetail}</p>
+            </div>
+            <div className="topbar-metrics">
+              <span className={`topbar-chip topbar-chip-${topbarTone}`}>
+                {isBootstrappingWorkspace ? "Loading workspace..." : runtimeStatus}
+              </span>
+              <span className={`topbar-chip ${showingDemoExperience ? "topbar-chip-info" : "topbar-chip-ok"}`}>
+                {showingDemoExperience ? "Demo mode" : "Real mode"}
+              </span>
+            </div>
           </div>
         </header>
 
         <div className="workspace-scroll">
           {serviceMessage ? (
-            <div className={`global-feedback-banner global-feedback-${serviceMessageTone}`} role="status" aria-live="polite">
-              <strong>Workspace Update</strong>
+            <div className={`global-feedback-banner global-feedback-${serviceMessageTone}`} role={feedbackRole} aria-live="polite">
+              <strong>{feedbackHeading}</strong>
               <span>{serviceMessage}</span>
             </div>
           ) : null}

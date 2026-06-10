@@ -306,7 +306,7 @@ test("keeps sidebar concise and switches workspaces with visible feedback", asyn
 
   await nav.getByRole("button", { name: /Reports/ }).click();
   await expect(page.locator(".app-topbar").getByRole("heading", { name: "Reports", level: 2 })).toBeVisible();
-  await expect(page.getByText("Workspace Update")).toBeVisible();
+  await expect(page.getByText("Working")).toBeVisible();
   await expect(page.getByText("Opening Reports...")).toBeVisible();
 });
 
@@ -356,7 +356,7 @@ test("switches report audience and exports the selected history run with visible
   await expect(page.locator(".results-conclusion-card").getByText("Current Conclusion", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Export manager HTML" }).first().click();
-  await expect(page.getByText("Workspace Update")).toBeVisible();
+  await expect(page.getByText("Done")).toBeVisible();
   await expect(page.getByText("Exported HTML report.")).toBeVisible();
 });
 
@@ -368,7 +368,7 @@ test("shows immediate runner feedback for ssh test and preview refresh", async (
   await expect(page.getByText("First inspection path")).toBeVisible();
 
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
-  await expect(page.getByText("Workspace Update")).toBeVisible();
+  await expect(page.getByText("Done")).toBeVisible();
   await expect(page.getByRole("status").getByText("SSH connection verified and asset state refreshed.")).toBeVisible();
   await expect(page.getByText("SSH connection successful.")).toBeVisible();
 

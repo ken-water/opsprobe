@@ -115,7 +115,7 @@ describe("desktop app shell", () => {
       expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "Run one inspection from start to finish")).toBe(true);
     });
 
-    expect(screen.getByText("Workspace Update")).toBeTruthy();
+    expect(screen.getByRole("status")).toBeTruthy();
   });
 
   it("shows an explicit demo-mode button state in setup workspace", async () => {
