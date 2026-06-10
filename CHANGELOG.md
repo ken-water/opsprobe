@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.12.1] - 2026-06-10
+
+### Changed
+
+- refreshed current-version Linux packaged evidence for `0.12.1`, including bundle build, packaged preflight, and AppImage launch-smoke proof
+- refreshed current-version Windows artifact and Wine-blocker records for `0.12.1` so the remaining Windows gap is now explicit against the active version
+- added current-version progress and acceptance notes for Issue 57 so the final pre-stable line now has real evidence documents instead of templates only
+
+### Fixed
+
+- moved repository and desktop package versions to `0.12.1` before continuing the packaged acceptance line
+- linked Issue 57 scope to the new `0.12.1` evidence records for Linux and Windows acceptance
+
 ## [0.12.0] - 2026-06-10
 
 ### Changed
