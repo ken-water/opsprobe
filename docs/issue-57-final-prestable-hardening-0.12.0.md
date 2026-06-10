@@ -21,6 +21,11 @@ The remaining blockers are now concrete:
 - refresh the stable review record and stable-readiness outcome from those new artifacts
 - keep release notes and operator docs aligned to the actual proved behavior
 
+Current execution records:
+
+- [Issue 57 Linux Packaged Acceptance 0.12.0](./issue-57-linux-packaged-acceptance-0.12.0.md)
+- [Issue 57 Windows Installer Acceptance 0.12.0](./issue-57-windows-installer-acceptance-0.12.0.md)
+
 ## Non-Goals
 
 - no broad UX redesign

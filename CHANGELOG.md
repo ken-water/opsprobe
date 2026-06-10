@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.12.0] - 2026-06-10
+
+### Changed
+
+- opened the `0.12.0` line as the final bounded pre-stable hardening stage instead of drifting into `1.0.0`
+- added current-version Linux and Windows packaged acceptance records so the remaining proof work no longer depends on older `0.11.0` / `0.11.1` templates
+- linked the `0.12.0` issue scope directly to those execution records so acceptance evidence can be captured in one consistent format
+
+### Fixed
+
+- moved repository and desktop package versions to `0.12.0` before beginning the new pre-stable line
+- gave `0.12.0` a concrete release identity on GitHub instead of leaving it only as an open milestone and issue
+
 ## [0.11.16] - 2026-06-10
 
 ### Changed
