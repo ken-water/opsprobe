@@ -164,7 +164,7 @@ describe("desktop app shell", () => {
     await user.click(screen.getByRole("button", { name: /Save target/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Save For Reuse")).toBeTruthy();
+      expect(screen.getByText("Save this target")).toBeTruthy();
     });
 
     expect(screen.queryByText("Run An Inspection")).toBeNull();
@@ -218,7 +218,7 @@ describe("desktop app shell", () => {
     await user.click(screen.getByRole("button", { name: /Automate later/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Automate Later")).toBeTruthy();
+      expect(screen.getByText("Enable automation")).toBeTruthy();
     });
 
     const nav = await screen.findByRole("navigation", { name: "Primary" });

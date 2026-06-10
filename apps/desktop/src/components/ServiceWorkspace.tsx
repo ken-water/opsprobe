@@ -2,7 +2,7 @@ import type {
   LocalInspectionSchedule,
   LocalServiceStatusResponse,
 } from "@opsprobe/local-service";
-import { DesktopDataTable, DesktopSectionHeader, formatDateTime, formatListDate, formatStatusLabel } from "./DesktopUI";
+import { DesktopDataTable, DesktopSectionHeader, formatListDate, formatStatusLabel } from "./DesktopUI";
 
 interface ServiceWorkspaceProps {
   assetId: string;
@@ -55,27 +55,26 @@ export function ServiceWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Automation"
-        title="Automate Later"
-        subtitle="Turn on schedules only after the first manual result looks trustworthy."
+        title="Enable automation"
+        subtitle="Do this only after the first manual result is already trustworthy."
       />
 
       <div className="workflow-stack">
-        <section className="workflow-step-card">
-          <div className="workflow-step-header">
-            <div>
-              <span className="workflow-step-index">Schedule</span>
-              <strong>Create A Schedule</strong>
-            </div>
-            <span className="badge badge-unknown">{schedules.length} schedules</span>
-          </div>
-
-          <div className="service-workspace service-workspace-compact">
-            <div className="service-schedules-panel">
-              <div className="assets-panel-header">
-                <strong>Schedule Plan</strong>
-                <span>{schedules.length} total</span>
+        <section className="runner-focus-grid">
+          <div className="workflow-step-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">1</span>
+                <strong>Create a schedule</strong>
               </div>
+              <span className="badge badge-unknown">{schedules.length} schedules</span>
+            </div>
 
+            <section className="form-section">
+              <div className="form-section-header">
+                <strong>Recurring plan</strong>
+                <span>{assetId}</span>
+              </div>
               <div className="ssh-grid">
                 <label>
                   <span>Scheduled Asset</span>
@@ -105,83 +104,79 @@ export function ServiceWorkspace({
                   {isSavingSchedule ? "Saving..." : "Create Schedule"}
                 </button>
               </div>
-              <div className="inline-note">
-                <strong>Recurring plan</strong>
-                <span>The current target and template will run on each schedule.</span>
-              </div>
+            </section>
 
-              <p className="helper-text">
-                Assets with `verification-required` credentials should pass SSH verification before you depend on recurring schedules.
-              </p>
-
-              <DesktopDataTable
-                columns={[
-                  {
-                    key: "asset",
-                    header: "Asset",
-                    width: "minmax(220px, 1.3fr)",
-                    render: (schedule) => (
-                      <div className="data-table-primary">
-                        <strong>{schedule.asset.name}</strong>
-                        <span>{schedule.id}</span>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "plan",
-                    header: "Schedule",
-                    width: "minmax(220px, 1.2fr)",
-                    render: (schedule) => (
-                      <div className="data-table-primary">
-                        <strong>Every {schedule.intervalMinutes} min</strong>
-                        <span>Next {formatListDate(schedule.nextRunAt)}</span>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "status",
-                    header: "Last Result",
-                    width: "minmax(170px, 1fr)",
-                    render: (schedule) => (
-                      <div className="data-table-primary">
-                        <strong>{formatStatusLabel(schedule.lastRunStatus ?? "pending")}</strong>
-                        <span>{schedule.lastRunAt ? formatDateTime(schedule.lastRunAt) : "No run yet"}</span>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "actions",
-                    header: "Actions",
-                    width: "minmax(180px, 0.9fr)",
-                    render: (schedule) => (
-                      <div className="data-table-actions">
-                        <button className="secondary-button" onClick={() => onToggleSchedule(schedule)} type="button">
-                          {schedule.enabled ? "Disable" : "Enable"}
-                        </button>
-                        <button className="secondary-button" onClick={() => onDeleteSchedule(schedule.id)} type="button">
-                          Delete
-                        </button>
-                      </div>
-                    ),
-                  },
-                ]}
-                rows={schedules}
-                getRowKey={(schedule) => schedule.id}
-                isLoading={isRefreshingSchedules}
-                loadingTitle="Loading schedules"
-                loadingDetail="Fetching recurring inspection plans from the local service."
-                emptyTitle="No Local Schedules"
-                emptyDetail="Create the first recurring inspection after the asset and local runtime are ready."
-              />
+            <div className="inline-note">
+              <strong>Before you rely on schedules</strong>
+              <span>Assets with `verification-required` credentials should pass SSH verification first.</span>
             </div>
+          </div>
+
+          <div className="workflow-step-card runner-side-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">2</span>
+                <strong>Current schedules</strong>
+              </div>
+              <span className="badge badge-unknown">{schedules.length} total</span>
+            </div>
+
+            <DesktopDataTable
+              columns={[
+                {
+                  key: "asset",
+                  header: "Asset",
+                  width: "minmax(220px, 1.3fr)",
+                  render: (schedule) => (
+                    <div className="data-table-primary">
+                      <strong>{schedule.asset.name}</strong>
+                      <span>{schedule.id}</span>
+                    </div>
+                  ),
+                },
+                {
+                  key: "plan",
+                  header: "Schedule",
+                  width: "minmax(220px, 1.2fr)",
+                  render: (schedule) => (
+                    <div className="data-table-primary">
+                      <strong>Every {schedule.intervalMinutes} min</strong>
+                      <span>Next {formatListDate(schedule.nextRunAt)}</span>
+                    </div>
+                  ),
+                },
+                {
+                  key: "actions",
+                  header: "Actions",
+                  width: "minmax(180px, 0.9fr)",
+                  render: (schedule) => (
+                    <div className="data-table-actions">
+                      <button className="secondary-button" onClick={() => onToggleSchedule(schedule)} type="button">
+                        {schedule.enabled ? "Disable" : "Enable"}
+                      </button>
+                      <button className="secondary-button" onClick={() => onDeleteSchedule(schedule.id)} type="button">
+                        Delete
+                      </button>
+                    </div>
+                  ),
+                },
+              ]}
+              rows={schedules}
+              getRowKey={(schedule) => schedule.id}
+              isLoading={isRefreshingSchedules}
+              loadingTitle="Loading schedules"
+              loadingDetail="Fetching recurring inspection plans from the local service."
+              emptyTitle="No Local Schedules"
+              emptyDetail="Create the first recurring inspection after the target and local runtime are ready."
+            />
           </div>
         </section>
 
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Runtime</span>
-              <strong>Keep Local Runtime Healthy</strong>
+              <span className="workflow-step-index">3</span>
+              <strong>Keep the local runtime healthy</strong>
             </div>
             <span className={`badge badge-${serviceResponse?.snapshot.status === "ready" ? "pass" : "warning"}`}>
               {formatStatusLabel(serviceResponse?.snapshot.status ?? "unknown")}
@@ -190,7 +185,7 @@ export function ServiceWorkspace({
 
           <div className="service-runtime-panel">
             <div className="assets-panel-header">
-              <strong>Runtime Control</strong>
+              <strong>Runtime control</strong>
               <span>{formatStatusLabel(serviceResponse?.snapshot.status ?? "unknown")}</span>
             </div>
 
@@ -205,6 +200,7 @@ export function ServiceWorkspace({
               <button className="secondary-button" onClick={onStartLocalPostgres} type="button">Start PostgreSQL</button>
               <button className="secondary-button" onClick={onStopLocalPostgres} type="button">Stop PostgreSQL</button>
             </div>
+
             <div className="inline-note">
               <strong>Managed runtime</strong>
               <span>Keep the local service running if you want schedules, history, and exports to stay current.</span>

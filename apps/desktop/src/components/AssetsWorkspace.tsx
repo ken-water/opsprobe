@@ -39,188 +39,175 @@ export function AssetsWorkspace({
     <section className="run-panel">
       <DesktopSectionHeader
         eyebrow="Target"
-        title="Save For Reuse"
-        subtitle="Use this after the first preview is already correct."
+        title="Save this target"
+        subtitle="Do this only after the first preview is already trustworthy."
         actions={
           <div className="service-actions">
             <button className="secondary-button" onClick={onRefreshSavedAssets} type="button">
-              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Assets"}
+              {isRefreshingAssets ? "Refreshing..." : "Refresh Saved Targets"}
             </button>
             <button className="primary-button" onClick={onSaveCurrentAsset} type="button">
-              Save Current Asset
+              Save Current Target
             </button>
           </div>
         }
       />
 
       <div className="workflow-stack">
-        <section className="workflow-step-card">
-          <div className="workflow-step-header">
-            <div>
-              <span className="workflow-step-index">Saved</span>
-              <strong>Reuse A Target</strong>
-            </div>
-            <span className="badge badge-unknown">{savedAssets.length} saved</span>
-          </div>
-
-          <div className="assets-workspace assets-workspace-compact">
-            <div className="assets-list-panel">
-              <div className="assets-panel-header">
-                <strong>Saved Assets</strong>
-                <span>{savedAssets.length} total</span>
+        <section className="runner-focus-grid">
+          <div className="workflow-step-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">1</span>
+                <strong>Edit before saving</strong>
               </div>
-              <DesktopDataTable
-                columns={[
-                  {
-                    key: "name",
-                    header: "Asset",
-                    width: "minmax(220px, 1.4fr)",
-                    render: (savedAsset) => (
-                      <div className="data-table-primary">
-                        <strong>{savedAsset.name}</strong>
-                        <span>{savedAsset.id}</span>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "target",
-                    header: "Target",
-                    width: "minmax(160px, 1fr)",
-                    render: (savedAsset) => `${savedAsset.host}:${savedAsset.port}`,
-                  },
-                  {
-                    key: "auth",
-                    header: "Credential",
-                    width: "minmax(220px, 1.3fr)",
-                    render: (savedAsset) => (
-                      <div className="data-table-primary">
-                        <strong>{formatStatusLabel(savedAsset.credential.method)}</strong>
-                        <span>
-                          {savedAsset.credential.username}
-                          {savedAsset.credential.bindingStatus
-                            ? ` · ${formatStatusLabel(savedAsset.credential.bindingStatus)}`
-                            : ""}
-                        </span>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "updated",
-                    header: "Updated",
-                    width: "minmax(140px, 0.9fr)",
-                    render: (savedAsset) => formatDateTime(savedAsset.updatedAt),
-                  },
-                ]}
-                rows={savedAssets}
-                getRowKey={(savedAsset) => savedAsset.id}
-                onRowClick={onLoadAsset}
-                isRowActive={(savedAsset) => savedAsset.id === asset.id}
-                isLoading={isRefreshingAssets}
-                loadingTitle="Loading saved assets"
-                loadingDetail="Fetching reusable targets from the local workspace."
-                emptyTitle="No Saved Assets"
-                emptyDetail="Save the current asset to reuse it, migrate it, or schedule recurring inspections."
-              />
+              <span className="badge badge-unknown">{savedAssets.length} saved</span>
             </div>
 
-            <div className="assets-detail-panel">
-              <div className="history-detail-card">
-                <DesktopSectionHeader
-                  eyebrow="Selected Target"
-                  title={asset.name}
-                  subtitle="Edit the current target here."
-                  meta={
-                    <div className="summary-strip">
-                      <span>{asset.protocol.toUpperCase()}</span>
-                      <span>{formatDateTime(asset.updatedAt)}</span>
-                    </div>
+            <section className="form-section">
+              <div className="form-section-header">
+                <strong>Saved target details</strong>
+                <span>{asset.host}:{asset.port}</span>
+              </div>
+              <div className="ssh-grid">
+                <label>
+                  <span>Target Name</span>
+                  <input
+                    value={asset.name}
+                    onChange={(event) => onPatchAsset({ name: event.target.value })}
+                    placeholder="opsprobe-demo-host"
+                  />
+                </label>
+                <label>
+                  <span>Tags</span>
+                  <input
+                    value={asset.tags.join(", ")}
+                    onChange={(event) =>
+                      onPatchAsset({
+                        tags: event.target.value
+                          .split(",")
+                          .map((tag) => tag.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                    placeholder="demo, linux"
+                  />
+                </label>
+                <label>
+                  <span>Username</span>
+                  <input
+                    value={asset.credential.username}
+                    onChange={(event) => onPatchCredential({ username: event.target.value })}
+                    placeholder="root"
+                  />
+                </label>
+                <label>
+                  <span>Auth Method</span>
+                  <select
+                    value={asset.credential.method}
+                    onChange={(event) =>
+                      onPatchCredential({
+                        method: event.target.value as SshConnectionTestInput["authMethod"],
+                      })
+                    }
+                  >
+                    <option value="private-key">private-key</option>
+                    <option value="password">password</option>
+                  </select>
+                </label>
+              </div>
+              <label className="field-block field-block-inline">
+                <span>{asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}</span>
+                <input
+                  type={asset.credential.method === "password" ? "password" : "text"}
+                  value={asset.credential.secretRef}
+                  onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
+                  placeholder={
+                    asset.credential.method === "private-key"
+                      ? "/home/user/.ssh/id_rsa"
+                      : "Enter the SSH password used for this host."
                   }
                 />
+              </label>
+            </section>
 
-                <section className="form-section">
-                  <div className="form-section-header">
-                    <strong>Saved Record Metadata</strong>
-                    <span>{asset.host}:{asset.port}</span>
-                  </div>
-                  <div className="ssh-grid">
-                    <label>
-                      <span>Asset Name</span>
-                      <input
-                        value={asset.name}
-                        onChange={(event) => onPatchAsset({ name: event.target.value })}
-                        placeholder="opsprobe-demo-host"
-                      />
-                    </label>
-                    <label>
-                      <span>Tags</span>
-                      <input
-                        value={asset.tags.join(", ")}
-                        onChange={(event) =>
-                          onPatchAsset({
-                            tags: event.target.value
-                              .split(",")
-                              .map((tag) => tag.trim())
-                              .filter(Boolean),
-                          })
-                        }
-                        placeholder="demo, linux"
-                      />
-                    </label>
-                    <label>
-                      <span>Username</span>
-                      <input
-                        value={asset.credential.username}
-                        onChange={(event) => onPatchCredential({ username: event.target.value })}
-                        placeholder="root"
-                      />
-                    </label>
-                    <label>
-                      <span>Auth Method</span>
-                      <select
-                        value={asset.credential.method}
-                        onChange={(event) =>
-                          onPatchCredential({
-                            method: event.target.value as SshConnectionTestInput["authMethod"],
-                          })
-                        }
-                      >
-                        <option value="private-key">private-key</option>
-                        <option value="password">password</option>
-                      </select>
-                    </label>
-                  </div>
-                  <label className="field-block field-block-inline">
-                    <span>{asset.credential.method === "private-key" ? "Private Key Path" : "Password Secret"}</span>
-                    <input
-                      type={asset.credential.method === "password" ? "password" : "text"}
-                      value={asset.credential.secretRef}
-                      onChange={(event) => onPatchCredential({ secretRef: event.target.value })}
-                      placeholder={
-                        asset.credential.method === "private-key"
-                          ? "/home/user/.ssh/id_rsa"
-                          : "Enter the SSH password used for this host."
-                      }
-                    />
-                  </label>
-                </section>
-              </div>
+            <div className="inline-note">
+              <strong>Current record</strong>
+              <span>
+                {asset.protocol.toUpperCase()} · updated {formatDateTime(asset.updatedAt)}
+              </span>
             </div>
+          </div>
+
+          <div className="workflow-step-card runner-side-card">
+            <div className="workflow-step-header">
+              <div>
+                <span className="workflow-step-index">2</span>
+                <strong>Saved targets</strong>
+              </div>
+              <span className="badge badge-unknown">{savedAssets.length} total</span>
+            </div>
+
+            <DesktopDataTable
+              columns={[
+                {
+                  key: "name",
+                  header: "Target",
+                  width: "minmax(220px, 1.4fr)",
+                  render: (savedAsset) => (
+                    <div className="data-table-primary">
+                      <strong>{savedAsset.name}</strong>
+                      <span>{savedAsset.id}</span>
+                    </div>
+                  ),
+                },
+                {
+                  key: "target",
+                  header: "Host",
+                  width: "minmax(160px, 1fr)",
+                  render: (savedAsset) => `${savedAsset.host}:${savedAsset.port}`,
+                },
+                {
+                  key: "auth",
+                  header: "Credential",
+                  width: "minmax(220px, 1.3fr)",
+                  render: (savedAsset) => (
+                    <div className="data-table-primary">
+                      <strong>{formatStatusLabel(savedAsset.credential.method)}</strong>
+                      <span>
+                        {savedAsset.credential.username}
+                        {savedAsset.credential.bindingStatus ? ` · ${formatStatusLabel(savedAsset.credential.bindingStatus)}` : ""}
+                      </span>
+                    </div>
+                  ),
+                },
+              ]}
+              rows={savedAssets}
+              getRowKey={(savedAsset) => savedAsset.id}
+              onRowClick={onLoadAsset}
+              isRowActive={(savedAsset) => savedAsset.id === asset.id}
+              isLoading={isRefreshingAssets}
+              loadingTitle="Loading saved targets"
+              loadingDetail="Fetching reusable targets from the local workspace."
+              emptyTitle="No Saved Targets"
+              emptyDetail="Save the current target after the first preview is proven."
+            />
           </div>
         </section>
 
         <section className="workflow-step-card">
           <div className="workflow-step-header">
             <div>
-              <span className="workflow-step-index">Transfer</span>
-              <strong>Move To Another Machine</strong>
+              <span className="workflow-step-index">3</span>
+              <strong>Move to another machine</strong>
             </div>
             <span className="badge badge-unknown">optional</span>
           </div>
 
           <section className="form-section">
             <div className="form-section-header">
-              <strong>Transfer Package</strong>
-              <span>Optional</span>
+              <strong>Transfer package</strong>
+              <span>Secrets excluded</span>
             </div>
             <label className="field-block field-block-inline">
               <span>Migration File</span>
@@ -232,21 +219,17 @@ export function AssetsWorkspace({
             </label>
             <div className="service-actions">
               <button className="primary-button" onClick={onExportConfig} type="button">
-                {isExportingConfig ? "Exporting..." : "Export Local Config"}
+                {isExportingConfig ? "Exporting..." : "Export Config"}
               </button>
               <button className="secondary-button" onClick={onImportConfig} type="button">
-                {isImportingConfig ? "Importing..." : "Import Local Config"}
+                {isImportingConfig ? "Importing..." : "Import Config"}
               </button>
             </div>
           </section>
 
           <div className="helper-stack">
-            <p className="helper-text">
-              Exported packages exclude secret values.
-            </p>
-            <p className="helper-text">
-              After import, rebind credentials and rerun SSH verification before enabling schedules.
-            </p>
+            <p className="helper-text">Exported packages exclude secret values.</p>
+            <p className="helper-text">After import, rebind credentials and rerun SSH verification before enabling schedules.</p>
           </div>
         </section>
       </div>

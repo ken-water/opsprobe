@@ -391,14 +391,14 @@ test("keeps assets and service actions visibly responsive", async ({ page }) => 
 
   await nav.getByRole("button", { name: "Inspect" }).click();
   await page.getByRole("button", { name: /Save target/i }).click();
-  await page.getByRole("button", { name: "Save Current Asset" }).click();
+  await page.getByRole("button", { name: "Save Current Target" }).click();
   await expect(page.getByRole("status").getByText("Asset saved.")).toBeVisible();
-  await expect(page.locator(".assets-list-panel").getByText("1 total")).toBeVisible();
+  await expect(page.getByText("1 total")).toBeVisible();
 
-  await page.getByRole("button", { name: "Export Local Config" }).click();
+  await page.getByRole("button", { name: "Export Config" }).click();
   await expect(page.getByRole("status").getByText("Exported local config package.")).toBeVisible();
 
-  await page.getByRole("button", { name: "Import Local Config" }).click();
+  await page.getByRole("button", { name: "Import Config" }).click();
   await expect(
     page.getByRole("status").getByText(/Imported 1 assets, 2 templates, and 1 schedules from opsprobe-devbox/),
   ).toBeVisible();
@@ -471,7 +471,7 @@ test("keeps the main operator path visible from start to inspect to reports to s
   await expect(page.getByRole("button", { name: /Run now/i })).toBeVisible();
 
   await page.getByRole("button", { name: /Save target/i }).click();
-  await expect(page.getByRole("heading", { name: "Save For Reuse", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Save this target", level: 2 })).toBeVisible();
 
   await page.getByRole("navigation", { name: "Primary" }).getByRole("button", { name: /Reports/ }).click();
   await expect(page.getByRole("heading", { name: "Current Result", level: 2 })).toBeVisible();
@@ -479,5 +479,5 @@ test("keeps the main operator path visible from start to inspect to reports to s
 
   await page.getByRole("navigation", { name: "Primary" }).getByRole("button", { name: "System" }).click();
   await expect(page.getByRole("heading", { name: "Fix what blocks the first inspection", level: 2 })).toBeVisible();
-  await expect(page.getByText(/What to do after this page|System is no longer the bottleneck/)).toBeVisible();
+  await expect(page.getByText(/Do this next, then leave System|System is no longer the bottleneck/)).toBeVisible();
 });
