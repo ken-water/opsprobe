@@ -95,7 +95,7 @@ export function InspectionHubWorkspace({
 
         <aside className="hub-hero-side-card">
           <div className="hub-hero-side-block">
-            <span className="status-label">Current Status</span>
+            <span className="status-label">Can You Start?</span>
             <strong>{needsSystemRepair ? "Blocked by system issues" : readyForInspection ? "Ready to inspect" : "Ready to start"}</strong>
             <p>{runtimeSummary}</p>
           </div>
@@ -105,9 +105,9 @@ export function InspectionHubWorkspace({
             <div><span>Assets</span><strong>{assetCount}</strong></div>
           </div>
           <div className="hub-hero-side-block">
-            <span className="status-label">Latest Result</span>
-            <strong>{latestRun ? latestRun.id : "No inspection run yet"}</strong>
-            <p>{latestRun ? latestRunSummary : "Reports only matter after the first preview succeeds."}</p>
+            <span className="status-label">After You Succeed</span>
+            <strong>{latestRun ? "Latest result is available" : "No result yet"}</strong>
+            <p>{latestRun ? latestRunSummary : "Once one preview succeeds, come back for reports and reuse."}</p>
             {latestRun ? (
               <button className="secondary-button" onClick={onOpenResults} type="button">
                 Review Results
@@ -144,9 +144,9 @@ export function InspectionHubWorkspace({
       <section className="hub-grid">
         <article className="hub-card hub-card-emphasis">
           <DesktopSectionHeader
-            eyebrow="Before You Start"
-            title="Only three things matter"
-            subtitle="If these are clear, the first inspection path will be easy to finish."
+            eyebrow="Start Check"
+            title="Only check these before you click"
+            subtitle="If these are clear, the first inspection path should be straightforward."
           />
           <div className="hub-readiness-grid hub-readiness-grid-single">
             <div className="snapshot-tile">
@@ -171,38 +171,29 @@ export function InspectionHubWorkspace({
 
         <article className="hub-card">
           <DesktopSectionHeader
-            eyebrow="What Success Looks Like"
-            title="Stop after these three wins"
-            subtitle="If these are true, the first inspection path is working."
+            eyebrow="After Preview"
+            title="What to do after the first success"
+            subtitle="Do not branch into extra setup until these outcomes are clear."
           />
           <div className="hub-step-list">
             <div className="hub-step-button">
-              <strong>One target can connect over SSH</strong>
-              <span>The preview must succeed before you spend time saving assets, tuning schedules, or exporting anything.</span>
+              <strong>1. Confirm the SSH path is repeatable</strong>
+              <span>The first preview should prove the local machine, credential, and target all work together.</span>
             </div>
             <div className="hub-step-button">
-              <strong>One result is easy to read</strong>
-              <span>You should be able to tell pass, warning, and critical findings without opening extra screens to decode them.</span>
+              <strong>2. Read the result without extra decoding</strong>
+              <span>You should be able to spot pass, warning, and critical findings immediately.</span>
             </div>
             <div className="hub-step-button">
-              <strong>Only then save and automate</strong>
-              <span>After the first path works once, save the target for reuse and come back later for recurring runs and reporting.</span>
+              <strong>3. Save and automate only after that</strong>
+              <span>Reuse, schedules, and exports come after one manual inspection already feels trustworthy.</span>
             </div>
           </div>
-        </article>
-
-        <article className="hub-card">
-          <DesktopSectionHeader
-            eyebrow="Workspace"
-            title="Current workspace"
-            subtitle="Reference only. Do not leave the first inspection path just to fill these numbers."
-          />
-          <div className="hub-kpi-list">
-            <div><span>Saved assets</span><strong>{assetCount}</strong></div>
-            <div><span>Run history</span><strong>{historyCount}</strong></div>
-            <div><span>Schedules</span><strong>{scheduleCount}</strong></div>
+          <div className="hub-outcome-note">
+            <strong>Current context</strong>
+            <span>{`Saved assets ${assetCount} · History ${historyCount} · Schedules ${scheduleCount}`}</span>
           </div>
-          <p className="helper-text">
+          <p className="helper-text hub-outcome-copy">
             {showingDemoExperience
               ? "Demo data is active for safe exploration."
               : latestRun

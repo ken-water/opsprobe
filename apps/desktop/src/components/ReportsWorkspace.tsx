@@ -13,9 +13,9 @@ export function ReportsWorkspace({
   return (
     <section className="run-panel">
       <DesktopSectionHeader
-        eyebrow="Report Mode"
-        title="Export this result"
-        subtitle="Choose who will read it, then export from the current result view."
+        eyebrow="Reports"
+        title="Choose who will read this result"
+        subtitle="Pick the reader here, then export from the current result view."
         meta={
           <div className="summary-strip">
             <span>Audience {reportAudience}</span>
@@ -24,62 +24,51 @@ export function ReportsWorkspace({
       />
 
       <div className="reports-workspace">
-        <div className="reports-config-panel">
-          <article className="service-card reports-mode-card reports-mode-card-active">
+        <div className="reports-mode-grid reports-mode-grid-simple">
+          <article className="service-card reports-mode-card">
             <div className="service-card-header">
-              <strong>Current export mode</strong>
-              <span className="badge badge-pass">{reportAudience === "operator" ? "operator" : "manager"}</span>
-            </div>
-            <div className="inline-note">
-              <strong>{reportAudience === "operator" ? "Operator mode" : "Manager mode"}</strong>
-              <span>
-                {reportAudience === "operator"
-                  ? "Keep detailed evidence and explicit remediation for the person repairing the issue."
-                  : "Keep the summary short, decision-oriented, and focused on risk and next action."}
+              <strong>Operator report</strong>
+              <span className={`badge badge-${reportAudience === "operator" ? "pass" : "unknown"}`}>
+                {reportAudience === "operator" ? "selected" : "available"}
               </span>
             </div>
-            <p className="helper-text">This choice applies to both HTML and PDF export for the selected run.</p>
+            <p>Use this when the reader will investigate evidence and make the repair.</p>
+            <button
+              className={reportAudience === "operator" ? "primary-button" : "secondary-button"}
+              onClick={() => setReportAudience("operator")}
+              type="button"
+            >
+              {reportAudience === "operator" ? "Operator Mode Active" : "Use Operator Mode"}
+            </button>
+          </article>
+
+          <article className="service-card reports-mode-card">
+            <div className="service-card-header">
+              <strong>Manager report</strong>
+              <span className={`badge badge-${reportAudience === "manager" ? "pass" : "unknown"}`}>
+                {reportAudience === "manager" ? "selected" : "available"}
+              </span>
+            </div>
+            <p>Use this when the reader only needs risk, priority, and what should happen next.</p>
+            <button
+              className={reportAudience === "manager" ? "primary-button" : "secondary-button"}
+              onClick={() => setReportAudience("manager")}
+              type="button"
+            >
+              {reportAudience === "manager" ? "Manager Mode Active" : "Use Manager Mode"}
+            </button>
           </article>
         </div>
-
-        <div className="reports-side-panel">
-          <div className="reports-mode-grid">
-            <article className="service-card reports-mode-card">
-              <div className="service-card-header">
-                <strong>Operator report</strong>
-                <span className={`badge badge-${reportAudience === "operator" ? "pass" : "unknown"}`}>
-                  {reportAudience === "operator" ? "selected" : "available"}
-                </span>
-              </div>
-              <p>Use this when the reader will investigate evidence and make the repair.</p>
-              <button
-                className={reportAudience === "operator" ? "primary-button" : "secondary-button"}
-                onClick={() => setReportAudience("operator")}
-                type="button"
-              >
-                {reportAudience === "operator" ? "Operator Mode Active" : "Use Operator Mode"}
-              </button>
-            </article>
-
-            <article className="service-card reports-mode-card">
-              <div className="service-card-header">
-                <strong>Manager report</strong>
-                <span className={`badge badge-${reportAudience === "manager" ? "pass" : "unknown"}`}>
-                  {reportAudience === "manager" ? "selected" : "available"}
-                </span>
-              </div>
-              <p>Use this when the reader only needs risk, priority, and what should happen next.</p>
-              <button
-                className={reportAudience === "manager" ? "primary-button" : "secondary-button"}
-                onClick={() => setReportAudience("manager")}
-                type="button"
-              >
-                {reportAudience === "manager" ? "Manager Mode Active" : "Use Manager Mode"}
-              </button>
-            </article>
-          </div>
-        </div>
       </div>
+
+      <article className="history-side-card reports-current-note">
+        <strong>{reportAudience === "operator" ? "Operator mode keeps evidence first." : "Manager mode keeps decisions first."}</strong>
+        <p>
+          {reportAudience === "operator"
+            ? "HTML and PDF exports keep detailed evidence and explicit remediation for the person fixing the issue."
+            : "HTML and PDF exports stay shorter and more decision-oriented for stakeholders who only need risk and next action."}
+        </p>
+      </article>
 
       <article className="history-side-card reports-feedback-card">
         <h3>Need another report shape?</h3>

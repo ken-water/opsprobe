@@ -188,7 +188,7 @@ describe("desktop app shell", () => {
     expect(screen.getAllByRole("heading").some((heading) => heading.textContent?.trim() === "History And Comparison")).toBe(true);
     expect(screen.getByText("Current Conclusion")).toBeTruthy();
     expect(screen.getByText("Result Snapshot")).toBeTruthy();
-    expect(screen.getByText("Export this result")).toBeTruthy();
+    expect(screen.getByText("Choose who will read this result")).toBeTruthy();
   });
 
   it("keeps the primary operator path visible across start inspect and reports", async () => {
@@ -201,14 +201,14 @@ describe("desktop app shell", () => {
 
     expect(screen.getByText("Start Here")).toBeTruthy();
     expect(screen.getByText("Run the first real inspection path")).toBeTruthy();
-    expect(screen.getByText("Only three things matter")).toBeTruthy();
+    expect(screen.getByText("Only check these before you click")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Start First Inspection" })).toBeTruthy();
-    expect(screen.getByText("Stop after these three wins")).toBeTruthy();
+    expect(screen.getByText("What to do after the first success")).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Start First Inspection" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Run the first inspection")).toBeTruthy();
+      expect(screen.getByText("First inspection path")).toBeTruthy();
     });
     expect(screen.getByText("Run one inspection from start to finish")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Run now/i })).toBeTruthy();

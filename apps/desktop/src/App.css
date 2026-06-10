@@ -348,6 +348,11 @@ body {
   margin-bottom: 10px;
 }
 
+.inspect-stage-intro-compact {
+  display: grid;
+  gap: 12px;
+}
+
 .inspect-stage-copy {
   margin-top: 8px;
   max-width: 760px;
@@ -363,6 +368,10 @@ body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.inspect-mode-switch-inline {
+  align-items: stretch;
 }
 
 .inspect-mode-switch-secondary {
@@ -875,6 +884,25 @@ body {
   gap: 18px;
 }
 
+.hub-outcome-note {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(10, 18, 30, 0.56);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.hub-outcome-note strong {
+  color: var(--ops-text-strong);
+}
+
+.hub-outcome-note span,
+.hub-outcome-copy {
+  color: var(--ops-text-muted);
+}
+
 .hub-card {
   padding: 22px;
   border-radius: var(--ops-radius-panel);
@@ -963,6 +991,25 @@ body {
 
 .hub-step-button {
   border: 0;
+}
+
+.reports-mode-grid-simple {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reports-current-note {
+  margin-top: 18px;
+}
+
+.reports-current-note strong {
+  display: block;
+  color: var(--ops-text-strong);
+}
+
+.reports-current-note p {
+  margin: 10px 0 0;
+  color: var(--ops-text-muted);
+  line-height: 1.6;
 }
 
 .ops-snapshot-grid {
@@ -2419,6 +2466,7 @@ button.data-table-row {
   .runner-workspace,
   .reports-workspace,
   .reports-mode-grid,
+  .reports-mode-grid-simple,
   .assets-workspace,
   .service-workspace {
     grid-template-columns: 1fr;

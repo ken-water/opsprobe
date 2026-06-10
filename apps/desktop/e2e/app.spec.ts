@@ -338,11 +338,10 @@ test("switches report audience and exports the selected history run with visible
   const nav = page.getByRole("navigation", { name: "Primary" });
 
   await nav.getByRole("button", { name: /Reports/ }).click();
-  const reportsPanel = page.locator(".reports-config-panel");
-  await expect(page.getByRole("heading", { name: "Export this result", level: 2 })).toBeVisible();
-  await expect(reportsPanel.getByText("Current export mode")).toBeVisible();
+  const reportsPanel = page.locator(".reports-workspace");
+  await expect(page.getByRole("heading", { name: "Choose who will read this result", level: 2 })).toBeVisible();
   await page.getByRole("button", { name: "Use Manager Mode" }).click();
-  await expect(reportsPanel.locator(".inline-note").getByText("Manager mode", { exact: true })).toBeVisible();
+  await expect(page.locator(".reports-current-note").getByText("Manager mode keeps decisions first.")).toBeVisible();
 
   await nav.getByRole("button", { name: "System" }).click();
   await page.getByRole("button", { name: "Switch to Real Setup" }).first().click();
@@ -366,7 +365,7 @@ test("shows immediate runner feedback for ssh test and preview refresh", async (
   const nav = page.getByRole("navigation", { name: "Primary" });
 
   await nav.getByRole("button", { name: "Inspect" }).click();
-  await expect(page.getByText("Run the first inspection")).toBeVisible();
+  await expect(page.getByText("First inspection path")).toBeVisible();
 
   await page.getByRole("button", { name: "Test SSH Connection" }).click();
   await expect(page.getByText("Workspace Update")).toBeVisible();
@@ -465,7 +464,7 @@ test("keeps the main operator path visible from start to inspect to reports to s
 
   await expect(page.locator(".hub-actions").getByRole("button", { name: /Open Inspect|Start First Inspection/ })).toBeVisible();
   await page.locator(".hub-actions").getByRole("button", { name: /Open Inspect|Start First Inspection/ }).click();
-  await expect(page.getByText("Run the first inspection")).toBeVisible();
+  await expect(page.getByText("First inspection path")).toBeVisible();
   await expect(page.getByRole("button", { name: /Run now/i })).toBeVisible();
 
   await page.getByRole("button", { name: /Save target/i }).click();

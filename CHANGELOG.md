@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning with a product-oriented release policy documented in [docs/versioning.md](./docs/versioning.md).
 
+## [0.11.3] - 2026-06-10
+
+### Changed
+
+- simplified the `Start` workspace further so it now emphasizes one launch action, one compact readiness check, and one short post-preview follow-up block instead of multiple competing reference sections
+- tightened the `Inspect` entry strip into a clearer `Now` versus `Later` split so first-time operators see the manual inspection path before reuse and automation options
+- reduced duplicated explanation in `Reports` by removing the extra current-mode card and keeping one audience choice surface plus one concise export note
+
+### Fixed
+
+- aligned desktop unit and browser UI coverage to the new `0.11.3` workspace wording and operator path structure
+- kept the active patch version contiguous by moving the repository metadata and desktop package versions to `0.11.3` before continuing UX work
+
 ## [0.11.2] - 2026-06-10
 
 ### Changed
@@ -611,3 +624,9 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Tauri desktop application bootstrap for the open source edition
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
+
+## [0.11.3] - Unreleased
+
+### Planned
+
+- continue the active development checkpoint line

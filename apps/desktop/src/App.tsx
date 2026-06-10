@@ -1431,7 +1431,7 @@ function App() {
             <strong>{showingDemoExperience ? "Demo" : "Real"}</strong>
           </div>
           <div className="sidebar-footer-note">{sidebarStatusLabel}</div>
-          <div className="sidebar-footer-meta">v0.11.2</div>
+          <div className="sidebar-footer-meta">v0.11.3</div>
         </div>
       </aside>
 
@@ -1485,34 +1485,31 @@ function App() {
           {activeWorkspace === "assets-strategy" ? (
             <>
               <section className="inspect-shell">
-                <div className="inspect-stage-intro">
-                  <h3>Run the first inspection</h3>
-                  <p className="helper-text inspect-stage-copy">
-                    Stay in step 1 until SSH succeeds and one preview result is readable. Save targets and automation come after that.
-                  </p>
-                </div>
-                <div className="inspect-mode-switch" aria-label="Inspect entry">
-                  <button
-                    className={`inspect-mode-button ${activeInspectSection === "run" ? "inspect-mode-button-active" : ""}`}
-                    onClick={() => handleInspectSectionChange("run")}
-                    type="button"
-                  >
-                    <span className="inspect-mode-step">1</span>
-                    <span>
-                      <strong>Run now</strong>
-                      <small>Enter one target, test SSH, and prove one preview.</small>
-                    </span>
-                  </button>
-                </div>
-                <div className="inspect-follow-up">
-                  <span className="inspect-follow-up-label">After the first preview succeeds</span>
-                  <div className="inspect-mode-switch inspect-mode-switch-secondary" aria-label="After the first inspection">
+                <div className="inspect-stage-intro inspect-stage-intro-compact">
+                  <div>
+                    <h3>First inspection path</h3>
+                    <p className="helper-text inspect-stage-copy">
+                      Finish one manual inspection first. Save targets and automation are follow-up steps.
+                    </p>
+                  </div>
+                  <div className="inspect-mode-switch inspect-mode-switch-inline" aria-label="Inspect entry">
+                    <button
+                      className={`inspect-mode-button ${activeInspectSection === "run" ? "inspect-mode-button-active" : ""}`}
+                      onClick={() => handleInspectSectionChange("run")}
+                      type="button"
+                    >
+                      <span className="inspect-mode-step">Now</span>
+                      <span>
+                        <strong>Run now</strong>
+                        <small>Enter one target, test SSH, and prove one preview.</small>
+                      </span>
+                    </button>
                     <button
                       className={`inspect-mode-button ${activeInspectSection === "assets" ? "inspect-mode-button-active" : ""}`}
                       onClick={() => handleInspectSectionChange("assets")}
                       type="button"
                     >
-                      <span className="inspect-mode-step">2</span>
+                      <span className="inspect-mode-step">Later</span>
                       <span>
                         <strong>Save target</strong>
                         <small>Keep this working target for reuse and machine transfer.</small>
@@ -1523,19 +1520,19 @@ function App() {
                       onClick={() => handleInspectSectionChange("automation")}
                       type="button"
                     >
-                      <span className="inspect-mode-step">3</span>
+                      <span className="inspect-mode-step">Later</span>
                       <span>
                         <strong>Automate later</strong>
                         <small>Only schedule recurring runs after the first manual result is trusted.</small>
                       </span>
                     </button>
                   </div>
-                  {!inspectionFlowReady ? (
-                    <p className="helper-text inspect-follow-up-note">
-                      These are follow-up steps. You can open them now, but they only become reliable after one SSH verification and one preview result succeed.
-                    </p>
-                  ) : null}
                 </div>
+                {!inspectionFlowReady ? (
+                  <p className="helper-text inspect-follow-up-note">
+                    If you open the later steps early, treat them as preparation only. The real proof is one SSH success and one readable preview result.
+                  </p>
+                ) : null}
               </section>
               {activeInspectSection === "run" ? (
                 <section className="inspect-primary-stage">
