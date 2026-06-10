@@ -818,7 +818,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - Initial placeholder package layout for `core`, `runner`, `checks`, `report`, and `shared`
 - Initial release planning and issue mapping for versions `0.1.0` through `0.5.0`
 
-## [0.12.5] - Unreleased
+## [0.12.6] - Unreleased
 
 ### Changed
 
